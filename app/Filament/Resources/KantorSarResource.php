@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\BekalResource\Pages;
-use App\Filament\Resources\BekalResource\RelationManagers;
-use App\Models\Bekal;
+use App\Filament\Resources\KantorSarResource\Pages;
+use App\Filament\Resources\KantorSarResource\RelationManagers;
+use App\Models\KantorSar;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,45 +13,35 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class BekalResource extends Resource
+class KantorSarResource extends Resource
 {
-    protected static ?string $model = Bekal::class;
+    protected static ?string $model = KantorSar::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     protected static ?string $navigationGroup = 'Master';
 
-    protected static ?string $navigationLabel = 'Bekal';
+    protected static ?string $navigationLabel = 'Kantor SAR';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
-    protected static ?string $slug = 'bekal';
+    protected static ?string $slug = 'kantor-sar';
 
     public static function getModelLabel(): string
     {
-        return 'Bekal'; // Singular name
+        return 'Kantor SAR'; // Singular name
     }
 
     public static function getPluralModelLabel(): string
     {
-        return 'Daftar Bekal';
+        return 'Daftar Kantor Sar';
     }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('golongan_bbm_id')
-                    ->relationship(name: 'golonganBbm', titleAttribute: 'golongan')
-                    ->searchable()
-                    ->preload()
-                    ->required(),
-                Forms\Components\Select::make('satuan_id')
-                    ->relationship(name: 'satuan', titleAttribute: 'satuan')
-                    ->searchable()
-                    ->preload()
-                    ->required(),
-                Forms\Components\TextInput::make('bekal')
+                Forms\Components\TextInput::make('kantor_sar')
                     ->required()
                     ->maxLength(50),
             ]);
@@ -61,20 +51,8 @@ class BekalResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('golonganBbm.golongan')
-                    ->label('Golongan BBM')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('satuan.satuan')
-                    ->label('Satuan')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('bekal')
+                Tables\Columns\TextColumn::make('kantor_sar')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -109,9 +87,9 @@ class BekalResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListBekals::route('/'),
-            'create' => Pages\CreateBekal::route('/create'),
-            'edit' => Pages\EditBekal::route('/{record}/edit'),
+            'index' => Pages\ListKantorSars::route('/'),
+            'create' => Pages\CreateKantorSar::route('/create'),
+            'edit' => Pages\EditKantorSar::route('/{record}/edit'),
         ];
     }
 

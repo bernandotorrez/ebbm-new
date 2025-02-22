@@ -27,7 +27,7 @@ class EditGolonganBbm extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
-    protected function mutateFormDataBeforeCreate(array $data): array
+    protected function mutateFormDataBeforeSave(array $data): array
     {
         // Apply ucwords() to the 'bekal' field before saving
         $data['golongan'] = ucwords($data['golongan']);

@@ -28,6 +28,8 @@ return new class extends Migration
             ->cascadeOnUpdate();
             $table->softDeletes();
             $table->timestamps();
+
+            $table->unique(['satuan_id', 'golongan_bbm_id', 'bekal'], 'unique_bekal');
         });
     }
 

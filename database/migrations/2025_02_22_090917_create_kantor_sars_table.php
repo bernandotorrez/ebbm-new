@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('golongan_bbms', function (Blueprint $table) {
-            $table->id('golongan_bbm_id');
-            $table->string('golongan', 50)->unique('unique_golongan');
+        Schema::create('kantor_sars', function (Blueprint $table) {
+            $table->id('kantor_sar_id');
+            $table->string('kantor_sar', 50)->unique('unique_kantor_sar');
             $table->softDeletes();
             $table->timestamps();
         });
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('golongan_bbms');
+        Schema::dropIfExists('kantor_sars');
     }
 };

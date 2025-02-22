@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Filament\Resources\SatuanResource\Pages;
+namespace App\Filament\Resources\KantorSarResource\Pages;
 
-use App\Filament\Resources\SatuanResource;
-use App\Models\Satuan;
+use App\Filament\Resources\KantorSarResource;
+use App\Models\KantorSar;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 
-class EditSatuan extends EditRecord
+class EditKantorSar extends EditRecord
 {
-    protected static string $resource = SatuanResource::class;
+    protected static string $resource = KantorSarResource::class;
 
     protected function getHeaderActions(): array
     {
@@ -30,7 +30,7 @@ class EditSatuan extends EditRecord
     protected function mutateFormDataBeforeSave(array $data): array
     {
         // Apply ucwords() to the 'bekal' field before saving
-        $data['satuan'] = ucwords($data['satuan']);
+        $data['kantor_sar'] = ucwords($data['kantor_sar']);
 
         return $data;
     }
@@ -38,19 +38,19 @@ class EditSatuan extends EditRecord
     protected function beforeSave(): void
     {
         // Get input values
-        $id = $this->data['satuan_id'] ?? null;
-        $satuan = $this->data['satuan'] ?? null;
+        $id = $this->data['kantor_sar_id'] ?? null;
+        $kantorSar = $this->data['kantor_sar'] ?? null;
 
         // Check if the same record exists
-        $exists = Satuan::where('satuan', ucwords($satuan))
-            ->where('satuan_id', '!=', $id) // Exclude the current record
+        $exists = KantorSar::where('kantor_sar', ucwords($kantorSar))
+            ->where('kantor_sar_id', '!=', $id)
             ->exists();
 
         if ($exists) {
             // Show Filament error notification
             Notification::make()
                 ->title('Error!')
-                ->body('Satuan "'.ucwords($satuan).'" sudah ada')
+                ->body('Kantor SAR "'.ucwords($kantorSar).'" sudah ada')
                 ->danger()
                 ->send();
 
