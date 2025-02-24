@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('bekals', function (Blueprint $table) {
             $table->id('bekal_id');
-            $table->unsignedBigInteger('golongan_bbm_id');
-            $table->unsignedBigInteger('satuan_id');
-            $table->string('bekal', 50);
+            $table->unsignedBigInteger('golongan_bbm_id')->index('idx_golongan_bbm_id');
+            $table->unsignedBigInteger('satuan_id')->index('idx_satuan_id');
+            $table->string('bekal', 50)->index('idx_bekal');
             $table->foreign('satuan_id')
             ->references('satuan_id')
             ->on('satuans')
@@ -28,8 +28,6 @@ return new class extends Migration
             ->cascadeOnUpdate();
             $table->softDeletes();
             $table->timestamps();
-
-            $table->unique(['satuan_id', 'golongan_bbm_id', 'bekal'], 'unique_bekal');
         });
     }
 

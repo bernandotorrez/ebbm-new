@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('golongan_bbms', function (Blueprint $table) {
             $table->id('golongan_bbm_id');
-            $table->string('golongan', 50)->unique('unique_golongan');
+            $table->string('golongan', 50)->index('idx_golongan');
             $table->softDeletes();
             $table->timestamps();
         });

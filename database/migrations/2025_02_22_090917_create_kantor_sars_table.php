@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('kantor_sars', function (Blueprint $table) {
             $table->id('kantor_sar_id');
-            $table->string('kantor_sar', 50)->unique('unique_kantor_sar');
+            $table->string('kantor_sar', 50)->index('idx_kantor_sar');
             $table->softDeletes();
             $table->timestamps();
         });
