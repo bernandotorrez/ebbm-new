@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\BekalResource\Pages;
-use App\Filament\Resources\BekalResource\RelationManagers;
-use App\Models\Bekal;
+use App\Filament\Resources\TbbmResource\Pages;
+use App\Filament\Resources\TbbmResource\RelationManagers;
+use App\Models\Tbbm;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -14,47 +14,52 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class BekalResource extends Resource
+class TbbmResource extends Resource
 {
-    protected static ?string $model = Bekal::class;
+    protected static ?string $model = Tbbm::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     protected static ?string $navigationGroup = 'Master';
 
-    protected static ?string $navigationLabel = 'Bekal';
+    protected static ?string $navigationLabel = 'TBBM/DDPU';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 6;
 
-    protected static ?string $slug = 'bekal';
+    protected static ?string $slug = 'tbbm';
 
     public static function getModelLabel(): string
     {
-        return 'Bekal'; // Singular name
+        return 'TBBM/DDPU'; // Singular name
     }
 
     public static function getPluralModelLabel(): string
     {
-        return 'Daftar Bekal';
+        return 'Daftar TBBM/DDPU';
     }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('golongan_bbm_id')
-                    ->relationship(name: 'golonganBbm', titleAttribute: 'golongan')
+                Forms\Components\Select::make('kota_id')
+                    ->relationship(name: 'kota', titleAttribute: 'kota')
                     ->searchable()
                     ->preload()
                     ->required(),
-                Forms\Components\Select::make('satuan_id')
-                    ->relationship(name: 'satuan', titleAttribute: 'satuan')
-                    ->searchable()
-                    ->preload()
-                    ->required(),
-                Forms\Components\TextInput::make('bekal')
+                Forms\Components\TextInput::make('plant')
+                    ->required()
+                    ->maxLength(4),
+                Forms\Components\TextInput::make('depot')
                     ->required()
                     ->maxLength(50),
+                Forms\Components\TextInput::make('pbbkb')
+                    ->required()
+                    ->numeric(),
+                Forms\Components\TextInput::make('ship_to')
+                    ->required()
+                    ->mask('999999')
+                    ->maxLength(6),
             ]);
     }
 
@@ -62,20 +67,19 @@ class BekalResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('golonganBbm.golongan')
-                    ->label('Golongan BBM')
+                Tables\Columns\TextColumn::make('kota.kota')
+                    ->label('Kota')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('satuan.satuan')
-                    ->label('Satuan')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('bekal')
+                Tables\Columns\TextColumn::make('plant')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('depot')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('pbbkb')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('ship_to')
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -86,14 +90,10 @@ class BekalResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('golongan_bbm_id')
-                ->label('Golongan BBM')
-                ->relationship('golonganBbm', 'golongan') // Relasi ke Golongan BBM
+                SelectFilter::make('kota_id')
+                ->label('Kota')
+                ->relationship('kota', 'kota') // Relasi ke Golongan BBM
                 ->preload(), // Untuk memuat data otomatis di dropdown
-                SelectFilter::make('satuan_id')
-                ->label('Satuan')
-                ->relationship('satuan', 'satuan')
-                ->preload(),
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
@@ -118,9 +118,9 @@ class BekalResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListBekals::route('/'),
-            'create' => Pages\CreateBekal::route('/create'),
-            'edit' => Pages\EditBekal::route('/{record}/edit'),
+            'index' => Pages\ListTbbms::route('/'),
+            'create' => Pages\CreateTbbm::route('/create'),
+            'edit' => Pages\EditTbbm::route('/{record}/edit'),
         ];
     }
 
