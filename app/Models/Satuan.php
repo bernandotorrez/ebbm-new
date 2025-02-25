@@ -10,6 +10,7 @@ class Satuan extends Model
     use SoftDeletes;
 
     protected $table = 'satuans';
+
     protected $primaryKey = 'satuan_id';
 
     protected $fillable = [
