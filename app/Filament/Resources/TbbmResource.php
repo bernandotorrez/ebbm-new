@@ -18,7 +18,7 @@ class TbbmResource extends Resource
 {
     protected static ?string $model = Tbbm::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-queue-list';
 
     protected static ?string $navigationGroup = 'Master';
 

@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\KantorSarResource\Pages;
-use App\Filament\Resources\KantorSarResource\RelationManagers;
-use App\Models\KantorSar;
+use App\Filament\Resources\PosSandarResource\Pages;
+use App\Filament\Resources\PosSandarResource\RelationManagers;
+use App\Models\PosSandar;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,37 +13,38 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class KantorSarResource extends Resource
+class PosSandarResource extends Resource
 {
-    protected static ?string $model = KantorSar::class;
+    protected static ?string $model = PosSandar::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
+    protected static ?string $navigationIcon = 'heroicon-o-truck';
 
     protected static ?string $navigationGroup = 'Master';
 
-    protected static ?string $navigationLabel = 'Kantor SAR';
+    protected static ?string $navigationLabel = 'Pos Sandar';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 7;
 
-    protected static ?string $slug = 'kantor-sar';
+    protected static ?string $slug = 'pos_sandar';
 
     public static function getModelLabel(): string
     {
-        return 'Kantor SAR'; // Singular name
+        return 'Pos Sandar'; // Singular name
     }
 
     public static function getPluralModelLabel(): string
     {
-        return 'Daftar Kantor Sar';
+        return 'Daftar Pos Sandar';
     }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('kantor_sar')
+                Forms\Components\TextInput::make('pos_sandar')
+                    ->label('Pos Sandar')
                     ->required()
-                    ->maxLength(50),
+                    ->maxLength(100),
             ]);
     }
 
@@ -51,8 +52,12 @@ class KantorSarResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('kantor_sar')
+                Tables\Columns\TextColumn::make('pos_sandar')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('deleted_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -87,9 +92,9 @@ class KantorSarResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListKantorSars::route('/'),
-            'create' => Pages\CreateKantorSar::route('/create'),
-            'edit' => Pages\EditKantorSar::route('/{record}/edit'),
+            'index' => Pages\ListPosSandars::route('/'),
+            'create' => Pages\CreatePosSandar::route('/create'),
+            'edit' => Pages\EditPosSandar::route('/{record}/edit'),
         ];
     }
 
