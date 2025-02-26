@@ -18,7 +18,7 @@ class AlpalResource extends Resource
 {
     protected static ?string $model = Alpal::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-paper-airplane';
 
     protected static ?string $navigationGroup = 'Master';
 
