@@ -9,6 +9,7 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -66,6 +67,7 @@ class AlpalResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('alpal')
                     ->required()
+                    ->label('Nama Kapal/No.Reg Pesawat')
                     ->maxLength(100),
                 Forms\Components\TextInput::make('ukuran')
                     ->required()
@@ -86,24 +88,31 @@ class AlpalResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('kantor_sar_id')
+                Tables\Columns\TextColumn::make('kantorSar.kantor_sar')
                     ->numeric()
+                    ->label('Kantor SAR')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('tbbm_id')
-                    ->numeric()
+                Tables\Columns\TextColumn::make('tbbm.depot')
+                    ->formatStateUsing(fn ($record) => "{$record->tbbm->depot} - {$record->tbbm->kota?->kota}")
+                    ->label('TBBM/DDPU')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('pos_sandar_id')
+                Tables\Columns\TextColumn::make('posSandar.pos_sandar')
                     ->numeric()
+                    ->label('Pos Sandar')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('alpal')
+                    ->label('Nama Kapal/No.Reg Pesawat')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('ukuran')
+                    ->label('Ukuran (m)')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('kapasitas')
+                    ->label('Kapasitas (ltr)')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('rob')
+                    ->label('ROB (ltr)')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('deleted_at')
@@ -120,6 +129,19 @@ class AlpalResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                SelectFilter::make('kantor_sar_id')
+                    ->label('Kantor Sar')
+                    ->relationship('kantorSar', 'kantor_sar') // Relasi ke Golongan BBM
+                    ->preload(),
+                SelectFilter::make('tbbm_id')
+                    ->label('TBBM/DDPU')
+                    ->relationship('tbbm', 'depot', modifyQueryUsing: fn ($query) => $query->with('kota'))
+                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->depot} - {$record->kota?->kota}")
+                    ->preload(),
+                SelectFilter::make('pos_sandar_id')
+                    ->label('Pos Sandar')
+                    ->relationship('posSandar', 'pos_sandar') // Relasi ke Golongan BBM
+                    ->preload(),
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([

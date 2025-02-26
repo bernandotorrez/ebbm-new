@@ -5,6 +5,7 @@ namespace App\Filament\Resources\AlpalResource\Pages;
 use App\Filament\Resources\AlpalResource;
 use App\Models\Alpal;
 use App\Models\KantorSar;
+use App\Models\PosSandar;
 use App\Models\Satuan;
 use App\Models\Tbbm;
 use Filament\Actions;
@@ -18,7 +19,7 @@ class CreateAlpal extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         // Apply ucwords() to the 'bekal' field before saving
-        $data['alpal'] = ucwords($data['alpal']);
+        $data['alpal'] = strtoupper($data['alpal']);
 
         return $data;
     }
@@ -41,16 +42,16 @@ class CreateAlpal extends CreateRecord
         $exists = Alpal::where('kantor_sar_id', $kantorSarId)
             ->where('tbbm_id', $tbbmId)
             ->where('pos_sandar_id', $posSandarId)
-            ->where('alpal', ucwords($alpal))
+            ->where('alpal', strtoupper($alpal))
             ->exists();
 
         if ($exists) {
             // Show Filament error notification
             $dataKantorSar = KantorSar::find($kantorSarId);
             $dataTbbm = Tbbm::find($tbbmId);
-            $dataPosSandar = Tbbm::find($kantorSarId);
+            $dataPosSandar = PosSandar::find($posSandarId);
 
-            $message = 'Alpal "'.ucwords($alpal).'" dan Kantor SAR "'.$dataKantorSar->kantor.'" dan Satuan "'.ucwords($dataTbbm->depot).'" sudah ada';
+            $message = 'Nama Kapal/No.Reg Pesawat "'.strtoupper($alpal).'" untuk Kantor SAR "'.ucwords($dataKantorSar->kantor_sar).'", TBBM "'.ucwords($dataTbbm->depot).'" dan Pos Sandar "'.ucwords($dataPosSandar->pos_sandar).'" sudah ada';
 
             Notification::make()
                 ->title('Error!')
