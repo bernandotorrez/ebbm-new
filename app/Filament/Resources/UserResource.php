@@ -9,10 +9,13 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
+use App\Enums\RoleEnum;
+use Filament\Notifications\Notification;
 
 class UserResource extends Resource
 {
@@ -57,13 +60,24 @@ class UserResource extends Resource
                     ->maxLength(255),
                 Forms\Components\TextInput::make('email')
                     ->email()
+                    ->autocomplete(false)
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('kantor_sar_id')
-                    ->numeric(),
-                Forms\Components\TextInput::make('level')
+                Forms\Components\TextInput::make('password')
+                    ->password()
+                    ->autocomplete(false)
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\Select::make('kantor_sar_id')
+                    ->relationship(name: 'kantorSar', titleAttribute: 'kantor_sar')
+                    ->label('Kantor SAR')
+                    ->searchable()
+                    ->preload()
                     ->required(),
-
+                Forms\Components\Select::make('level')
+                ->options(RoleEnum::values())
+                ->label('Level')
+                ->required()
             ]);
     }
 
@@ -82,17 +96,24 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('level'),
             ])
             ->filters([
+                SelectFilter::make('kantor_sar_id')
+                    ->label('Kantor Sar')
+                    ->relationship('kantorSar', 'kantor_sar') // Relasi ke Golongan BBM
+                    ->preload(),
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
+                Tables\Actions\DeleteAction::make()
+                ->before(function (User $record) {
+                    if ($record->level === 'admin') {
+                        Notification::make()
+                        ->title('Error!')
+                        ->body('User dengan level admin tidak bisa dihapus.')
+                        ->danger()
+                        ->send();
+                    }
+                }),
                 Tables\Actions\EditAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
-                ]),
             ]);
     }
 
