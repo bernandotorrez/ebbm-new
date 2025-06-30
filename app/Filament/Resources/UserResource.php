@@ -107,10 +107,12 @@ class UserResource extends Resource
                 ->before(function (User $record) {
                     if ($record->level === 'admin') {
                         Notification::make()
-                        ->title('Error!')
-                        ->body('User dengan level admin tidak bisa dihapus.')
-                        ->danger()
-                        ->send();
+                            ->title('Penghapusan Gagal')
+                            ->body('User dengan level admin tidak bisa dihapus.')
+                            ->danger()
+                            ->send();
+
+                        return false; // Mencegah penghapusan
                     }
                 }),
                 Tables\Actions\EditAction::make(),
