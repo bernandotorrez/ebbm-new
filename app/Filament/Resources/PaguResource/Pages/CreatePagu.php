@@ -32,10 +32,7 @@ class CreatePagu extends CreateRecord
     {
         // Get input values
         $golonganBbmId = $this->data['golongan_bbm_id'] ?? null;
-        $nilaiPagu = $this->data['nilai_pagu'] ?? null;
         $tahunAnggaran = $this->data['tahun_anggaran'] ?? null;
-        $dasar = $this->data['dasar'] ?? null;
-        $tanggal = $this->data['tanggal'] ?? null;
 
         // Check if the same record exists
         $exists = Pagu::where('golongan_bbm_id', $golonganBbmId)
