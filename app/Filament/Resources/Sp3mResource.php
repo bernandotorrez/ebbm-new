@@ -36,7 +36,7 @@ class Sp3mResource extends Resource
                 Forms\Components\TextInput::make('nomor_sp3m')
                     ->required()
                     ->maxLength(200),
-               Forms\Components\Select::make('tahun_anggaran')
+                Forms\Components\Select::make('tahun_anggaran')
                     ->label('Tahun Anggaran')
                     ->required()
                     ->options(function () {
