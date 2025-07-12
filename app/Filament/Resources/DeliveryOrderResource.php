@@ -44,6 +44,20 @@ class DeliveryOrderResource extends Resource
                     ])
                     ->required()
                     ->live()
+                    ->afterStateHydrated(function (callable $set, $state) {
+                        // This runs when editing - populate kapal_no_reg from existing SP3M
+                        if ($state) {
+                            $sp3m = Sp3m::find($state);
+                            if ($sp3m) {
+                                if ($sp3m->alpal_id) {
+                                    $alpal = DB::table('alpals')->where('alpal_id', $sp3m->alpal_id)->first();
+                                    $set('kapal_no_reg', $alpal->alpal);
+                                } else {
+                                    $set('kapal_no_reg', '-');
+                                }
+                            }
+                        }
+                    })
                     ->afterStateUpdated(function (callable $get, callable $set, $state) {
                         if ($state) {
                             $sp3m = Sp3m::find($state);
@@ -82,6 +96,13 @@ class DeliveryOrderResource extends Resource
                     ->validationMessages([
                         'required' => 'Pilih TBBM/DDPU',
                     ])
+                    ->live()
+                    ->afterStateUpdated(function (callable $get, callable $set, $state) {
+                        if ($state) {
+                            $tbbm = DB::table('tbbms')->where('tbbm_id', $state)->first();
+                            $set('pbbkb', $tbbm->pbbkb);
+                        }
+                    })
                     ->required(),
                 Forms\Components\DatePicker::make('tanggal_do')
                     ->required(),
@@ -107,15 +128,27 @@ class DeliveryOrderResource extends Resource
                     ->maxLength(200),
                 Forms\Components\TextInput::make('kapal_no_reg')
                     ->label('Kapal/No Reg')
+                    ->readOnly()
+                    ->extraAttributes([
+                        'class' => '!bg-black-100 !text-gray-500 !cursor-not-allowed !border-gray-200'
+                    ])
                     ->required(),
                 Forms\Components\TextInput::make('qty')
                     ->required()
                     ->label('Qty')
                     ->inputMode('numeric')
                     ->afterStateUpdated(function (callable $get, callable $set) {
-                        $qty = (int) str_replace(['.', ',', ' '], '', $get('qty'));
+
+                        $qty = (int) $get('qty');
                         $harga = (int) str_replace(['.', ',', ' '], '', $get('harga_satuan'));
-                        $set('jumlah_harga', number_format($qty * $harga, 0, ',', '.'));
+                        $pbbkb = (int) number_format($get('pbbkb'), 0, ',', '.') / 100;
+                        $ppn = 0.11;
+
+                        // Jumlah Harga = Harga satuan + (harga satuan * ppn) + (harga satuan * pbbkb) * qty = jumlah harga
+
+                        $jumlah_harga = $qty * ($harga + ($harga * $ppn) + ($harga * $pbbkb));
+
+                        $set('jumlah_harga', number_format($jumlah_harga, 0, ',', '.'));
                     })
                     ->extraInputAttributes([
                         'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
@@ -127,35 +160,33 @@ class DeliveryOrderResource extends Resource
                     ->label('Harga Satuan')
                     ->prefix('Rp')
                     ->inputMode('numeric')
-                    ->afterStateUpdated(function (callable $get, callable $set) {
-                        $qty = (int) str_replace(['.', ',', ' '], '', $get('qty'));
-                        $harga = (int) str_replace(['.', ',', ' '], '', $get('harga_satuan'));
-                        $set('jumlah_harga', number_format($qty * $harga, 0, ',', '.'));
-                    })
+                    ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : '')
+                    ->dehydrateStateUsing(fn ($state) => (int) str_replace('.', '', $state))
                     ->extraInputAttributes([
-                        'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
+                        'class' => 'bg-black-100 cursor-not-allowed opacity-60'
                     ])
-                    ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
-                    ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
-                    ->live(),
-                Forms\Components\TextInput::make('jumlah_harga')
-                    ->required()
-                    ->label('Jumlah Harga')
-                    ->prefix('Rp')
-                    ->readonly()
-                    ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
-                    ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
-                    ->extraInputAttributes([
-                        'inputmode' => 'numeric',
-                    ]),
+                    ->readonly(),
+                Forms\Components\TextInput::make('pbbkb')
+                    ->label('PKBB %')
+                    ->readOnly()
+                    ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : '')
+                    ->dehydrateStateUsing(fn ($state) => (int) str_replace('.', '', $state))
+                    ->numeric(),
                 Forms\Components\TextInput::make('ppn')
                     ->required()
+                    ->readOnly()
+                    ->label('PPN %')
+                    ->default(11)
                     ->numeric(),
                 Forms\Components\Grid::make(2)
                     ->schema([
-                        Forms\Components\TextInput::make('pkbb')
-                            ->label('PKBB')
-                            ->numeric(),
+                        Forms\Components\TextInput::make('jumlah_harga')
+                            ->required()
+                            ->label('Jumlah Harga')
+                            ->prefix('Rp')
+                            ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : '')
+                            ->dehydrateStateUsing(fn ($state) => (int) str_replace('.', '', $state))
+                            ->readonly(),
                         Forms\Components\Placeholder::make('empty_field')
                             ->label('')
                             ->content(''),
@@ -191,6 +222,9 @@ class DeliveryOrderResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) =>
+                $query->with(['sp3m', 'tbbm'])
+            )
             ->columns([
                 Tables\Columns\TextColumn::make('sp3m.nomor_sp3m')
                     ->label('Nomor SP3M')
@@ -212,7 +246,7 @@ class DeliveryOrderResource extends Resource
                     ->label('Nomor DO/Nota')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('kapal_no_reg')
+                Tables\Columns\TextColumn::make('sp3m.alpal.alpal')
                     ->label('Kapal/No Reg')
                     ->searchable()
                     ->sortable(),
@@ -256,6 +290,16 @@ class DeliveryOrderResource extends Resource
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
+                Tables\Filters\SelectFilter::make('sp3m_id')
+                    ->label('SP3M')
+                    ->relationship('sp3m', 'nomor_sp3m')
+                    ->searchable()
+                    ->preload(),
+                Tables\Filters\SelectFilter::make('tbbm_id')
+                    ->label('TBBM/DDPU')
+                    ->relationship('tbbm', 'depot')
+                    ->searchable()
+                    ->preload(),
                 Tables\Filters\SelectFilter::make('tahun_anggaran')
                     ->label('Tahun Anggaran')
                     ->options(function () {
@@ -266,11 +310,7 @@ class DeliveryOrderResource extends Resource
                             ->pluck('tahun_anggaran', 'tahun_anggaran')
                             ->toArray();
                     }),
-                Tables\Filters\SelectFilter::make('tbbm_id')
-                    ->label('TBBM/DDPU')
-                    ->relationship('tbbm', 'depot')
-                    ->searchable()
-                    ->preload(),
+
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

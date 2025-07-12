@@ -20,8 +20,8 @@ return new class extends Migration
             $table->string('nomor_do', 200)->index('idx_nomor_do');
             $table->unsignedInteger('qty');
             $table->decimal('harga_satuan', 20, 2)->unsigned();
-            $table->decimal('ppn', 3, 2)->unsigned();
-            $table->decimal('pbbkb', 3, 2)->unsigned();
+            $table->decimal('ppn', 5, 2)->unsigned();
+            $table->decimal('pbbkb', 10, 2)->unsigned();
             $table->decimal('jumlah_harga', 20, 2)->unsigned();
             $table->text('file_upload_do');
             $table->text('file_upload_laporan');
