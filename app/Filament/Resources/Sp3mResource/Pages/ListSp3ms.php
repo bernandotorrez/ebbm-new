@@ -13,7 +13,8 @@ class ListSp3ms extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('Tambah SP3M'),
         ];
     }
 }
