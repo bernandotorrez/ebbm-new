@@ -11,20 +11,22 @@ RUN apk add --no-cache \
     bash \
     curl \
     freetype-dev \
-    g++ \
-    gcc \
     git \
     icu-dev \
     jpeg-dev \
-    libc-dev \
     libpng-dev \
     libzip-dev \
-    make \
     mysql-client \
     oniguruma-dev \
     zip \
     unzip \
     supervisor \
+    # Build dependencies (will be removed later)
+    autoconf \
+    g++ \
+    gcc \
+    libc-dev \
+    make \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
         bcmath \
@@ -40,8 +42,8 @@ RUN apk add --no-cache \
     # Install Redis extension for caching
     && pecl install redis \
     && docker-php-ext-enable redis \
-    # Clean up
-    && apk del g++ gcc libc-dev make \
+    # Clean up build dependencies
+    && apk del autoconf g++ gcc libc-dev make \
     && rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
 
 # Install Composer
@@ -72,7 +74,7 @@ RUN chown -R app:app /var/www/html \
     && chmod -R 775 /var/www/html/bootstrap/cache
 
 # Copy entrypoint script
-COPY docker/entrypoints/php-entrypoint.sh /usr/local/bin/php-entrypoint.sh
+COPY docker/entrypoints/php-entrypoint-simple.sh /usr/local/bin/php-entrypoint.sh
 RUN chmod +x /usr/local/bin/php-entrypoint.sh
 
 # Switch to app user
