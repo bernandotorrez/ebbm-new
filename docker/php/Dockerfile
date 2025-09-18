@@ -105,7 +105,7 @@ COPY --chown=app:app . .
 
 # Generate optimized autoloader
 USER app
-RUN composer dump-autoload --optimize --no-dev
+RUN composer dump-autoload --optimize --no-dev --no-scripts
 
 # Create entrypoint script
 USER root
@@ -137,11 +137,11 @@ if [ "${APP_ENV:-production}" != "production" ]; then
 fi
 
 # Execute as app user
-exec gosu app "$@"
+exec su-exec app "$@"
 EOF
 
-# Install gosu for better user switching
-RUN apk add --no-cache gosu \
+# Install su-exec for better user switching (Alpine equivalent of gosu)
+RUN apk add --no-cache su-exec \
     && chmod +x /usr/local/bin/php-entrypoint.sh
 
 # Switch to app user
