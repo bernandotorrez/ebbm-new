@@ -67,14 +67,8 @@ COPY --chown=app:app . /var/www/html
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
 
-# Set proper permissions
-RUN chown -R app:app /var/www/html \
-    && chmod -R 755 /var/www/html \
-    && chmod -R 775 /var/www/html/storage \
-    && chmod -R 775 /var/www/html/bootstrap/cache
-
 # Copy entrypoint script
-COPY docker/entrypoints/php-entrypoint-simple.sh /usr/local/bin/php-entrypoint.sh
+COPY docker/entrypoints/php-entrypoint-minimal.sh /usr/local/bin/php-entrypoint.sh
 RUN chmod +x /usr/local/bin/php-entrypoint.sh
 
 # Switch to app user
