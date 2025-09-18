@@ -1,0 +1,83 @@
+# Laravel & PHP
+/.env*
+!/.env.example
+!/.env.production
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# Build & Cache files
+/public/build/
+/public/hot
+/public/storage
+/storage/*.key
+/storage/app/public
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*
+/storage/logs/*
+/bootstrap/cache/*.php
+
+# Development files
+/tests/
+phpunit.xml
+/.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+/.idea/
+/.vscode/
+*.swp
+*.swo
+*~
+
+# Git
+/.git/
+.gitignore
+.gitattributes
+
+# Docker development files
+docker-compose.override.yml
+/docker-compose.yml
+
+# Documentation
+README.md
+*.md
+!DOCKER_DEPLOYMENT.md
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Build tools
+webpack.mix.js
+vite.config.js
+postcss.config.js
+tailwind.config.js
+# package*.json
+
+# Source files (excluding for production, but needed for build)
+# /resources/css/
+# /resources/js/
+
+# Laravel specific
+artisan
+.editorconfig
+.env.example
