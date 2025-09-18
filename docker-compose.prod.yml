@@ -1,9 +1,20 @@
+# Production Docker Compose for Laravel Filament 3
+# Optimized for production deployment with security and performance
+
 services:
-  # PHP-FPM Service
+  # ===============================================
+  # PHP-FPM Production Service
+  # ===============================================
   php:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
+      target: production
+      args:
+        PHP_VERSION: 8.3.17
+      cache_from:
+        - ebbm-php:latest
+    image: ebbm-php:production
     container_name: ebbm_php_prod
     restart: always
     working_dir: /var/www/html
@@ -23,20 +34,37 @@ services:
     env_file:
       - .env.production
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - ebbm_network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "9000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     deploy:
       resources:
         limits:
-          memory: 1G
-        reservations:
           memory: 512M
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.5'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-  # Nginx Service
+  # ===============================================
+  # Nginx Production Service
+  # ===============================================
   nginx:
-    image: nginx:alpine
+    image: nginx:1.25-alpine
     container_name: ebbm_nginx_prod
     restart: always
     ports:
@@ -47,26 +75,44 @@ services:
       - ./storage/app/public:/var/www/html/storage/app/public:ro
       - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - nginx_cache:/var/cache/nginx
+      # SSL certificates (uncomment for HTTPS)
+      # - ./ssl:/etc/nginx/ssl:ro
     depends_on:
-      - php
+      php:
+        condition: service_healthy
     networks:
       - ebbm_network
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     deploy:
       resources:
         limits:
-          memory: 256M
-        reservations:
           memory: 128M
+          cpus: '0.5'
+        reservations:
+          memory: 64M
+          cpus: '0.25'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-  # Percona MySQL Service
+  # ===============================================
+  # MySQL Production Service with Secrets
+  # ===============================================
   mysql:
     image: percona:8.0
     container_name: ebbm_mysql_prod
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
-      MYSQL_DATABASE: ebbm_production
-      MYSQL_USER: ebbm_user
+      MYSQL_DATABASE: ${DB_DATABASE:-ebbm_production}
+      MYSQL_USER: ${DB_USERNAME:-ebbm_user}
       MYSQL_PASSWORD_FILE: /run/secrets/mysql_password
     volumes:
       - mysql_data:/var/lib/mysql
@@ -76,92 +122,188 @@ services:
       - mysql_password
     networks:
       - ebbm_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     deploy:
       resources:
         limits:
-          memory: 2G
-        reservations:
           memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
 
-  # Redis Service for caching and sessions
+  # ===============================================
+  # Redis Production Service
+  # ===============================================
   redis:
     image: redis:7-alpine
     container_name: ebbm_redis_prod
     restart: always
-    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru --save 900 1 --save 300 10 --save 60 10000
+    command: >
+      redis-server
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --appendonly yes
+      --appendfsync everysec
     volumes:
       - redis_data:/data
     networks:
       - ebbm_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     deploy:
       resources:
         limits:
           memory: 512M
+          cpus: '0.5'
         reservations:
           memory: 256M
+          cpus: '0.25'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-  # Queue Worker (for Laravel jobs)
+  # ===============================================
+  # Laravel Queue Worker
+  # ===============================================
   queue:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
+      target: production
+      args:
+        PHP_VERSION: 8.3.17
+    image: ebbm-php:production
     container_name: ebbm_queue_prod
     restart: always
     working_dir: /var/www/html
-    command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600 --memory=256
     volumes:
       - ./storage:/var/www/html/storage
     env_file:
       - .env.production
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - ebbm_network
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "queue:work"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
     deploy:
       resources:
         limits:
-          memory: 512M
-        reservations:
           memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-  # Scheduler (for Laravel schedule)
+  # ===============================================
+  # Laravel Task Scheduler
+  # ===============================================
   scheduler:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
+      target: production
+      args:
+        PHP_VERSION: 8.3.17
+    image: ebbm-php:production
     container_name: ebbm_scheduler_prod
     restart: always
     working_dir: /var/www/html
-    command: sh -c "while true; do php artisan schedule:run && sleep 60; done"
+    command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction && sleep 60; done"
     volumes:
       - ./storage:/var/www/html/storage
     env_file:
       - .env.production
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - ebbm_network
     deploy:
       resources:
         limits:
-          memory: 256M
-        reservations:
           memory: 128M
+          cpus: '0.25'
+        reservations:
+          memory: 64M
+          cpus: '0.1'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
+# ===============================================
+# Production Secrets
+# ===============================================
 secrets:
   mysql_root_password:
     file: ./secrets/mysql_root_password.txt
   mysql_password:
     file: ./secrets/mysql_password.txt
 
+# ===============================================
+# Production Volumes
+# ===============================================
 volumes:
   mysql_data:
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/mysql
   redis_data:
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/redis
+  nginx_cache:
+    driver: local
 
+# ===============================================
+# Production Network
+# ===============================================
 networks:
   ebbm_network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
+    driver_opts:
+      com.docker.network.bridge.name: ebbm_prod_network
+      com.docker.network.bridge.enable_icc: "true"
+      com.docker.network.bridge.enable_ip_masquerade: "true"

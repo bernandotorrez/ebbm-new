@@ -1,16 +1,28 @@
-# Version control
-.git
+# Optimized .dockerignore for Laravel Filament 3
+# This improves build performance by excluding unnecessary files
+
+# ==============================================
+# Version Control & Git
+# ==============================================
+.git/
 .gitignore
 .gitattributes
+.gitkeep
+.gitmodules
 
-# IDE and editor files
-.vscode
-.idea
+# ==============================================
+# IDE and Editor Files
+# ==============================================
+.vscode/
+.idea/
 *.swp
 *.swo
 *~
+.editorconfig
 
-# OS generated files
+# ==============================================
+# OS Generated Files
+# ==============================================
 .DS_Store
 .DS_Store?
 ._*
@@ -19,70 +31,118 @@
 ehthumbs.db
 Thumbs.db
 
-# Laravel specific
-/node_modules
-/vendor
+# ==============================================
+# Laravel Specific (Runtime/Cache)
+# ==============================================
+# Node modules (will be installed in container)
+/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Laravel storage (preserve structure, exclude content)
 /storage/logs/*.log
-/storage/framework/cache/*
+/storage/framework/cache/data/*
 /storage/framework/sessions/*
-/storage/framework/views/*
+/storage/framework/views/*.php
+/storage/app/*
+!/storage/app/.gitignore
+!/storage/app/public/
 /storage/app/public/*
 !/storage/app/public/.gitignore
-/bootstrap/cache/*
+
+# Bootstrap cache (will be generated)
+/bootstrap/cache/*.php
 !/bootstrap/cache/.gitignore
 
-# Environment files
+# ==============================================
+# Environment & Config
+# ==============================================
 .env
 .env.*
 !.env.example
 !.env.production
 
-# NPM/Yarn
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Laravel Mix
+# ==============================================
+# Build & Assets (Generated)
+# ==============================================
 /public/hot
 /public/storage
 /public/mix-manifest.json
-/public/js
-/public/css
-/public/build
+/public/js/
+/public/css/
+/public/build/
+/public/vendor/
 
-# Tests
-/tests
+# ==============================================
+# Development & Testing
+# ==============================================
+/tests/
 /phpunit.xml
 .phpunit.result.cache
+coverage/
+.nyc_output/
 
-# Documentation
+# ==============================================
+# Documentation & README
+# ==============================================
 README.md
 *.md
 !DOCKER_*.md
+docs/
 
-# Docker files (only include specific ones)
+# ==============================================
+# Docker & Deployment (when building)
+# ==============================================
 Dockerfile
 docker-compose*.yml
-!docker/
+.dockerignore
+deploy.sh
+deploy.bat
 
-# Backup files
+# ==============================================
+# Backup & Temporary Files
+# ==============================================
 *.bak
 *.backup
-*.sql
-
-# Logs
+*.old
+*.orig
+*.original
+*.tmp
 *.log
 logs/
-
-# Temporary files
 tmp/
 temp/
 .tmp/
 
-# Coverage reports
-coverage/
-.nyc_output/
+# ==============================================
+# Database & SQL Files
+# ==============================================
+*.sql
+*.sqlite
+*.db
+database.sqlite
 
-# Lock files (include only composer.lock)
-package-lock.json
-yarn.lock
+# ==============================================
+# Composer (vendor will be installed in container)
+# ==============================================
+# Keep composer.json and composer.lock for dependency installation
+# /vendor/ is commented out because we need it for the build
+
+# ==============================================
+# Security & Sensitive Files
+# ==============================================
+.ssh/
+*.pem
+*.key
+*.crt
+secrets/
+
+# ==============================================
+# Laravel Specific Generated Files
+# ==============================================
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
