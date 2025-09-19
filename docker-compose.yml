@@ -6,17 +6,17 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: production
+      target: production # Ganti ke 'development' jika ada stage khusus development
     container_name: myapp-app
     restart: unless-stopped
-    tty: true
-    environment:
-      SERVICE_NAME: app
-      SERVICE_TAGS: dev
     working_dir: /var/www/html
     volumes:
+      # Sinkronisasi kode aplikasi utama Anda saja
       - ./src:/var/www/html
-      - ./docker/php/opcache.ini:/usr/local/etc/php/conf.d/opcache.ini
+      # Gunakan 'named volume' untuk direktori yang jarang berubah & banyak file
+      # Ini akan mencegah sinkronisasi lambat untuk ribuan file dependensi
+      - vendor_data:/var/www/html/vendor
+      - node_modules_data:/var/www/html/node_modules # Jika menggunakan node
     networks:
       - app-network
 
@@ -25,11 +25,11 @@ services:
     image: nginx:1.25-alpine
     container_name: myapp-nginx
     restart: unless-stopped
-    tty: true
     ports:
       - "80:80"
     volumes:
-      - ./src:/var/www/html
+      # Nginx tetap butuh akses ke file statis (CSS, JS, gambar)
+      - ./src/public:/var/www/html/public
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
     networks:
       - app-network
@@ -41,7 +41,6 @@ services:
     image: percona:8.0
     container_name: myapp-db
     restart: unless-stopped
-    tty: true
     ports:
       - "3306:3306"
     environment:
@@ -50,6 +49,7 @@ services:
       MYSQL_PASSWORD: ebbm_password
       MYSQL_ROOT_PASSWORD: RootPassword!
     volumes:
+      # Named volume untuk data database sudah benar dan performan
       - dbdata:/var/lib/mysql
     networks:
       - app-network
@@ -62,4 +62,9 @@ networks:
 # Volumes
 volumes:
   dbdata:
+    driver: local
+  # Definisikan named volume untuk dependensi
+  vendor_data:
+    driver: local
+  node_modules_data:
     driver: local
