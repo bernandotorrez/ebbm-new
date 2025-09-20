@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 
 class User extends Authenticatable
 {
@@ -52,5 +54,11 @@ class User extends Authenticatable
     public function kantorSar()
     {
         return $this->belongsTo(KantorSar::class, 'kantor_sar_id');
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return true;
+        // return str_ends_with($this->email, '@gmail.com') && $this->hasVerifiedEmail();
     }
 }
