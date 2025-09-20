@@ -6,67 +6,69 @@
     
     <style>
         .rekap-table {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            border-radius: 8px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            border-radius: 6px;
             overflow: hidden;
+            border: 1px solid #e5e7eb;
         }
         .rekap-table thead th {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            font-weight: 700;
-            font-size: 15px;
+            background-color: #f9fafb;
+            color: #374151;
+            font-weight: 600;
+            font-size: 14px;
             text-align: center;
-            padding: 16px 24px;
-            letter-spacing: 0.05em;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e7eb;
         }
         .rekap-table tbody td {
-            padding: 14px 24px;
-            border-bottom: 1px solid #e5e7eb;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 14px;
         }
         .rekap-table tbody tr:hover {
             background-color: #f9fafb;
         }
         .rekap-table .total-row {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            color: white;
-            font-weight: 700;
-            font-size: 15px;
+            background-color: #f3f4f6;
+            font-weight: 600;
+            border-top: 2px solid #e5e7eb;
         }
         .rekap-table .total-row:hover {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+            background-color: #f3f4f6 !important;
         }
-        .export-btn {
-            background: #10b981;
-            border: none;
-            box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.39);
-            transition: all 0.3s ease;
+        .dark .rekap-table {
+            border-color: #374151;
         }
-        .export-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        .dark .rekap-table thead th {
+            background-color: #374151;
+            color: #f9fafb;
+            border-bottom-color: #4b5563;
+        }
+        .dark .rekap-table tbody td {
+            border-bottom-color: #374151;
+        }
+        .dark .rekap-table .total-row {
+            background-color: #374151;
+            border-top-color: #4b5563;
+        }
+        .dark .rekap-table .total-row:hover {
+            background-color: #374151 !important;
         }
     </style>
     <div class="space-y-6">
         <!-- Filter Form -->
         <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
             <div class="px-4 py-5 sm:p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                        Filter Laporan
-                    </h3>
-                    @if($kantorSarId && $tahun)
-                        <button 
-                            wire:click="exportToExcel" 
-                            class="export-btn inline-flex items-center px-6 py-3 rounded-lg font-semibold text-sm text-white uppercase tracking-wider transition-all duration-300"
-                        >
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            Export to Excel
-                        </button>
-                    @endif
-                </div>
                 {{ $this->form }}
+                
+                @if($kantorSarId && $tahun)
+                    <div class="mt-4 pt-4">
+                        <x-filament-panels::form.actions
+                            :actions="$this->getFormActions()"
+                            :full-width="$this->hasFullWidthFormActions()"
+                        />
+                    </div>
+                @endif
             </div>
         </div>
         

@@ -1,10 +1,16 @@
 <x-filament-panels::page>
-    <x-filament-panels::form wire:submit="exportToExcel">
-        {{ $this->form }}
+    <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <x-filament-panels::form wire:submit="exportToExcel">
+                {{ $this->form }}
 
-        <x-filament-panels::form.actions
-            :actions="$this->getFormActions()"
-            :full-width="$this->hasFullWidthFormActions()"
-        />
-    </x-filament-panels::form>
+                <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+                    <x-filament-panels::form.actions
+                        :actions="$this->getFormActions()"
+                        :full-width="$this->hasFullWidthFormActions()"
+                    />
+                </div>
+            </x-filament-panels::form>
+        </div>
+    </div>
 </x-filament-panels::page>
