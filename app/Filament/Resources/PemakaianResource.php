@@ -22,7 +22,17 @@ class PemakaianResource extends Resource
 
     protected static ?string $navigationLabel = 'Pemakaian';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 4;
+
+    public static function getModelLabel(): string
+    {
+        return 'Pemakaian'; // Singular name
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Pemakaian';
+    }
 
     public static function form(Form $form): Form
     {

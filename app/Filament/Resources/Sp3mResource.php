@@ -5,6 +5,8 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\Sp3mResource\Pages;
 use App\Filament\Resources\Sp3mResource\RelationManagers;
 use App\Models\Sp3m;
+use App\Models\KantorSar;
+use App\Enums\RoleEnum;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,6 +15,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class Sp3mResource extends Resource
@@ -21,13 +24,23 @@ class Sp3mResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-envelope';
 
-    protected static ?string $navigationGroup = 'Master';
+    protected static ?string $navigationGroup = 'Transaksi';
 
     protected static ?string $navigationLabel = 'SP3M';
 
-    protected static ?int $navigationSort = 9;
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $slug = 'sp3m';
+
+    public static function getModelLabel(): string
+    {
+        return 'SP3M'; // Singular name
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Daftar SP3M';
+    }
 
     public static function form(Form $form): Form
     {
@@ -58,6 +71,7 @@ class Sp3mResource extends Resource
                 Forms\Components\Select::make('kantor_sar_id')
                     ->relationship(name: 'kantorSar', titleAttribute: 'kantor_sar')
                     ->label('Kantor SAR')
+                    ->options(static::getKantorSarOptions())
                     ->searchable()
                     ->preload()
                     ->validationMessages([
@@ -151,6 +165,26 @@ class Sp3mResource extends Resource
             ]);
     }
 
+    protected static function getKantorSarOptions(): array
+    {
+        $user = Auth::user();
+        
+        // If user is admin, show all Kantor SAR
+        if ($user && $user->level === RoleEnum::Admin->value) {
+            return KantorSar::pluck('kantor_sar', 'kantor_sar_id')->toArray();
+        }
+        
+        // For non-admin users, only show their assigned Kantor SAR
+        if ($user && $user->kantor_sar_id) {
+            return KantorSar::where('kantor_sar_id', $user->kantor_sar_id)
+                ->pluck('kantor_sar', 'kantor_sar_id')
+                ->toArray();
+        }
+        
+        // If no user or no kantor_sar_id assigned, return empty array
+        return [];
+    }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -198,7 +232,7 @@ class Sp3mResource extends Resource
             ->filters([
                 SelectFilter::make('kantor_sar_id')
                     ->label('Kantor SAR')
-                    ->relationship('kantorSar', 'kantor_sar') // Relasi ke Golongan BBM
+                    ->options(static::getKantorSarOptions())
                     ->preload(),
                 SelectFilter::make('alpal_id')
                     ->label('Alpal')
@@ -240,9 +274,18 @@ class Sp3mResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
+        $query = parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+            
+        $user = Auth::user();
+        
+        // Apply user-level filtering for non-admin users
+        if ($user && $user->level !== RoleEnum::Admin->value && $user->kantor_sar_id) {
+            $query->where('kantor_sar_id', $user->kantor_sar_id);
+        }
+        
+        return $query;
     }
 }
