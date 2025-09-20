@@ -1,0 +1,54 @@
+# Laravel files
+.env
+.env.*
+!.env.production
+!.env.example
+
+# Dependencies
+node_modules/
+vendor/
+
+# Build artifacts
+public/build/
+public/hot
+
+# Storage and cache
+storage/app/
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+storage/logs/
+bootstrap/cache/
+
+# Development and testing
+tests/
+phpunit.xml
+.phpunit.result.cache
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# Development tools
+.editorconfig
+.styleci.yml
+_ide_helper.php
+.phpstorm.meta.php
+
+# OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Docker development files
+docker-compose.override.yml
+Dockerfile.dev
+
+# Documentation
+README.md
+*.md
+
+# Logs
+*.log

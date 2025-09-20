@@ -1,0 +1,55 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ebbl_app
+    restart: unless-stopped
+    networks:
+      - ebbl_network
+    ports:
+      - "80:80"
+    environment:
+      - APP_ENV=production
+    volumes:
+      - .env:/var/www/html/.env:rw
+      # If you need to persist storage, uncomment below
+      # - ./storage:/var/www/html/storage
+    depends_on:
+      - mysql
+      - redis
+
+  mysql:
+    image: percona:8.0
+    container_name: ebbl_mysql
+    restart: unless-stopped
+    networks:
+      - ebbl_network
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ebbl
+      MYSQL_USER: ebbluser
+      MYSQL_PASSWORD: ebblpassword
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+  redis:
+    image: redis:alpine
+    container_name: ebbl_redis
+    restart: unless-stopped
+    networks:
+      - ebbl_network
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+networks:
+  ebbl_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  redis_data:
