@@ -10,7 +10,7 @@ use Illuminate\Notifications\Notifiable;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, SoftDeletes;
@@ -58,7 +58,10 @@ class User extends Authenticatable
 
     public function canAccessPanel(Panel $panel): bool
     {
+        // For debugging, allow all users to access the admin panel
         return true;
+        
+        // Original implementation:
         // return str_ends_with($this->email, '@gmail.com') && $this->hasVerifiedEmail();
     }
 }
