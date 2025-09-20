@@ -141,14 +141,17 @@ class AlpalResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()
+                    ->label('Dihapus Pada')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
+                    ->label('Dibuat Pada')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
+                    ->label('Diperbarui Pada')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -169,13 +172,17 @@ class AlpalResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->label('Ubah'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('Hapus Terpilih'),
+                    Tables\Actions\ForceDeleteBulkAction::make()
+                        ->label('Hapus Permanen Terpilih'),
+                    Tables\Actions\RestoreBulkAction::make()
+                        ->label('Pulihkan Terpilih'),
                 ]),
             ]);
     }

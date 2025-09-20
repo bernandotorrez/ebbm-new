@@ -42,6 +42,7 @@ class KantorSarResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('kantor_sar')
+                    ->label('Kantor SAR')
                     ->required()
                     ->maxLength(50),
             ]);
@@ -52,12 +53,15 @@ class KantorSarResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('kantor_sar')
+                    ->label('Kantor SAR')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label('Dibuat Pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Diperbarui Pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -66,13 +70,17 @@ class KantorSarResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->label('Ubah'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('Hapus Terpilih'),
+                    Tables\Actions\ForceDeleteBulkAction::make()
+                        ->label('Hapus Permanen Terpilih'),
+                    Tables\Actions\RestoreBulkAction::make()
+                        ->label('Pulihkan Terpilih'),
                 ]),
             ]);
     }

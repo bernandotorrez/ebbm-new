@@ -13,6 +13,18 @@ class CreateSatuan extends CreateRecord
 {
     protected static string $resource = SatuanResource::class;
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction()
+                ->label('Buat'),
+            $this->getCreateAnotherFormAction()
+                ->label('Buat & buat lainnya'),
+            $this->getCancelFormAction()
+                ->label('Batal'),
+        ];
+    }
+
     protected function getRedirectUrl(): string
     {
         // Redirect to the list page after creation
@@ -39,7 +51,7 @@ class CreateSatuan extends CreateRecord
         if ($exists) {
             // Show Filament error notification
             Notification::make()
-                ->title('Error!')
+                ->title('Kesalahan!')
                 ->body('Satuan "'.ucwords($satuan).'" sudah ada')
                 ->danger()
                 ->send();

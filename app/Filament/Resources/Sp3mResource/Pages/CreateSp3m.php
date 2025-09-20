@@ -15,6 +15,18 @@ class CreateSp3m extends CreateRecord
 {
     protected static string $resource = Sp3mResource::class;
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction()
+                ->label('Buat'),
+            $this->getCreateAnotherFormAction()
+                ->label('Buat & buat lainnya'),
+            $this->getCancelFormAction()
+                ->label('Batal'),
+        ];
+    }
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         // Apply ucwords() to the 'bekal' field before saving
@@ -55,7 +67,7 @@ class CreateSp3m extends CreateRecord
             $message = 'Kantor SAR "'.ucwords($dataKantorSar->kantor_sar).'", Alpal "'.ucwords($dataAlpal->alpal).'", Bekal "'.ucwords($dataBekal->bekal).'" dan Tahun Anggaran "'.ucwords($tahunAnggaran).'" sudah ada';
 
             Notification::make()
-                ->title('Error!')
+                ->title('Kesalahan!')
                 ->body($message)
                 ->danger()
                 ->send();

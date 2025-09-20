@@ -47,6 +47,7 @@ class Sp3mResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('nomor_sp3m')
+                    ->label('Nomor SP3M')
                     ->required()
                     ->maxLength(200),
                 Forms\Components\Select::make('tahun_anggaran')
@@ -66,6 +67,7 @@ class Sp3mResource extends Resource
                     ])
                     ->preload(),
                 Forms\Components\TextInput::make('tw')
+                    ->label('Triwulan')
                     ->required()
                     ->maxLength(25),
                 Forms\Components\Select::make('kantor_sar_id')
@@ -190,10 +192,13 @@ class Sp3mResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('nomor_sp3m')
+                    ->label('Nomor SP3M')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('tahun_anggaran')
+                    ->label('Tahun Anggaran')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('tw')
+                    ->label('Triwulan')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('kantorSar.kantor_sar')
                     ->numeric()
@@ -208,23 +213,29 @@ class Sp3mResource extends Resource
                     ->label('Bekal')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('qty')
+                    ->label('Kuantitas')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('harga_satuan')
+                    ->label('Harga Satuan')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('jumlah_harga')
+                    ->label('Jumlah Harga')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('deleted_at')
+                    ->label('Dihapus Pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label('Dibuat Pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Diperbarui Pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -245,13 +256,17 @@ class Sp3mResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->label('Ubah'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('Hapus Terpilih'),
+                    Tables\Actions\ForceDeleteBulkAction::make()
+                        ->label('Hapus Permanen Terpilih'),
+                    Tables\Actions\RestoreBulkAction::make()
+                        ->label('Pulihkan Terpilih'),
                 ]),
             ]);
     }

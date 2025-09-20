@@ -14,12 +14,25 @@ class EditBekal extends EditRecord
 {
     protected static string $resource = BekalResource::class;
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction()
+                ->label('Simpan'),
+            $this->getCancelFormAction()
+                ->label('Batal'),
+        ];
+    }
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
-            Actions\ForceDeleteAction::make(),
-            Actions\RestoreAction::make(),
+            Actions\DeleteAction::make()
+                ->label('Hapus'),
+            Actions\ForceDeleteAction::make()
+                ->label('Hapus Permanen'),
+            Actions\RestoreAction::make()
+                ->label('Pulihkan'),
         ];
     }
 
@@ -62,7 +75,7 @@ class EditBekal extends EditRecord
             $message = 'Bekal "'.ucwords($bekal).'" untuk Golongan BBM "'.ucwords($dataGolonganBbm->golongan).'" dan Satuan "'.ucwords($dataSatuan->satuan).'" sudah ada';
 
             Notification::make()
-                ->title('Error!')
+                ->title('Kesalahan!')
                 ->body($message)
                 ->danger()
                 ->send();

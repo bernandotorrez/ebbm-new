@@ -14,6 +14,18 @@ class CreateBekal extends CreateRecord
 {
     protected static string $resource = BekalResource::class;
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction()
+                ->label('Buat'),
+            $this->getCreateAnotherFormAction()
+                ->label('Buat & buat lainnya'),
+            $this->getCancelFormAction()
+                ->label('Batal'),
+        ];
+    }
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         // Apply ucwords() to the 'bekal' field before saving
@@ -51,7 +63,7 @@ class CreateBekal extends CreateRecord
             $message = 'Bekal "'.ucwords($bekal).'" untuk Golongan BBM "'.ucwords($dataGolonganBbm->golongan).'" dan Satuan "'.ucwords($dataSatuan->satuan).'" sudah ada';
 
             Notification::make()
-                ->title('Error!')
+                ->title('Kesalahan!')
                 ->body($message)
                 ->danger()
                 ->send();
