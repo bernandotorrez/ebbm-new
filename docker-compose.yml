@@ -17,7 +17,6 @@ services:
       # - ./storage:/var/www/html/storage
     depends_on:
       - mysql
-      - redis
 
   mysql:
     image: percona:8.0
@@ -27,24 +26,13 @@ services:
       - ebbl_network
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: ebbl
-      MYSQL_USER: ebbluser
-      MYSQL_PASSWORD: ebblpassword
+      MYSQL_DATABASE: ebbm
+      MYSQL_USER: ebbm_user
+      MYSQL_PASSWORD: ebbm_password
     volumes:
       - mysql_data:/var/lib/mysql
     ports:
       - "3306:3306"
-
-  redis:
-    image: redis:alpine
-    container_name: ebbl_redis
-    restart: unless-stopped
-    networks:
-      - ebbl_network
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
 
 networks:
   ebbl_network:
@@ -52,4 +40,3 @@ networks:
 
 volumes:
   mysql_data:
-  redis_data:

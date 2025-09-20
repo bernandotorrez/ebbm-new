@@ -23,13 +23,6 @@ while ! nc -z mysql 3306; do
 done
 echo "MySQL is ready!"
 
-# Wait for Redis to be ready
-echo "Waiting for Redis to be ready..."
-while ! nc -z redis 6379; do
-  sleep 1
-done
-echo "Redis is ready!"
-
 # Check if .env file exists
 if [ -f ".env" ]; then
     echo "Checking for APP_KEY..."
@@ -43,18 +36,8 @@ if [ -f ".env" ]; then
     else
         echo "APP_KEY already exists, skipping generation."
     fi
-    
-    echo "Running artisan optimizations..."
-    
-    # Clear caches
-    php artisan config:clear
-    php artisan route:clear
-    php artisan view:clear
-    php artisan cache:clear
-    
-    echo "Artisan optimizations completed."
 else
-    echo "No .env file found. Skipping artisan optimizations."
+    echo "No .env file found. Skipping artisan key generation."
 fi
 
 # Execute the main command
