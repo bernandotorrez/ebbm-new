@@ -12,12 +12,25 @@ class EditSatuan extends EditRecord
 {
     protected static string $resource = SatuanResource::class;
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction()
+                ->label('Simpan'),
+            $this->getCancelFormAction()
+                ->label('Batal'),
+        ];
+    }
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
-            Actions\ForceDeleteAction::make(),
-            Actions\RestoreAction::make(),
+            Actions\DeleteAction::make()
+                ->label('Hapus'),
+            Actions\ForceDeleteAction::make()
+                ->label('Hapus Permanen'),
+            Actions\RestoreAction::make()
+                ->label('Pulihkan'),
         ];
     }
 
@@ -49,7 +62,7 @@ class EditSatuan extends EditRecord
         if ($exists) {
             // Show Filament error notification
             Notification::make()
-                ->title('Error!')
+                ->title('Kesalahan!')
                 ->body('Satuan "'.ucwords($satuan).'" sudah ada')
                 ->danger()
                 ->send();

@@ -5,6 +5,8 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\AlpalResource\Pages;
 use App\Filament\Resources\AlpalResource\RelationManagers;
 use App\Models\Alpal;
+use App\Models\KantorSar;
+use App\Enums\RoleEnum;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,6 +15,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 
 class AlpalResource extends Resource
 {
@@ -20,7 +23,7 @@ class AlpalResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-paper-airplane';
 
-    protected static ?string $navigationGroup = 'Master';
+    protected static ?string $navigationGroup = 'Transaksi';
 
     protected static ?string $navigationLabel = 'Alpal Penggunaan BBM';
 
@@ -45,6 +48,7 @@ class AlpalResource extends Resource
                 Forms\Components\Select::make('kantor_sar_id')
                     ->relationship(name: 'kantorSar', titleAttribute: 'kantor_sar')
                     ->label('Kantor SAR')
+                    ->options(static::getKantorSarOptions())
                     ->searchable()
                     ->preload()
                     ->required(),
@@ -84,6 +88,26 @@ class AlpalResource extends Resource
             ]);
     }
 
+    protected static function getKantorSarOptions(): array
+    {
+        $user = Auth::user();
+        
+        // If user is admin, show all Kantor SAR
+        if ($user && $user->level === RoleEnum::Admin->value) {
+            return KantorSar::pluck('kantor_sar', 'kantor_sar_id')->toArray();
+        }
+        
+        // For non-admin users, only show their assigned Kantor SAR
+        if ($user && $user->kantor_sar_id) {
+            return KantorSar::where('kantor_sar_id', $user->kantor_sar_id)
+                ->pluck('kantor_sar', 'kantor_sar_id')
+                ->toArray();
+        }
+        
+        // If no user or no kantor_sar_id assigned, return empty array
+        return [];
+    }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -117,21 +141,24 @@ class AlpalResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()
+                    ->label('Dihapus Pada')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
+                    ->label('Dibuat Pada')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
+                    ->label('Diperbarui Pada')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('kantor_sar_id')
                     ->label('Kantor Sar')
-                    ->relationship('kantorSar', 'kantor_sar') // Relasi ke Golongan BBM
+                    ->options(static::getKantorSarOptions())
                     ->preload(),
                 SelectFilter::make('tbbm_id')
                     ->label('TBBM/DDPU')
@@ -145,13 +172,17 @@ class AlpalResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->label('Ubah'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('Hapus Terpilih'),
+                    Tables\Actions\ForceDeleteBulkAction::make()
+                        ->label('Hapus Permanen Terpilih'),
+                    Tables\Actions\RestoreBulkAction::make()
+                        ->label('Pulihkan Terpilih'),
                 ]),
             ]);
     }
@@ -174,9 +205,18 @@ class AlpalResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
+        $query = parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+            
+        $user = Auth::user();
+        
+        // Apply user-level filtering for non-admin users
+        if ($user && $user->level !== RoleEnum::Admin->value && $user->kantor_sar_id) {
+            $query->where('kantor_sar_id', $user->kantor_sar_id);
+        }
+        
+        return $query;
     }
 }

@@ -18,9 +18,12 @@ class EditAlpal extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
-            Actions\ForceDeleteAction::make(),
-            Actions\RestoreAction::make(),
+            Actions\DeleteAction::make()
+                ->label('Hapus'),
+            Actions\ForceDeleteAction::make()
+                ->label('Hapus Permanen'),
+            Actions\RestoreAction::make()
+                ->label('Pulihkan'),
         ];
     }
 
@@ -64,7 +67,7 @@ class EditAlpal extends EditRecord
             $message = 'Nama Kapal/No.Reg Pesawat "'.strtoupper($alpal).'" untuk Kantor SAR "'.ucwords($dataKantorSar->kantor_sar).'", TBBM "'.ucwords($dataTbbm->depot).'" dan Pos Sandar "'.ucwords($dataPosSandar->pos_sandar).'" sudah ada';
 
             Notification::make()
-                ->title('Error!')
+                ->title('Kesalahan!')
                 ->body($message)
                 ->danger()
                 ->send();

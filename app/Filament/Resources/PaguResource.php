@@ -22,11 +22,11 @@ class PaguResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-calculator';
 
-    protected static ?string $navigationGroup = 'Master';
+    protected static ?string $navigationGroup = 'Transaksi';
 
     protected static ?string $navigationLabel = 'Pagu';
 
-    protected static ?int $navigationSort = 9;
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $slug = 'pagu';
 

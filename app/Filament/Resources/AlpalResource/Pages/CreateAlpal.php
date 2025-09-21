@@ -54,7 +54,7 @@ class CreateAlpal extends CreateRecord
             $message = 'Nama Kapal/No.Reg Pesawat "'.strtoupper($alpal).'" untuk Kantor SAR "'.ucwords($dataKantorSar->kantor_sar).'", TBBM "'.ucwords($dataTbbm->depot).'" dan Pos Sandar "'.ucwords($dataPosSandar->pos_sandar).'" sudah ada';
 
             Notification::make()
-                ->title('Error!')
+                ->title('Kesalahan!')
                 ->body($message)
                 ->danger()
                 ->send();

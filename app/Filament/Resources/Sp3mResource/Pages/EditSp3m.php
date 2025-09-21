@@ -15,6 +15,16 @@ class EditSp3m extends EditRecord
 {
     protected static string $resource = Sp3mResource::class;
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction()
+                ->label('Simpan'),
+            $this->getCancelFormAction()
+                ->label('Batal'),
+        ];
+    }
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         // Apply ucwords() to the 'bekal' field before saving
@@ -57,7 +67,7 @@ class EditSp3m extends EditRecord
             $message = 'Kantor SAR "'.ucwords($dataKantorSar->kantor_sar).'", Alpal "'.ucwords($dataAlpal->alpal).'", Bekal "'.ucwords($dataBekal->bekal).'" dan Tahun Anggaran "'.ucwords($tahunAnggaran).'" sudah ada';
 
             Notification::make()
-                ->title('Error!')
+                ->title('Kesalahan!')
                 ->body($message)
                 ->danger()
                 ->send();
@@ -70,9 +80,12 @@ class EditSp3m extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
-            Actions\ForceDeleteAction::make(),
-            Actions\RestoreAction::make(),
+            Actions\DeleteAction::make()
+                ->label('Hapus'),
+            Actions\ForceDeleteAction::make()
+                ->label('Hapus Permanen'),
+            Actions\RestoreAction::make()
+                ->label('Pulihkan'),
         ];
     }
 }

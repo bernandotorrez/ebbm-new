@@ -6,6 +6,8 @@ use App\Filament\Resources\DeliveryOrderResource\Pages;
 use App\Filament\Resources\DeliveryOrderResource\RelationManagers;
 use App\Models\DeliveryOrder;
 use App\Models\Sp3m; // Add this import
+use App\Models\KantorSar;
+use App\Enums\RoleEnum;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,6 +15,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -22,13 +25,23 @@ class DeliveryOrderResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-envelope';
 
-    protected static ?string $navigationGroup = 'Master';
+    protected static ?string $navigationGroup = 'Transaksi';
 
     protected static ?string $navigationLabel = 'Delivery Order';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $slug = 'delivery-order';
+
+    public static function getModelLabel(): string
+    {
+        return 'Delivery Order'; // Singular name
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Daftar Delivery Order';
+    }
 
     public static function form(Form $form): Form
     {
@@ -37,6 +50,7 @@ class DeliveryOrderResource extends Resource
                 Forms\Components\Select::make('sp3m_id')
                     ->relationship(name: 'sp3m', titleAttribute: 'nomor_sp3m')
                     ->label('Nomor SP3M')
+                    ->options(static::getSp3mOptions())
                     ->searchable()
                     ->preload()
                     ->validationMessages([
@@ -219,12 +233,43 @@ class DeliveryOrderResource extends Resource
             ]);
     }
 
+    protected static function getSp3mOptions(): array
+    {
+        $user = Auth::user();
+        
+        // If user is admin, show all SP3M
+        if ($user && $user->level === RoleEnum::Admin->value) {
+            return Sp3m::pluck('nomor_sp3m', 'sp3m_id')->toArray();
+        }
+        
+        // For non-admin users, only show SP3M from their assigned Kantor SAR
+        if ($user && $user->kantor_sar_id) {
+            return Sp3m::where('kantor_sar_id', $user->kantor_sar_id)
+                ->pluck('nomor_sp3m', 'sp3m_id')
+                ->toArray();
+        }
+        
+        // If no user or no kantor_sar_id assigned, return empty array
+        return [];
+    }
+
     public static function table(Table $table): Table
     {
+        $user = Auth::user();
+        
         return $table
-            ->modifyQueryUsing(fn (Builder $query) =>
-                $query->with(['sp3m', 'tbbm'])
-            )
+            ->modifyQueryUsing(function (Builder $query) use ($user) {
+                $query->with(['sp3m', 'tbbm']);
+                
+                // Apply user-level filtering for non-admin users
+                if ($user && $user->level !== RoleEnum::Admin->value && $user->kantor_sar_id) {
+                    $query->whereHas('sp3m', function ($q) use ($user) {
+                        $q->where('kantor_sar_id', $user->kantor_sar_id);
+                    });
+                }
+                
+                return $query;
+            })
             ->columns([
                 Tables\Columns\TextColumn::make('sp3m.nomor_sp3m')
                     ->label('Nomor SP3M')
@@ -251,7 +296,7 @@ class DeliveryOrderResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('qty')
-                    ->label('Qty')
+                    ->label('Kuantitas')
                     ->numeric()
                     ->formatStateUsing(fn ($state) => number_format($state, 0, ',', '.'))
                     ->sortable(),
@@ -276,14 +321,17 @@ class DeliveryOrderResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('deleted_at')
+                    ->label('Dihapus Pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label('Dibuat Pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Diperbarui Pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -292,7 +340,7 @@ class DeliveryOrderResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
                 Tables\Filters\SelectFilter::make('sp3m_id')
                     ->label('SP3M')
-                    ->relationship('sp3m', 'nomor_sp3m')
+                    ->options(static::getSp3mOptions())
                     ->searchable()
                     ->preload(),
                 Tables\Filters\SelectFilter::make('tbbm_id')
@@ -313,15 +361,21 @@ class DeliveryOrderResource extends Resource
 
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->label('Lihat'),
+                Tables\Actions\EditAction::make()
+                    ->label('Ubah'),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Hapus'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('Hapus Terpilih'),
+                    Tables\Actions\RestoreBulkAction::make()
+                        ->label('Pulihkan Terpilih'),
+                    Tables\Actions\ForceDeleteBulkAction::make()
+                        ->label('Hapus Permanen Terpilih'),
                 ]),
             ])
             ->defaultSort('tanggal_do', 'desc');
@@ -345,9 +399,20 @@ class DeliveryOrderResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
+        $query = parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+            
+        $user = Auth::user();
+        
+        // Apply user-level filtering for non-admin users through SP3M relationship
+        if ($user && $user->level !== RoleEnum::Admin->value && $user->kantor_sar_id) {
+            $query->whereHas('sp3m', function ($q) use ($user) {
+                $q->where('kantor_sar_id', $user->kantor_sar_id);
+            });
+        }
+        
+        return $query;
     }
 }

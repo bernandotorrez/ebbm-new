@@ -5,6 +5,8 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\Sp3mResource\Pages;
 use App\Filament\Resources\Sp3mResource\RelationManagers;
 use App\Models\Sp3m;
+use App\Models\KantorSar;
+use App\Enums\RoleEnum;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,6 +15,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class Sp3mResource extends Resource
@@ -21,19 +24,30 @@ class Sp3mResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-envelope';
 
-    protected static ?string $navigationGroup = 'Master';
+    protected static ?string $navigationGroup = 'Transaksi';
 
     protected static ?string $navigationLabel = 'SP3M';
 
-    protected static ?int $navigationSort = 9;
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $slug = 'sp3m';
+
+    public static function getModelLabel(): string
+    {
+        return 'SP3M'; // Singular name
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Daftar SP3M';
+    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('nomor_sp3m')
+                    ->label('Nomor SP3M')
                     ->required()
                     ->maxLength(200),
                 Forms\Components\Select::make('tahun_anggaran')
@@ -53,11 +67,13 @@ class Sp3mResource extends Resource
                     ])
                     ->preload(),
                 Forms\Components\TextInput::make('tw')
+                    ->label('Triwulan')
                     ->required()
                     ->maxLength(25),
                 Forms\Components\Select::make('kantor_sar_id')
                     ->relationship(name: 'kantorSar', titleAttribute: 'kantor_sar')
                     ->label('Kantor SAR')
+                    ->options(static::getKantorSarOptions())
                     ->searchable()
                     ->preload()
                     ->validationMessages([
@@ -151,15 +167,38 @@ class Sp3mResource extends Resource
             ]);
     }
 
+    protected static function getKantorSarOptions(): array
+    {
+        $user = Auth::user();
+        
+        // If user is admin, show all Kantor SAR
+        if ($user && $user->level === RoleEnum::Admin->value) {
+            return KantorSar::pluck('kantor_sar', 'kantor_sar_id')->toArray();
+        }
+        
+        // For non-admin users, only show their assigned Kantor SAR
+        if ($user && $user->kantor_sar_id) {
+            return KantorSar::where('kantor_sar_id', $user->kantor_sar_id)
+                ->pluck('kantor_sar', 'kantor_sar_id')
+                ->toArray();
+        }
+        
+        // If no user or no kantor_sar_id assigned, return empty array
+        return [];
+    }
+
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('nomor_sp3m')
+                    ->label('Nomor SP3M')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('tahun_anggaran')
+                    ->label('Tahun Anggaran')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('tw')
+                    ->label('Triwulan')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('kantorSar.kantor_sar')
                     ->numeric()
@@ -174,23 +213,29 @@ class Sp3mResource extends Resource
                     ->label('Bekal')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('qty')
+                    ->label('Kuantitas')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('harga_satuan')
+                    ->label('Harga Satuan')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('jumlah_harga')
+                    ->label('Jumlah Harga')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('deleted_at')
+                    ->label('Dihapus Pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label('Dibuat Pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Diperbarui Pada')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -198,7 +243,7 @@ class Sp3mResource extends Resource
             ->filters([
                 SelectFilter::make('kantor_sar_id')
                     ->label('Kantor SAR')
-                    ->relationship('kantorSar', 'kantor_sar') // Relasi ke Golongan BBM
+                    ->options(static::getKantorSarOptions())
                     ->preload(),
                 SelectFilter::make('alpal_id')
                     ->label('Alpal')
@@ -211,13 +256,17 @@ class Sp3mResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->label('Ubah'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('Hapus Terpilih'),
+                    Tables\Actions\ForceDeleteBulkAction::make()
+                        ->label('Hapus Permanen Terpilih'),
+                    Tables\Actions\RestoreBulkAction::make()
+                        ->label('Pulihkan Terpilih'),
                 ]),
             ]);
     }
@@ -240,9 +289,18 @@ class Sp3mResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
+        $query = parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+            
+        $user = Auth::user();
+        
+        // Apply user-level filtering for non-admin users
+        if ($user && $user->level !== RoleEnum::Admin->value && $user->kantor_sar_id) {
+            $query->where('kantor_sar_id', $user->kantor_sar_id);
+        }
+        
+        return $query;
     }
 }
