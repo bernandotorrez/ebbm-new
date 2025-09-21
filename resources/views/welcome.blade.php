@@ -42,7 +42,7 @@
                 <div class="flex justify-between items-center py-4">
                     <div class="flex items-center space-x-4">
                         <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center p-1 border-2 border-secondary">
-                            <img src="https://upload.wikimedia.org/wikipedia/id/5/5a/Logo_Basarnas.png" alt="Logo BASARNAS" class="w-full h-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <img src="{{ asset('logo.png') }}" alt="Logo BASARNAS" class="w-full h-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                             <div class="w-full h-full bg-secondary rounded-full items-center justify-center hidden">
                                 <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
@@ -76,7 +76,7 @@
                 <div class="text-center">
                     <div class="mb-8">
                         <div class="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6 p-3 border-2 border-white/30">
-                            <img src="https://upload.wikimedia.org/wikipedia/id/5/5a/Logo_Basarnas.png" alt="Logo BASARNAS" class="w-full h-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <img src="{{ asset('logo.png') }}" alt="Logo BASARNAS" class="w-full h-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                             <div class="w-full h-full items-center justify-center hidden">
                                 <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
@@ -496,7 +496,7 @@
                     <div class="flex flex-col items-center md:items-start">
                         <div class="flex items-center space-x-4 mb-4">
                             <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center p-2 border-2 border-primary">
-                                <img src="https://upload.wikimedia.org/wikipedia/id/5/5a/Logo_Basarnas.png" alt="Logo BASARNAS" class="w-full h-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <img src="{{ asset('logo.png') }}" alt="Logo BASARNAS" class="w-full h-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                 <div class="w-full h-full bg-primary rounded-full items-center justify-center hidden">
                                     <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
