@@ -8,14 +8,17 @@ use App\Enums\RoleEnum;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class DaftarSp3m extends Page
+class DaftarSp3m extends Page implements HasForms
 {
+    use InteractsWithForms;
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
     protected static ?string $navigationGroup = 'Laporan';
@@ -29,6 +32,7 @@ class DaftarSp3m extends Page
     public ?string $kantor_sar_id = null;
     public ?string $tanggal_start = null;
     public ?string $tanggal_end = null;
+    public ?array $data = [];
 
     public function mount(): void
     {
@@ -38,26 +42,75 @@ class DaftarSp3m extends Page
         if ($user && $user->level !== RoleEnum::Admin->value && $user->kantor_sar_id) {
             $this->kantor_sar_id = (string) $user->kantor_sar_id;
         }
+        
+        // Initialize form data
+        $this->data = [
+            'kantor_sar_id' => $this->kantor_sar_id,
+            'tanggal_start' => $this->tanggal_start,
+            'tanggal_end' => $this->tanggal_end,
+        ];
+        
+        $this->form->fill($this->data);
+    }
+    
+    protected function getForms(): array
+    {
+        return [
+            'form' => $this->form(
+                $this->makeForm()
+                    ->schema([
+                        Select::make('kantor_sar_id')
+                            ->label('Kantor SAR')
+                            ->options($this->getKantorSarOptions())
+                            ->searchable($this->isAdmin())
+                            ->disabled(!$this->isAdmin())
+                            ->preload()
+                            ->live()
+                            ->afterStateUpdated(function ($state) {
+                                $this->kantor_sar_id = $state;
+                            }),
+                        DatePicker::make('tanggal_start')
+                            ->label('Tanggal Mulai')
+                            ->live()
+                            ->afterStateUpdated(function ($state) {
+                                $this->tanggal_start = $state;
+                            }),
+                        DatePicker::make('tanggal_end')
+                            ->label('Tanggal Selesai')
+                            ->live()
+                            ->afterStateUpdated(function ($state) {
+                                $this->tanggal_end = $state;
+                            }),
+                    ])
+                    ->statePath('data')
+            ),
+        ];
+    }
+    
+    protected function isAdmin(): bool
+    {
+        $user = Auth::user();
+        return $user && $user->level === RoleEnum::Admin->value;
     }
     
     public function form(Form $form): Form
     {
-        $user = Auth::user();
-        $isAdmin = $user && $user->level === RoleEnum::Admin->value;
+        return $form;
+    }
+    
+    public function updated($property): void
+    {
+        if ($property === 'data.kantor_sar_id') {
+            $this->kantor_sar_id = $this->data['kantor_sar_id'] ?? null;
+        }
         
-        return $form
-            ->schema([
-                Select::make('kantor_sar_id')
-                    ->label('Kantor SAR')
-                    ->options($this->getKantorSarOptions())
-                    ->searchable($isAdmin) // Only searchable for admin
-                    ->disabled(!$isAdmin) // Disable for non-admin users
-                    ->preload(),
-                DatePicker::make('tanggal_start')
-                    ->label('Tanggal Mulai'),
-                DatePicker::make('tanggal_end')
-                    ->label('Tanggal Selesai'),
-            ]);
+        if ($property === 'data.tanggal_start') {
+            $this->tanggal_start = $this->data['tanggal_start'] ?? null;
+        }
+        
+        if ($property === 'data.tanggal_end') {
+            $this->tanggal_end = $this->data['tanggal_end'] ?? null;
+        }
     }
     
     protected function getKantorSarOptions(): array
@@ -126,14 +179,18 @@ class DaftarSp3m extends Page
 
     protected function getFormActions(): array
     {
-        $isDisabled = !($this->kantor_sar_id && $this->tanggal_start && $this->tanggal_end);
+        $kantorSarId = $this->data['kantor_sar_id'] ?? $this->kantor_sar_id;
+        $tanggalStart = $this->data['tanggal_start'] ?? $this->tanggal_start;
+        $tanggalEnd = $this->data['tanggal_end'] ?? $this->tanggal_end;
+        $isDisabled = !($kantorSarId && $tanggalStart && $tanggalEnd);
         
         return [
             \Filament\Pages\Actions\Action::make('export')
                 ->label('Export to Excel')
+                ->icon('heroicon-o-document-arrow-down')
                 ->action('exportToExcel')
                 ->disabled($isDisabled)
-                ->color('primary'),
+                ->color('success'),
         ];
     }
 
