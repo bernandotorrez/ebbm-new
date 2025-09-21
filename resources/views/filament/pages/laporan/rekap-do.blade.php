@@ -61,14 +61,14 @@
             <div class="px-4 py-5 sm:p-6">
                 {{ $this->form }}
                 
-                @if($kantorSarId && $tahun)
-                    <div class="mt-4 pt-4">
-                        <x-filament-panels::form.actions
-                            :actions="$this->getFormActions()"
-                            :full-width="$this->hasFullWidthFormActions()"
-                        />
-                    </div>
-                @endif
+                
+                <div class="mt-4 pt-4">
+                    <x-filament-panels::form.actions
+                        :actions="$this->getFormActions()"
+                        :full-width="$this->hasFullWidthFormActions()"
+                    />
+                </div>
+                
             </div>
         </div>
         
@@ -86,56 +86,58 @@
                         <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-3">
                             REKAP TAGIHAN PENGGUNAAN BBM
                         </h1>
-                        <p class="text-xl font-semibold text-gray-700 dark:text-gray-300 mt-2">
+                        <p class="text-xl font-semibold text-white-700 dark:text-gray-300 mt-2">
                             Kantor SAR: {{ $kantorSarName }}
                         </p>
-                        <p class="text-xl font-semibold text-gray-700 dark:text-gray-300">
+                        <p class="text-xl font-semibold text-white-700 dark:text-gray-300">
                             Tahun: {{ $tahun }}
                         </p>
                     </div>
                     
                     <!-- Data Table -->
-                    <div class="overflow-x-auto">
-                        <table class="rekap-table min-w-full">
-                            <thead>
-                                <tr>
-                                    <th>NO</th>
-                                    <th>PERIODE</th>
-                                    <th>JMLAH BBM (Liter)</th>
-                                    <th>JUMLAH PEMBAYARAN (Rp)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($rekapData['data'] as $index => $item)
-                                    <tr class="{{ $index % 2 == 0 ? '' : 'bg-gray-50' }}">
-                                        <td class="text-center font-medium">
-                                            {{ $index + 1 }}
+                    <div class="overflow-x-auto flex justify-center">
+                        <div class="w-full max-w-4xl">
+                            <table class="rekap-table min-w-full mx-auto mt-4">
+                                <thead>
+                                    <tr>
+                                        <th>NO</th>
+                                        <th>PERIODE</th>
+                                        <th>JMLAH BBM (Liter)</th>
+                                        <th>JUMLAH PEMBAYARAN (Rp)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($rekapData['data'] as $index => $item)
+                                        <tr class="{{ $index % 2 == 0 ? '' : 'bg-gray-50' }}">
+                                            <td class="text-center font-medium">
+                                                {{ $index + 1 }}
+                                            </td>
+                                            <td class="text-center font-medium">
+                                                {{ $item['month'] }}
+                                            </td>
+                                            <td class="text-right font-medium">
+                                                {{ number_format($item['total_bbm'], 0, ',', '.') }}
+                                            </td>
+                                            <td class="text-right font-medium">
+                                                Rp {{ number_format($item['total_pembayaran'], 2, ',', '.') }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                    
+                                    <!-- Total Row -->
+                                    <tr class="total-row">
+                                        <td class="text-center"></td>
+                                        <td class="text-center">JUMLAH</td>
+                                        <td class="text-right">
+                                            {{ number_format($rekapData['total_bbm'], 0, ',', '.') }}
                                         </td>
-                                        <td class="text-center font-medium">
-                                            {{ $item['month'] }}
-                                        </td>
-                                        <td class="text-right font-medium">
-                                            {{ number_format($item['total_bbm'], 0, ',', '.') }}
-                                        </td>
-                                        <td class="text-right font-medium">
-                                            Rp {{ number_format($item['total_pembayaran'], 2, ',', '.') }}
+                                        <td class="text-right">
+                                            Rp {{ number_format($rekapData['total_pembayaran'], 2, ',', '.') }}
                                         </td>
                                     </tr>
-                                @endforeach
-                                
-                                <!-- Total Row -->
-                                <tr class="total-row">
-                                    <td class="text-center"></td>
-                                    <td class="text-center">JUMLAH</td>
-                                    <td class="text-right">
-                                        {{ number_format($rekapData['total_bbm'], 0, ',', '.') }}
-                                    </td>
-                                    <td class="text-right">
-                                        Rp {{ number_format($rekapData['total_pembayaran'], 2, ',', '.') }}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

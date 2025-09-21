@@ -126,11 +126,14 @@ class DaftarSp3m extends Page
 
     protected function getFormActions(): array
     {
+        $isDisabled = !($this->kantor_sar_id && $this->tanggal_start && $this->tanggal_end);
+        
         return [
             \Filament\Pages\Actions\Action::make('export')
                 ->label('Export to Excel')
                 ->action('exportToExcel')
-                ->color('success'),
+                ->disabled($isDisabled)
+                ->color('primary'),
         ];
     }
 

@@ -276,11 +276,14 @@ class RekapDo extends Page implements HasForms
 
     protected function getFormActions(): array
     {
+        $isDisabled = !($this->kantor_sar_id && $this->tahun);
+
         return [
             \Filament\Pages\Actions\Action::make('export')
                 ->label('Export to Excel')
                 ->action('exportToExcel')
-                ->color('success'),
+                ->disabled($isDisabled)
+                ->color('primary'),
         ];
     }
 
