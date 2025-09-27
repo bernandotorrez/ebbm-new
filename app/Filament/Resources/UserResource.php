@@ -116,7 +116,8 @@ class UserResource extends Resource
                         return false; // Mencegah penghapusan
                     }
                 }),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->label('Ubah'),
             ]);
     }
 

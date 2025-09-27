@@ -361,12 +361,12 @@ class DeliveryOrderResource extends Resource
 
             ])
             ->actions([
-                Tables\Actions\ViewAction::make()
-                    ->label('Lihat'),
+                // Tables\Actions\ViewAction::make()
+                //     ->label('Lihat'),
                 Tables\Actions\EditAction::make()
                     ->label('Ubah'),
-                Tables\Actions\DeleteAction::make()
-                    ->label('Hapus'),
+                // Tables\Actions\DeleteAction::make()
+                //     ->label('Hapus'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
