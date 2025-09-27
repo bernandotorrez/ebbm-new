@@ -27,7 +27,7 @@ class AlpalResource extends Resource
 
     protected static ?string $navigationLabel = 'Alpal Penggunaan BBM';
 
-    protected static ?int $navigationSort = 8;
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $slug = 'alpal';
 
