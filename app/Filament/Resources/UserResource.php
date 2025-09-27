@@ -27,7 +27,7 @@ class UserResource extends Resource
 
     protected static ?string $navigationLabel = 'Kelola User';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 90;
 
     protected static ?string $slug = 'kelola-user';
 
