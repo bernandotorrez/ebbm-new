@@ -17,9 +17,9 @@ return new class extends Migration
             $table->unsignedBigInteger('tbbm_id')->index('idx_tbbm_id');
             $table->unsignedBigInteger('pos_sandar_id')->index('idx_pos_sandar_id');
             $table->string('alpal', 100)->index('idx_alpal');
-            $table->decimal('ukuran', 4, 2);
-            $table->decimal('kapasitas', 6, 2);
-            $table->decimal('rob', 4, 2);
+            $table->decimal('ukuran', 10, 2);
+            $table->decimal('kapasitas', 10, 2);
+            $table->decimal('rob', 10, 2);
             $table->foreign('kantor_sar_id')
             ->references('kantor_sar_id')
             ->on('kantor_sars')

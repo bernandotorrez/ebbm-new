@@ -100,10 +100,11 @@ class UserResource extends Resource
                     ->label('Kantor Sar')
                     ->relationship('kantorSar', 'kantor_sar') // Relasi ke Golongan BBM
                     ->preload(),
-                Tables\Filters\TrashedFilter::make(),
+                // Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\DeleteAction::make()
+                ->label('Hapus')
                 ->before(function (User $record) {
                     if ($record->level === 'admin') {
                         Notification::make()
@@ -137,9 +138,6 @@ class UserResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+        return parent::getEloquentQuery();
     }
 }

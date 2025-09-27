@@ -337,7 +337,7 @@ class DeliveryOrderResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                // Tables\Filters\TrashedFilter::make(),
                 Tables\Filters\SelectFilter::make('sp3m_id')
                     ->label('SP3M')
                     ->options(static::getSp3mOptions())
@@ -371,12 +371,12 @@ class DeliveryOrderResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->label('Hapus Terpilih'),
-                    Tables\Actions\RestoreBulkAction::make()
-                        ->label('Pulihkan Terpilih'),
-                    Tables\Actions\ForceDeleteBulkAction::make()
-                        ->label('Hapus Permanen Terpilih'),
-                ]),
+                        ->label('Hapus Terpilih')
+                        ->modalHeading('Konfirmasi Hapus Data')
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
+                        ->modalButton('Ya, Hapus Sekarang'),
+                ])
+                ->label('Hapus'),
             ])
             ->defaultSort('tanggal_do', 'desc');
     }
@@ -399,10 +399,7 @@ class DeliveryOrderResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+        $query = parent::getEloquentQuery();
             
         $user = Auth::user();
         

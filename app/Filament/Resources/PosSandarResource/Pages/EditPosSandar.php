@@ -15,9 +15,12 @@ class EditPosSandar extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
-            Actions\ForceDeleteAction::make(),
-            Actions\RestoreAction::make(),
+            Actions\DeleteAction::make()
+                ->label('Hapus'),
+            Actions\ForceDeleteAction::make()
+                ->label('Hapus Permanen'),
+            Actions\RestoreAction::make()
+                ->label('Pulihkan'),
         ];
     }
 

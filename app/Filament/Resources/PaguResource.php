@@ -123,17 +123,20 @@ class PaguResource extends Resource
                     ->label('Golongan')
                     ->relationship('golonganBbm', 'golongan') // Relasi ke Golongan BBM
                     ->preload(),
-                Tables\Filters\TrashedFilter::make(),
+                // Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
-                ]),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('Hapus Terpilih')
+                        ->modalHeading('Konfirmasi Hapus Data')
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
+                        ->modalButton('Ya, Hapus Sekarang'),
+                ])
+                ->label('Hapus'),
             ]);
     }
 
@@ -155,9 +158,6 @@ class PaguResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+        return parent::getEloquentQuery();
     }
 }

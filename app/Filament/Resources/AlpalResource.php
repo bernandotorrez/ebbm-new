@@ -169,21 +169,21 @@ class AlpalResource extends Resource
                     ->label('Pos Sandar')
                     ->relationship('posSandar', 'pos_sandar') // Relasi ke Golongan BBM
                     ->preload(),
-                Tables\Filters\TrashedFilter::make(),
+                // Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->label('Ubah'),
             ])
-            ->bulkActions([
+           ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->label('Hapus Terpilih'),
-                    Tables\Actions\ForceDeleteBulkAction::make()
-                        ->label('Hapus Permanen Terpilih'),
-                    Tables\Actions\RestoreBulkAction::make()
-                        ->label('Pulihkan Terpilih'),
-                ]),
+                        ->label('Hapus Terpilih')
+                        ->modalHeading('Konfirmasi Hapus Data')
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
+                        ->modalButton('Ya, Hapus Sekarang'),
+                ])
+                ->label('Hapus'),
             ]);
     }
 
@@ -205,10 +205,7 @@ class AlpalResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+        $query = parent::getEloquentQuery();
             
         $user = Auth::user();
         
