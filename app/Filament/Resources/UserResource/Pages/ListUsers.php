@@ -18,4 +18,9 @@ class ListUsers extends ListRecords
                 ->label('Tambah User'),
         ];
     }
+
+    public function getTitle(): string
+    {
+        return 'Daftar User';
+    }
 }

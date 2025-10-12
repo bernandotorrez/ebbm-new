@@ -17,4 +17,9 @@ class ListGolonganBbms extends ListRecords
                 ->label('Tambah Golongan BBM'),
         ];
     }
+
+    public function getTitle(): string
+    {
+        return 'Daftar Golongan BBM';
+    }
 }

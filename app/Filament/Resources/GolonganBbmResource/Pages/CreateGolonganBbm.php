@@ -67,4 +67,9 @@ class CreateGolonganBbm extends CreateRecord
                 ->label('Batal'),
         ];
     }
+
+    public function getTitle(): string
+    {
+        return 'Buat Golongan BBM';
+    }
 }

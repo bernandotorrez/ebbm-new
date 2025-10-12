@@ -17,4 +17,9 @@ class ListBekals extends ListRecords
                 ->label('Tambah Bekal'),
         ];
     }
+
+    public function getTitle(): string
+    {
+        return 'Daftar Bekal';
+    }
 }

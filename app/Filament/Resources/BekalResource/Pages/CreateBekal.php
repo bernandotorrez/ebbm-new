@@ -72,4 +72,9 @@ class CreateBekal extends CreateRecord
             $this->halt();
         }
     }
+
+    public function getTitle(): string
+    {
+        return 'Buat Bekal';
+    }
 }

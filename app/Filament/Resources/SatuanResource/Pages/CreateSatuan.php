@@ -60,4 +60,9 @@ class CreateSatuan extends CreateRecord
             $this->halt();
         }
     }
+
+    public function getTitle(): string
+    {
+        return 'Buat Satuan';
+    }
 }
