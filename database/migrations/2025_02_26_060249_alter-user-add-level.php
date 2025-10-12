@@ -11,11 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->enum('level', ['admin', 'kanpus', 'kanwil', 'crew'])
-            ->default('crew')
-            ->comment('admin = Admin | kanpus = Kantor Pusat | kanwil = Kantor Wilayah | crew = Crew');
-        });
+        // The level column is already included in the main users table migration, so nothing to do here
     }
 
     /**
@@ -23,8 +19,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('level'); // Hapus kolom jika rollback
-        });
+        // Nothing to rollback since we're not adding the column in this migration
     }
 };

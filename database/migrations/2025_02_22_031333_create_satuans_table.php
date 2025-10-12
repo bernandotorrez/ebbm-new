@@ -11,11 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('satuans', function (Blueprint $table) {
-            $table->id('satuan_id');
-            $table->string('satuan', 25)->index('idx_satuan');
+        Schema::create('ms_satuan', function (Blueprint $table) {
+            $table->bigIncrements('satuan_id');
+            $table->string('satuan', 50);
             $table->softDeletes();
             $table->timestamps();
+
+            $table->index('satuan', 'idx_satuan_ms_satuan');
         });
     }
 
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('satuans');
+        Schema::dropIfExists('ms_satuan');
     }
 };

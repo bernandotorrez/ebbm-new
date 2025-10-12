@@ -123,6 +123,8 @@ class PaguResource extends Resource
                     ->label('Golongan')
                     ->relationship('golonganBbm', 'golongan') // Relasi ke Golongan BBM
                     ->preload(),
+                SelectFilter::make('tahun_anggaran')
+                    ->label('Tahun Anggaran'),
                 // Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([

@@ -11,7 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PosSandarResource extends Resource
 {
@@ -44,7 +44,7 @@ class PosSandarResource extends Resource
                 Forms\Components\TextInput::make('pos_sandar')
                     ->label('Pos Sandar')
                     ->required()
-                    ->maxLength(100),
+                    ->maxLength(50),
             ]);
     }
 

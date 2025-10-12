@@ -7,7 +7,7 @@ use App\Filament\Resources\DeliveryOrderResource\RelationManagers;
 use App\Models\DeliveryOrder;
 use App\Models\Sp3m; // Add this import
 use App\Models\KantorSar;
-use App\Enums\RoleEnum;
+use App\Enums\LevelUser;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -64,7 +64,7 @@ class DeliveryOrderResource extends Resource
                             $sp3m = Sp3m::find($state);
                             if ($sp3m) {
                                 if ($sp3m->alpal_id) {
-                                    $alpal = DB::table('alpals')->where('alpal_id', $sp3m->alpal_id)->first();
+                                    $alpal = DB::table('tx_alpal')->where('alpal_id', $sp3m->alpal_id)->first();
                                     $set('kapal_no_reg', $alpal->alpal);
                                 } else {
                                     $set('kapal_no_reg', '-');
@@ -77,7 +77,7 @@ class DeliveryOrderResource extends Resource
                             $sp3m = Sp3m::find($state);
                             if ($sp3m) {
                                 if ($sp3m->alpal_id) {
-                                    $alpal = DB::table('alpals')->where('alpal_id', $sp3m->alpal_id)->first();
+                                    $alpal = DB::table('tx_alpal')->where('alpal_id', $sp3m->alpal_id)->first();
 
                                     $set('kapal_no_reg', $alpal->alpal);
                                 } else {
@@ -113,18 +113,16 @@ class DeliveryOrderResource extends Resource
                     ->live()
                     ->afterStateUpdated(function (callable $get, callable $set, $state) {
                         if ($state) {
-                            $tbbm = DB::table('tbbms')->where('tbbm_id', $state)->first();
+                            $tbbm = DB::table('ms_tbbm')->where('tbbm_id', $state)->first();
                             $set('pbbkb', $tbbm->pbbkb);
                         }
                     })
-                    ->required(),
-                Forms\Components\DatePicker::make('tanggal_do')
                     ->required(),
                 Forms\Components\Select::make('tahun_anggaran')
                     ->label('Tahun Anggaran')
                     ->required()
                     ->options(function () {
-                        return DB::table('pagus')
+                        return DB::table('tx_pagu')
                             ->select('tahun_anggaran')
                             ->distinct()
                             ->orderBy('tahun_anggaran', 'desc')
@@ -140,6 +138,8 @@ class DeliveryOrderResource extends Resource
                     ->label('Nomor DO/Nota')
                     ->required()
                     ->maxLength(200),
+                Forms\Components\DatePicker::make('tanggal_do')
+                    ->required(),
                 Forms\Components\TextInput::make('kapal_no_reg')
                     ->label('Kapal/No Reg')
                     ->readOnly()
@@ -167,7 +167,8 @@ class DeliveryOrderResource extends Resource
                     ->extraInputAttributes([
                         'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
                     ])
-                    ->maxLength(5)
+                    ->minValue(0)
+                    ->maxLength(10)
                     ->live(),
                 Forms\Components\TextInput::make('harga_satuan')
                     ->required()
@@ -185,13 +186,15 @@ class DeliveryOrderResource extends Resource
                     ->readOnly()
                     ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : '')
                     ->dehydrateStateUsing(fn ($state) => (int) str_replace('.', '', $state))
-                    ->numeric(),
+                    ->numeric()
+                    ->minValue(0),
                 Forms\Components\TextInput::make('ppn')
                     ->required()
                     ->readOnly()
                     ->label('PPN %')
                     ->default(11)
-                    ->numeric(),
+                    ->numeric()
+                    ->minValue(0),
                 Forms\Components\Grid::make(2)
                     ->schema([
                         Forms\Components\TextInput::make('jumlah_harga')
@@ -238,7 +241,7 @@ class DeliveryOrderResource extends Resource
         $user = Auth::user();
         
         // If user is admin, show all SP3M
-        if ($user && $user->level === RoleEnum::Admin->value) {
+        if ($user && $user->level === LevelUser::ADMIN->value) {
             return Sp3m::pluck('nomor_sp3m', 'sp3m_id')->toArray();
         }
         
@@ -262,7 +265,7 @@ class DeliveryOrderResource extends Resource
                 $query->with(['sp3m', 'tbbm']);
                 
                 // Apply user-level filtering for non-admin users
-                if ($user && $user->level !== RoleEnum::Admin->value && $user->kantor_sar_id) {
+                if ($user && $user->level !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
                     $query->whereHas('sp3m', function ($q) use ($user) {
                         $q->where('kantor_sar_id', $user->kantor_sar_id);
                     });
@@ -351,7 +354,7 @@ class DeliveryOrderResource extends Resource
                 Tables\Filters\SelectFilter::make('tahun_anggaran')
                     ->label('Tahun Anggaran')
                     ->options(function () {
-                        return DB::table('pagus')
+                        return DB::table('tx_pagu')
                             ->select('tahun_anggaran')
                             ->distinct()
                             ->orderBy('tahun_anggaran', 'desc')
@@ -404,7 +407,7 @@ class DeliveryOrderResource extends Resource
         $user = Auth::user();
         
         // Apply user-level filtering for non-admin users through SP3M relationship
-        if ($user && $user->level !== RoleEnum::Admin->value && $user->kantor_sar_id) {
+        if ($user && $user->level !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
             $query->whereHas('sp3m', function ($q) use ($user) {
                 $q->where('kantor_sar_id', $user->kantor_sar_id);
             });

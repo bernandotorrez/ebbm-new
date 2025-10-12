@@ -12,26 +12,33 @@ use Filament\Panel;
 
 class User extends Authenticatable implements FilamentUser
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, SoftDeletes;
+
+    protected $table = 'ms_user';
+    protected $primaryKey = 'user_id';
+    public $timestamps = true;
+    protected $keyType = 'bigint';
+    public $incrementing = false;
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var list<string>
+     * @var array
      */
     protected $fillable = [
+        'user_id',
+        'kantor_sar_id',
         'name',
         'email',
         'password',
-        'kantor_sar_id',
+        'remember_token',
         'level'
     ];
 
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var list<string>
+     * @var array
      */
     protected $hidden = [
         'password',
@@ -48,12 +55,13 @@ class User extends Authenticatable implements FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'level' => \App\Enums\LevelUser::class,
         ];
     }
 
     public function kantorSar()
     {
-        return $this->belongsTo(KantorSar::class, 'kantor_sar_id');
+        return $this->belongsTo(KantorSar::class, 'kantor_sar_id', 'kantor_sar_id');
     }
 
     public function canAccessPanel(Panel $panel): bool

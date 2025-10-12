@@ -11,29 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pemakaians', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('kantor_sar_id')->index('idx_kantor_sar_id');
-            $table->unsignedBigInteger('alpal_id')->index('idx_alpal_id');
-            $table->unsignedBigInteger('bekal_id')->index('idx_bekal_id');
-            $table->date('tanggal_pakai');
-            $table->smallInteger('qty', false, true);
+        Schema::create('tx_pemakaian', function (Blueprint $table) {
+            $table->bigIncrements('pemakaian_id');
+            $table->unsignedBigInteger('kantor_sar_id')->index('idx_kantor_sar_id_tx_pemakaian');
+            $table->unsignedBigInteger('alpal_id')->index('idx_alpal_id_tx_pemakaian');
+            $table->unsignedBigInteger('bekal_id')->index('idx_bekal_id_tx_pemakaian');
+            $table->date('tanggal_pakai')->index('idx_tanggal_pakai_tx_pemakaian');
+            $table->unsignedSmallInteger('qty');
             $table->text('keterangan');
-            $table->foreign('kantor_sar_id')
-            ->references('kantor_sar_id')
-            ->on('kantor_sars')
-            ->cascadeOnDelete()
-            ->cascadeOnUpdate();
-            $table->foreign('alpal_id')
-            ->references('alpal_id')
-            ->on('alpals')
-            ->cascadeOnDelete()
-            ->cascadeOnUpdate();
-            $table->foreign('bekal_id')
-            ->references('bekal_id')
-            ->on('bekals')
-            ->cascadeOnDelete()
-            ->cascadeOnUpdate();
             $table->softDeletes();
             $table->timestamps();
         });
@@ -44,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pemakaians');
+        Schema::dropIfExists('tx_pemakaian');
     }
 };

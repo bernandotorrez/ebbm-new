@@ -11,11 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('kantor_sars', function (Blueprint $table) {
-            $table->id('kantor_sar_id');
-            $table->string('kantor_sar', 50)->index('idx_kantor_sar');
+        Schema::create('ms_kantor_sar', function (Blueprint $table) {
+            $table->bigIncrements('kantor_sar_id');
+            $table->string('kantor_sar', 50);
             $table->softDeletes();
             $table->timestamps();
+
+            $table->index('kantor_sar', 'idx_kantor_sar_ms_kantor_sar');
         });
     }
 
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('kantor_sars');
+        Schema::dropIfExists('ms_kantor_sar');
     }
 };

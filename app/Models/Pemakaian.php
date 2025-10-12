@@ -11,7 +11,14 @@ class Pemakaian extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'tx_pemakaian';
+    protected $primaryKey = 'pemakaian_id';
+    public $timestamps = true;
+    protected $keyType = 'bigint';
+    public $incrementing = false;
+
     protected $fillable = [
+        'pemakaian_id',
         'kantor_sar_id',
         'alpal_id',
         'bekal_id',
@@ -27,9 +34,9 @@ class Pemakaian extends Model
     public static function rules($id = null)
     {
         return [
-            'kantor_sar_id' => ['required', 'exists:kantor_sars,kantor_sar_id'],
-            'alpal_id' => ['required', 'exists:alpals,alpal_id'],
-            'bekal_id' => ['required', 'exists:bekals,bekal_id'],
+            'kantor_sar_id' => ['required', 'exists:ms_kantor_sar,kantor_sar_id'],
+            'alpal_id' => ['required', 'exists:tx_alpal,alpal_id'],
+            'bekal_id' => ['required', 'exists:ms_bekal,bekal_id'],
             'tanggal_pakai' => ['required', 'date'],
             'qty' => ['required', 'integer', 'min:1'],
             'keterangan' => ['required', 'string', 'max:1000'],

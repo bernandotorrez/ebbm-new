@@ -11,18 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tbbms', function (Blueprint $table) {
-            $table->id('tbbm_id');
-            $table->unsignedBigInteger('kota_id')->index('idx_kota_id');
-            $table->string('plant', 4);
+        Schema::create('ms_tbbm', function (Blueprint $table) {
+            $table->bigIncrements('tbbm_id');
+            $table->unsignedBigInteger('kota_id')->index('idx_kota_id_ms_tbbm');
+            $table->string('plant', 5);
             $table->string('depot', 50);
-            $table->decimal('pbbkb', 5, 2);
+            $table->decimal('pbbkb', 5, 2, true); // unsigned decimal
             $table->char('ship_to', 6);
-            $table->foreign('kota_id')
-            ->references('kota_id')
-            ->on('kotas')
-            ->cascadeOnDelete()
-            ->cascadeOnUpdate();
             $table->softDeletes();
             $table->timestamps();
         });
@@ -33,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tbbms');
+        Schema::dropIfExists('ms_tbbm');
     }
 };

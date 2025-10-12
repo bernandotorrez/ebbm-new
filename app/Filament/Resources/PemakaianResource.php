@@ -71,6 +71,7 @@ class PemakaianResource extends Resource
                             ->required()
                             ->numeric()
                             ->minValue(1)
+                            ->maxValue(99999)  // Adjusted for 5 digits as per schema
                             ->label('Quantity'),
 
                         Forms\Components\Textarea::make('keterangan')
@@ -104,7 +105,15 @@ class PemakaianResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('keterangan')
                     ->limit(50),
+                Tables\Columns\TextColumn::make('deleted_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

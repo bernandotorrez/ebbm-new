@@ -55,6 +55,11 @@ class KantorSarResource extends Resource
                 Tables\Columns\TextColumn::make('kantor_sar')
                     ->label('Kantor SAR')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('deleted_at')
+                    ->label('Dihapus Pada')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat Pada')
                     ->dateTime()

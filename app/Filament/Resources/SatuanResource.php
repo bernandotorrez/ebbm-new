@@ -43,7 +43,7 @@ class SatuanResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('satuan')
                     ->required()
-                    ->maxLength(25),
+                    ->maxLength(50),
             ]);
     }
 

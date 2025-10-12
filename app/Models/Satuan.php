@@ -9,11 +9,14 @@ class Satuan extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'satuans';
-
+    protected $table = 'ms_satuan';
     protected $primaryKey = 'satuan_id';
+    public $timestamps = true;
+    protected $keyType = 'bigint';
+    public $incrementing = false;
 
     protected $fillable = [
+        'satuan_id',
         'satuan',
     ];
 }

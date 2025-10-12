@@ -11,30 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('alpals', function (Blueprint $table) {
-            $table->id('alpal_id');
-            $table->unsignedBigInteger('kantor_sar_id')->index('idx_kantor_sar_id');
-            $table->unsignedBigInteger('tbbm_id')->index('idx_tbbm_id');
-            $table->unsignedBigInteger('pos_sandar_id')->index('idx_pos_sandar_id');
-            $table->string('alpal', 100)->index('idx_alpal');
-            $table->decimal('ukuran', 10, 2);
-            $table->decimal('kapasitas', 10, 2);
-            $table->decimal('rob', 10, 2);
-            $table->foreign('kantor_sar_id')
-            ->references('kantor_sar_id')
-            ->on('kantor_sars')
-            ->cascadeOnDelete()
-            ->cascadeOnUpdate();
-            $table->foreign('tbbm_id')
-            ->references('tbbm_id')
-            ->on('tbbms')
-            ->cascadeOnDelete()
-            ->cascadeOnUpdate();
-            $table->foreign('pos_sandar_id')
-            ->references('pos_sandar_id')
-            ->on('pos_sandars')
-            ->cascadeOnDelete()
-            ->cascadeOnUpdate();
+        Schema::create('tx_alpal', function (Blueprint $table) {
+            $table->bigIncrements('alpal_id');
+            $table->unsignedBigInteger('kantor_sar_id')->index('idx_kantor_sar_id_tx_alpal');
+            $table->unsignedBigInteger('tbbm_id')->index('idx_tbbm_id_tx_alpal');
+            $table->unsignedBigInteger('pos_sandar_id')->index('idx_pos_sandar_id_tx_alpal');
+            $table->string('alpal', 100);
+            $table->decimal('ukuran', 4, 2, true); // unsigned decimal
+            $table->decimal('kapasitas', 6, 2, true); // unsigned decimal
+            $table->decimal('rob', 4, 2, true); // unsigned decimal
             $table->softDeletes();
             $table->timestamps();
         });
@@ -45,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('alpals');
+        Schema::dropIfExists('tx_alpal');
     }
 };

@@ -6,7 +6,7 @@ use App\Filament\Resources\AlpalResource\Pages;
 use App\Filament\Resources\AlpalResource\RelationManagers;
 use App\Models\Alpal;
 use App\Models\KantorSar;
-use App\Enums\RoleEnum;
+use App\Enums\LevelUser;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -76,15 +76,18 @@ class AlpalResource extends Resource
                 Forms\Components\TextInput::make('ukuran')
                     ->required()
                     ->label('Ukuran (m)')
-                    ->numeric(),
+                    ->numeric()
+                    ->minValue(0),
                 Forms\Components\TextInput::make('kapasitas')
                     ->required()
                     ->label('Kapasitas (ltr)')
-                    ->numeric(),
+                    ->numeric()
+                    ->minValue(0),
                 Forms\Components\TextInput::make('rob')
                     ->required()
                     ->label('ROB (ltr)')
-                    ->numeric(),
+                    ->numeric()
+                    ->minValue(0),
             ]);
     }
 
@@ -93,7 +96,7 @@ class AlpalResource extends Resource
         $user = Auth::user();
         
         // If user is admin, show all Kantor SAR
-        if ($user && $user->level === RoleEnum::Admin->value) {
+        if ($user && $user->level === LevelUser::ADMIN->value) {
             return KantorSar::pluck('kantor_sar', 'kantor_sar_id')->toArray();
         }
         
@@ -210,7 +213,7 @@ class AlpalResource extends Resource
         $user = Auth::user();
         
         // Apply user-level filtering for non-admin users
-        if ($user && $user->level !== RoleEnum::Admin->value && $user->kantor_sar_id) {
+        if ($user && $user->level !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
             $query->where('kantor_sar_id', $user->kantor_sar_id);
         }
         

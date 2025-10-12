@@ -4,7 +4,7 @@ namespace App\Filament\Pages\Laporan;
 
 use App\Exports\DaftarSp3mExport;
 use App\Models\KantorSar;
-use App\Enums\RoleEnum;
+use App\Enums\LevelUser;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
@@ -39,7 +39,7 @@ class DaftarSp3m extends Page implements HasForms
         $user = Auth::user();
         
         // For non-admin users, automatically set their kantor_sar_id
-        if ($user && $user->level !== RoleEnum::Admin->value && $user->kantor_sar_id) {
+        if ($user && $user->level !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
             $this->kantor_sar_id = (string) $user->kantor_sar_id;
         }
         
@@ -90,7 +90,7 @@ class DaftarSp3m extends Page implements HasForms
     protected function isAdmin(): bool
     {
         $user = Auth::user();
-        return $user && $user->level === RoleEnum::Admin->value;
+        return $user && $user->level === LevelUser::ADMIN->value;
     }
     
     public function form(Form $form): Form
@@ -118,7 +118,7 @@ class DaftarSp3m extends Page implements HasForms
         $user = Auth::user();
         
         // If user is admin, show all Kantor SAR
-        if ($user && $user->level === RoleEnum::Admin->value) {
+        if ($user && $user->level === LevelUser::ADMIN->value) {
             return KantorSar::pluck('kantor_sar', 'kantor_sar_id')->toArray();
         }
         
@@ -139,7 +139,7 @@ class DaftarSp3m extends Page implements HasForms
         $query = \App\Models\Sp3m::query();
 
         // Apply user-level filtering first
-        if ($user && $user->level !== RoleEnum::Admin->value && $user->kantor_sar_id) {
+        if ($user && $user->level !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
             // Non-admin users can only see data from their assigned Kantor SAR
             $query->where('kantor_sar_id', $user->kantor_sar_id);
         } elseif ($this->kantor_sar_id) {
@@ -164,7 +164,7 @@ class DaftarSp3m extends Page implements HasForms
         $kantorSarId = $this->kantor_sar_id;
         
         // For non-admin users, force their assigned kantor_sar_id
-        if ($user && $user->level !== RoleEnum::Admin->value && $user->kantor_sar_id) {
+        if ($user && $user->level !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
             $kantorSarId = $user->kantor_sar_id;
         }
         

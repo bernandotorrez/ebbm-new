@@ -9,11 +9,14 @@ class GolonganBbm extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'golongan_bbms';
-
+    protected $table = 'ms_golongan_bbm';
     protected $primaryKey = 'golongan_bbm_id';
+    public $timestamps = true;
+    protected $keyType = 'bigint';
+    public $incrementing = false;
 
     protected $fillable = [
+        'golongan_bbm_id',
         'golongan',
     ];
 }

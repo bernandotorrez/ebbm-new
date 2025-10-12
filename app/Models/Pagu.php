@@ -9,8 +9,11 @@ class Pagu extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'pagus';
+    protected $table = 'tx_pagu';
     protected $primaryKey = 'pagu_id';
+    public $timestamps = true;
+    protected $keyType = 'bigint';
+    public $incrementing = false;
 
     protected $fillable = [
         'pagu_id',
@@ -23,6 +26,6 @@ class Pagu extends Model
 
     public function golonganBbm()
     {
-        return $this->belongsTo(GolonganBbm::class, 'golongan_bbm_id');
+        return $this->belongsTo(GolonganBbm::class, 'golongan_bbm_id', 'golongan_bbm_id');
     }
 }

@@ -11,34 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('sp3ms', function (Blueprint $table) {
-            $table->id('sp3m_id');
-            $table->string('nomor_sp3m', 200)->index('idx_nomor_sp3m');
+        Schema::create('tx_sp3m', function (Blueprint $table) {
+            $table->bigIncrements('sp3m_id');
+            $table->unsignedBigInteger('alpal_id')->index('idx_alpal_id_tx_sp3m');
+            $table->unsignedBigInteger('kantor_sar_id')->index('idx_kantor_sar_id_tx_sp3m');
+            $table->unsignedBigInteger('bekal_id')->index('idx_bekal_id_tx_sp3m');
+            $table->string('nomor_sp3m', 200)->index('idx_nomor_sp3m_tx_sp3m');
             $table->char('tahun_anggaran', 4);
             $table->string('tw', 25);
-            $table->unsignedBigInteger('kantor_sar_id')->index('idx_kantor_sar_id');
-            $table->unsignedBigInteger('alpal_id')->index('idx_alpal_id');
-            $table->unsignedBigInteger('bekal_id')->index('idx_bekal_id');
             $table->unsignedInteger('qty');
-            $table->decimal('harga_satuan', 20, 2)->unsigned();
-            $table->decimal('jumlah_harga', 20, 2)->unsigned();
+            $table->decimal('harga_satuan', 20, 2, true); // unsigned decimal
+            $table->decimal('jumlah_harga', 20, 2, true); // unsigned decimal
             $table->text('file_upload_sp3m');
             $table->text('file_upload_kelengkapan_sp3m');
-            $table->foreign('kantor_sar_id')
-            ->references('kantor_sar_id')
-            ->on('kantor_sars')
-            ->cascadeOnDelete()
-            ->cascadeOnUpdate();
-            $table->foreign('alpal_id')
-            ->references('alpal_id')
-            ->on('alpals')
-            ->cascadeOnDelete()
-            ->cascadeOnUpdate();
-            $table->foreign('bekal_id')
-            ->references('bekal_id')
-            ->on('bekals')
-            ->cascadeOnDelete()
-            ->cascadeOnUpdate();
             $table->softDeletes();
             $table->timestamps();
         });
@@ -49,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sp3m');
+        Schema::dropIfExists('tx_sp3m');
     }
 };

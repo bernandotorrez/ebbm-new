@@ -11,11 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('kotas', function (Blueprint $table) {
-            $table->id('kota_id');
-            $table->string('kota', 50)->index('idx_kota');
+        Schema::create('ms_kota', function (Blueprint $table) {
+            $table->bigIncrements('kota_id');
+            $table->string('kota', 50);
             $table->softDeletes();
             $table->timestamps();
+
+            $table->index('kota', 'idx_kota_ms_kota');
         });
     }
 
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('kotas');
+        Schema::dropIfExists('ms_kota');
     }
 };
