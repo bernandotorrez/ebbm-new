@@ -163,22 +163,6 @@ class UserResource extends Resource
         ];
     }
 
-    // Customize button labels
-    public static function getNavigationLabel(): string
-    {
-        return 'Kelola User';
-    }
-
-    public static function getModelLabel(): string
-    {
-        return 'User';
-    }
-
-    public static function getPluralModelLabel(): string
-    {
-        return 'Daftar User';
-    }
-
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery();

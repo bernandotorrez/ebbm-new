@@ -14,9 +14,19 @@ class EditDeliveryOrder extends EditRecord
 {
     protected static string $resource = DeliveryOrderResource::class;
 
-    protected function mutateFormDataBeforeCreate(array $data): array
+    protected function getFormActions(): array
     {
-        // Apply ucwords() to the 'bekal' field before saving
+        return [
+            $this->getSaveFormAction()
+                ->label('Simpan'),
+            $this->getCancelFormAction()
+                ->label('Batal'),
+        ];
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        // Apply formatting to numeric fields before saving
         $data['qty'] = (int) preg_replace('/[^\d]/', '', $data['qty']);
         $data['harga_satuan'] = (int) preg_replace('/[^\d]/', '', $data['harga_satuan']);
         $data['pbbkb'] = (int) number_format($data['pbbkb'], 0, ',', '.');
@@ -74,5 +84,13 @@ class EditDeliveryOrder extends EditRecord
             Actions\RestoreAction::make()
                 ->label('Pulihkan'),
         ];
+    }
+
+    protected function getSavedNotification(): ?Notification
+    {
+        return Notification::make()
+            ->success()
+            ->title('Berhasil')
+            ->body('Data delivery order berhasil diperbarui.');
     }
 }

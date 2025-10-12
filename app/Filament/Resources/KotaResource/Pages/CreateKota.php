@@ -20,7 +20,7 @@ class CreateKota extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // Apply ucwords() to the 'bekal' field before saving
+        // Apply formatting to fields before saving
         $data['kota'] = ucwords($data['kota']);
 
         return $data;
@@ -46,5 +46,25 @@ class CreateKota extends CreateRecord
             // Prevent form submission
             $this->halt();
         }
+    }
+
+    protected function getCreatedNotification(): ?Notification
+    {
+        return Notification::make()
+            ->success()
+            ->title('Berhasil')
+            ->body('Data kota berhasil ditambahkan.');
+    }
+
+    public function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction()
+                ->label('Buat'),
+            $this->getCreateAnotherFormAction()
+                ->label('Buat & Buat lainnya'),
+            $this->getCancelFormAction()
+                ->label('Batal'),
+        ];
     }
 }

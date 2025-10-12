@@ -76,4 +76,22 @@ class EditAlpal extends EditRecord
             $this->halt();
         }
     }
+
+    protected function getSavedNotification(): ?Notification
+    {
+        return Notification::make()
+            ->success()
+            ->title('Berhasil')
+            ->body('Data alpal berhasil diperbarui.');
+    }
+
+    public function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction()
+                ->label('Simpan'),
+            $this->getCancelFormAction()
+                ->label('Batal'),
+        ];
+    }
 }

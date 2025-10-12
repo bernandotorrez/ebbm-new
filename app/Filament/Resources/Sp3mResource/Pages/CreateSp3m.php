@@ -21,7 +21,7 @@ class CreateSp3m extends CreateRecord
             $this->getCreateFormAction()
                 ->label('Buat'),
             $this->getCreateAnotherFormAction()
-                ->label('Buat & buat lainnya'),
+                ->label('Buat & Buat lainnya'),
             $this->getCancelFormAction()
                 ->label('Batal'),
         ];

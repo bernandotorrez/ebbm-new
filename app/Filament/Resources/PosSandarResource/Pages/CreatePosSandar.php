@@ -47,4 +47,24 @@ class CreatePosSandar extends CreateRecord
             $this->halt();
         }
     }
+
+    protected function getCreatedNotification(): ?Notification
+    {
+        return Notification::make()
+            ->success()
+            ->title('Berhasil')
+            ->body('Data pos sandar berhasil ditambahkan.');
+    }
+
+    public function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction()
+                ->label('Buat'),
+            $this->getCreateAnotherFormAction()
+                ->label('Buat & Buat lainnya'),
+            $this->getCancelFormAction()
+                ->label('Batal'),
+        ];
+    }
 }
