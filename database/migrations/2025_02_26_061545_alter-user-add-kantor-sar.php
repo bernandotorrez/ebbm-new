@@ -11,14 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->unsignedBigInteger('kantor_sar_id')->nullable()->index('idx_kantor_sar_id_user');
-            $table->foreign('kantor_sar_id')
-            ->references('kantor_sar_id')
-            ->on('kantor_sars')
-            ->cascadeOnDelete()
-            ->cascadeOnUpdate();
-        });
+        // The kantor_sar_id column is already included in the main users table migration along with its index,
+        // but foreign key constraint is added separately in the foreign keys migration, so nothing to do here
     }
 
     /**
@@ -26,8 +20,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('kantor_sar_id'); // Hapus kolom jika rollback
-        });
+        // Nothing to rollback since we're not adding the column in this migration
     }
 };

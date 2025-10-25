@@ -20,7 +20,7 @@ class CreateBekal extends CreateRecord
             $this->getCreateFormAction()
                 ->label('Buat'),
             $this->getCreateAnotherFormAction()
-                ->label('Buat & buat lainnya'),
+                ->label('Buat & Buat lainnya'),
             $this->getCancelFormAction()
                 ->label('Batal'),
         ];
@@ -71,5 +71,10 @@ class CreateBekal extends CreateRecord
             // Prevent form submission
             $this->halt();
         }
+    }
+
+    public function getTitle(): string
+    {
+        return 'Buat Bekal';
     }
 }

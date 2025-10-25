@@ -17,4 +17,9 @@ class ListSatuans extends ListRecords
                 ->label('Tambah Satuan'),
         ];
     }
+
+    public function getTitle(): string
+    {
+        return 'Daftar Satuan';
+    }
 }

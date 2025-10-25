@@ -9,10 +9,14 @@ class Kota extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'kotas';
+    protected $table = 'ms_kota';
     protected $primaryKey = 'kota_id';
+    public $timestamps = true;
+    protected $keyType = 'bigint';
+    public $incrementing = false;
 
     protected $fillable = [
+        'kota_id',
         'kota',
     ];
 }

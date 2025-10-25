@@ -6,7 +6,7 @@ use App\Filament\Resources\Sp3mResource\Pages;
 use App\Filament\Resources\Sp3mResource\RelationManagers;
 use App\Models\Sp3m;
 use App\Models\KantorSar;
-use App\Enums\RoleEnum;
+use App\Enums\LevelUser;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -46,6 +46,34 @@ class Sp3mResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('alpal_id')
+                    ->relationship(name: 'alpal', titleAttribute: 'alpal')
+                    ->label('Alpal')
+                    ->searchable()
+                    ->preload()
+                    ->validationMessages([
+                        'required' => 'Pilih Alpal',
+                    ])
+                    ->required(),
+                Forms\Components\Select::make('kantor_sar_id')
+                    ->relationship(name: 'kantorSar', titleAttribute: 'kantor_sar')
+                    ->label('Kantor SAR')
+                    ->options(static::getKantorSarOptions())
+                    ->searchable()
+                    ->preload()
+                    ->validationMessages([
+                        'required' => 'Pilih Kantor SAR',
+                    ])
+                    ->required(),
+                Forms\Components\Select::make('bekal_id')
+                    ->relationship(name: 'bekal', titleAttribute: 'bekal')
+                    ->label('Bekal')
+                    ->searchable()
+                    ->preload()
+                    ->validationMessages([
+                        'required' => 'Pilih Bekal',
+                    ])
+                    ->required(),
                 Forms\Components\TextInput::make('nomor_sp3m')
                     ->label('Nomor SP3M')
                     ->required()
@@ -54,7 +82,7 @@ class Sp3mResource extends Resource
                     ->label('Tahun Anggaran')
                     ->required()
                     ->options(function () {
-                        return DB::table('pagus')
+                        return DB::table('tx_pagu')
                             ->select('tahun_anggaran')
                             ->distinct()
                             ->orderBy('tahun_anggaran', 'desc')
@@ -70,34 +98,6 @@ class Sp3mResource extends Resource
                     ->label('Triwulan')
                     ->required()
                     ->maxLength(25),
-                Forms\Components\Select::make('kantor_sar_id')
-                    ->relationship(name: 'kantorSar', titleAttribute: 'kantor_sar')
-                    ->label('Kantor SAR')
-                    ->options(static::getKantorSarOptions())
-                    ->searchable()
-                    ->preload()
-                    ->validationMessages([
-                        'required' => 'Pilih Kantor SAR',
-                    ])
-                    ->required(),
-                Forms\Components\Select::make('alpal_id')
-                    ->relationship(name: 'alpal', titleAttribute: 'alpal')
-                    ->label('Alpal')
-                    ->searchable()
-                    ->preload()
-                    ->validationMessages([
-                        'required' => 'Pilih Alpal',
-                    ])
-                    ->required(),
-                Forms\Components\Select::make('bekal_id')
-                    ->relationship(name: 'bekal', titleAttribute: 'bekal')
-                    ->label('Bekal')
-                    ->searchable()
-                    ->preload()
-                    ->validationMessages([
-                        'required' => 'Pilih Bekal',
-                    ])
-                    ->required(),
                 Forms\Components\TextInput::make('qty')
                     ->required()
                     ->label('Qty')
@@ -110,7 +110,8 @@ class Sp3mResource extends Resource
                     ->extraInputAttributes([
                         'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
                     ])
-                    ->maxLength(5)
+                    ->minValue(0)
+                    ->maxLength(10)
                     ->live(),
                 Forms\Components\TextInput::make('harga_satuan')
                     ->required()
@@ -172,7 +173,7 @@ class Sp3mResource extends Resource
         $user = Auth::user();
         
         // If user is admin, show all Kantor SAR
-        if ($user && $user->level === RoleEnum::Admin->value) {
+        if ($user && $user->level === LevelUser::ADMIN->value) {
             return KantorSar::pluck('kantor_sar', 'kantor_sar_id')->toArray();
         }
         
@@ -191,6 +192,18 @@ class Sp3mResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('alpal.alpal')
+                    ->numeric()
+                    ->label('Alpal')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('kantorSar.kantor_sar')
+                    ->numeric()
+                    ->label('Kantor Sar')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('bekal.bekal')
+                    ->numeric()
+                    ->label('Bekal')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('nomor_sp3m')
                     ->label('Nomor SP3M')
                     ->searchable(),
@@ -200,18 +213,6 @@ class Sp3mResource extends Resource
                 Tables\Columns\TextColumn::make('tw')
                     ->label('Triwulan')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('kantorSar.kantor_sar')
-                    ->numeric()
-                    ->label('Kantor Sar')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('alpal.alpal')
-                    ->numeric()
-                    ->label('Alpal')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('bekal.bekal')
-                    ->numeric()
-                    ->label('Bekal')
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('qty')
                     ->label('Kuantitas')
                     ->numeric()
@@ -253,7 +254,9 @@ class Sp3mResource extends Resource
                     ->label('Bekal')
                     ->relationship('bekal', 'bekal') // Relasi ke Golongan BBM
                     ->preload(),
-                Tables\Filters\TrashedFilter::make(),
+                SelectFilter::make('tahun_anggaran')
+                    ->label('Tahun Anggaran'),
+                // Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
@@ -262,12 +265,12 @@ class Sp3mResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->label('Hapus Terpilih'),
-                    Tables\Actions\ForceDeleteBulkAction::make()
-                        ->label('Hapus Permanen Terpilih'),
-                    Tables\Actions\RestoreBulkAction::make()
-                        ->label('Pulihkan Terpilih'),
-                ]),
+                        ->label('Hapus Terpilih')
+                        ->modalHeading('Konfirmasi Hapus Data')
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
+                        ->modalButton('Ya, Hapus Sekarang'),
+                ])
+                ->label('Hapus'),
             ]);
     }
 
@@ -289,15 +292,12 @@ class Sp3mResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+        $query = parent::getEloquentQuery();
             
         $user = Auth::user();
         
         // Apply user-level filtering for non-admin users
-        if ($user && $user->level !== RoleEnum::Admin->value && $user->kantor_sar_id) {
+        if ($user && $user->level !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
             $query->where('kantor_sar_id', $user->kantor_sar_id);
         }
         

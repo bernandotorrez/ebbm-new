@@ -12,12 +12,25 @@ class EditKota extends EditRecord
 {
     protected static string $resource = KotaResource::class;
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction()
+                ->label('Simpan'),
+            $this->getCancelFormAction()
+                ->label('Batal'),
+        ];
+    }
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
-            Actions\ForceDeleteAction::make(),
-            Actions\RestoreAction::make(),
+            Actions\DeleteAction::make()
+                ->label('Hapus'),
+            Actions\ForceDeleteAction::make()
+                ->label('Hapus Permanen'),
+            Actions\RestoreAction::make()
+                ->label('Pulihkan'),
         ];
     }
 
@@ -29,7 +42,7 @@ class EditKota extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        // Apply ucwords() to the 'bekal' field before saving
+        // Apply formatting to fields before saving
         $data['kota'] = ucwords($data['kota']);
 
         return $data;
@@ -43,7 +56,7 @@ class EditKota extends EditRecord
 
         // Check if the same record exists
         $exists = Kota::where('kota', ucwords($kota))
-            ->where('satuan_id', '!=', $id) // Exclude the current record
+            ->where('kota_id', '!=', $id) // Exclude the current record
             ->exists();
 
         if ($exists) {
@@ -57,5 +70,13 @@ class EditKota extends EditRecord
             // Prevent form submission
             $this->halt();
         }
+    }
+
+    protected function getSavedNotification(): ?Notification
+    {
+        return Notification::make()
+            ->success()
+            ->title('Berhasil')
+            ->body('Data kota berhasil diperbarui.');
     }
 }

@@ -14,7 +14,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
-use App\Enums\RoleEnum;
+use App\Enums\LevelUser;
 use Filament\Notifications\Notification;
 
 class UserResource extends Resource
@@ -27,7 +27,7 @@ class UserResource extends Resource
 
     protected static ?string $navigationLabel = 'Kelola User';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 90;
 
     protected static ?string $slug = 'kelola-user';
 
@@ -55,6 +55,12 @@ class UserResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('kantor_sar_id')
+                    ->relationship(name: 'kantorSar', titleAttribute: 'kantor_sar')
+                    ->label('Kantor SAR')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
@@ -63,21 +69,22 @@ class UserResource extends Resource
                     ->autocomplete(false)
                     ->required()
                     ->maxLength(255),
+                Forms\Components\DateTimePicker::make('email_verified_at')
+                    ->label('Email Verified At')
+                    ->default(null),
                 Forms\Components\TextInput::make('password')
                     ->password()
                     ->autocomplete(false)
                     ->required()
                     ->maxLength(255),
-                Forms\Components\Select::make('kantor_sar_id')
-                    ->relationship(name: 'kantorSar', titleAttribute: 'kantor_sar')
-                    ->label('Kantor SAR')
-                    ->searchable()
-                    ->preload()
-                    ->required(),
+                Forms\Components\TextInput::make('remember_token')
+                    ->label('Remember Token')
+                    ->maxLength(100),
                 Forms\Components\Select::make('level')
-                ->options(RoleEnum::values())
-                ->label('Level')
-                ->required()
+                    ->options(LevelUser::values())
+                    ->label('Level')
+                    ->default('crew')
+                    ->required()
             ]);
     }
 
@@ -85,25 +92,45 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('email')
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('kantorSar.kantor_sar')
                     ->numeric()
                     ->label('Kantor SAR')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('level'),
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('email')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('level')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'admin' => 'danger',
+                        'kanpus' => 'warning',
+                        'kanwil' => 'info',
+                        'crew' => 'success',
+                        default => 'gray',
+                    }),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('kantor_sar_id')
                     ->label('Kantor Sar')
                     ->relationship('kantorSar', 'kantor_sar') // Relasi ke Golongan BBM
                     ->preload(),
-                Tables\Filters\TrashedFilter::make(),
+                SelectFilter::make('level')
+                    ->options(LevelUser::values())
+                    ->label('Level'),
+                // Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\DeleteAction::make()
+                ->label('Hapus')
                 ->before(function (User $record) {
                     if ($record->level === 'admin') {
                         Notification::make()
@@ -115,7 +142,8 @@ class UserResource extends Resource
                         return false; // Mencegah penghapusan
                     }
                 }),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->label('Ubah'),
             ]);
     }
 
@@ -137,9 +165,6 @@ class UserResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+        return parent::getEloquentQuery();
     }
 }

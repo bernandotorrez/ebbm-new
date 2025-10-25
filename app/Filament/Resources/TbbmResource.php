@@ -49,13 +49,14 @@ class TbbmResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('plant')
                     ->required()
-                    ->maxLength(4),
+                    ->maxLength(5),
                 Forms\Components\TextInput::make('depot')
                     ->required()
                     ->maxLength(50),
                 Forms\Components\TextInput::make('pbbkb')
                     ->required()
-                    ->numeric(),
+                    ->numeric()
+                    ->minValue(0),
                 Forms\Components\TextInput::make('ship_to')
                     ->required()
                     ->mask('999999')
@@ -80,6 +81,10 @@ class TbbmResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('ship_to')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('deleted_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -94,17 +99,21 @@ class TbbmResource extends Resource
                 ->label('Kota')
                 ->relationship('kota', 'kota') // Relasi ke Golongan BBM
                 ->preload(), // Untuk memuat data otomatis di dropdown
-                Tables\Filters\TrashedFilter::make(),
+                // Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->label('Ubah'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
-                ]),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('Hapus Terpilih')
+                        ->modalHeading('Konfirmasi Hapus Data')
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
+                        ->modalButton('Ya, Hapus Sekarang'),
+                ])
+                ->label('Hapus'),
             ]);
     }
 
@@ -126,9 +135,6 @@ class TbbmResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+        return parent::getEloquentQuery();
     }
 }

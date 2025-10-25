@@ -9,11 +9,14 @@ class Tbbm extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'tbbms';
-
+    protected $table = 'ms_tbbm';
     protected $primaryKey = 'tbbm_id';
+    public $timestamps = true;
+    protected $keyType = 'bigint';
+    public $incrementing = false;
 
     protected $fillable = [
+        'tbbm_id',
         'kota_id',
         'plant',
         'depot',
@@ -23,6 +26,6 @@ class Tbbm extends Model
 
     public function kota()
     {
-        return $this->belongsTo(Kota::class, 'kota_id');
+        return $this->belongsTo(Kota::class, 'kota_id', 'kota_id');
     }
 }

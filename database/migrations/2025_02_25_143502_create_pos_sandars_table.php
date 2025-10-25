@@ -11,11 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pos_sandars', function (Blueprint $table) {
-            $table->id('pos_sandar_id');
-            $table->string('pos_sandar', 100)->index('idx_pos_sandar');
+        Schema::create('ms_pos_sandar', function (Blueprint $table) {
+            $table->bigIncrements('pos_sandar_id');
+            $table->string('pos_sandar', 50);
             $table->softDeletes();
             $table->timestamps();
+
+            $table->index('pos_sandar', 'idx_pos_sandar_ms_pos_sandar');
         });
     }
 
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pos_sandars');
+        Schema::dropIfExists('ms_pos_sandar');
     }
 };

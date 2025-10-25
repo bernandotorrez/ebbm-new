@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->softDeletes(); // Menambahkan kolom `deleted_at`
-        });
+        // The soft deletes functionality is already included in the main users table migration,
+        // so nothing to do here
     }
 
     /**
@@ -21,8 +20,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropSoftDeletes(); // Menghapus kolom `deleted_at` jika rollback
-        });
+        // Nothing to rollback since we're not adding soft deletes in this migration
     }
 };

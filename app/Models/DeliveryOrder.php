@@ -9,10 +9,14 @@ class DeliveryOrder extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'delivery_orders';
+    protected $table = 'tx_do';
     protected $primaryKey = 'do_id';
+    public $timestamps = true;
+    protected $keyType = 'bigint';
+    public $incrementing = false;
 
     protected $fillable = [
+        'do_id',
         'sp3m_id',
         'tbbm_id',
         'tanggal_do',
@@ -29,11 +33,11 @@ class DeliveryOrder extends Model
 
     public function sp3m()
     {
-        return $this->belongsTo(Sp3m::class, 'sp3m_id');
+        return $this->belongsTo(Sp3m::class, 'sp3m_id', 'sp3m_id');
     }
 
     public function tbbm()
     {
-        return $this->belongsTo(Tbbm::class, 'tbbm_id');
+        return $this->belongsTo(Tbbm::class, 'tbbm_id', 'tbbm_id');
     }
 }

@@ -15,9 +15,12 @@ class EditPosSandar extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
-            Actions\ForceDeleteAction::make(),
-            Actions\RestoreAction::make(),
+            Actions\DeleteAction::make()
+                ->label('Hapus'),
+            Actions\ForceDeleteAction::make()
+                ->label('Hapus Permanen'),
+            Actions\RestoreAction::make()
+                ->label('Pulihkan'),
         ];
     }
 
@@ -43,7 +46,7 @@ class EditPosSandar extends EditRecord
 
         // Check if the same record exists
         $exists = PosSandar::where('pos_sandar', ucwords($posSandar))
-            ->where('satuan_id', '!=', $id) // Exclude the current record
+            ->where('pos_sandar_id', '!=', $id) // Exclude the current record
             ->exists();
 
         if ($exists) {
@@ -57,5 +60,23 @@ class EditPosSandar extends EditRecord
             // Prevent form submission
             $this->halt();
         }
+    }
+
+    protected function getSavedNotification(): ?Notification
+    {
+        return Notification::make()
+            ->success()
+            ->title('Berhasil')
+            ->body('Data pos sandar berhasil diperbarui.');
+    }
+
+    public function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction()
+                ->label('Simpan'),
+            $this->getCancelFormAction()
+                ->label('Batal'),
+        ];
     }
 }

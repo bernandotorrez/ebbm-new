@@ -13,9 +13,19 @@ class EditPagu extends EditRecord
 {
     protected static string $resource = PaguResource::class;
 
-    protected function mutateFormDataBeforeCreate(array $data): array
+    protected function getFormActions(): array
     {
-        // Apply ucwords() to the 'bekal' field before saving
+        return [
+            $this->getSaveFormAction()
+                ->label('Simpan'),
+            $this->getCancelFormAction()
+                ->label('Batal'),
+        ];
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        // Apply formatting to fields before saving
         $data['dasar'] = ucwords($data['dasar']);
         $data['nilai_pagu'] = (int) preg_replace('/[^\d]/', '', $data['nilai_pagu']);
 
@@ -61,9 +71,20 @@ class EditPagu extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
-            Actions\ForceDeleteAction::make(),
-            Actions\RestoreAction::make(),
+            Actions\DeleteAction::make()
+                ->label('Hapus'),
+            Actions\ForceDeleteAction::make()
+                ->label('Hapus Permanen'),
+            Actions\RestoreAction::make()
+                ->label('Pulihkan'),
         ];
+    }
+
+    protected function getSavedNotification(): ?Notification
+    {
+        return Notification::make()
+            ->success()
+            ->title('Berhasil')
+            ->body('Data pagu berhasil diperbarui.');
     }
 }

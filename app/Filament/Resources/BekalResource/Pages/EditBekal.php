@@ -84,4 +84,9 @@ class EditBekal extends EditRecord
             $this->halt();
         }
     }
+
+    public function getTitle(): string
+    {
+        return 'Ubah Bekal';
+    }
 }

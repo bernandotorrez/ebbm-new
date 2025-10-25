@@ -9,12 +9,16 @@ class Sp3m extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'sp3ms';
+    protected $table = 'tx_sp3m';
     protected $primaryKey = 'sp3m_id';
+    public $timestamps = true;
+    protected $keyType = 'bigint';
+    public $incrementing = false;
 
     protected $fillable = [
-        'kantor_sar_id',
+        'sp3m_id',
         'alpal_id',
+        'kantor_sar_id',
         'bekal_id',
         'nomor_sp3m',
         'tahun_anggaran',
@@ -28,16 +32,16 @@ class Sp3m extends Model
 
     public function kantorSar()
     {
-        return $this->belongsTo(KantorSar::class, 'kantor_sar_id');
+        return $this->belongsTo(KantorSar::class, 'kantor_sar_id', 'kantor_sar_id');
     }
 
     public function alpal()
     {
-        return $this->belongsTo(Alpal::class, 'alpal_id');
+        return $this->belongsTo(Alpal::class, 'alpal_id', 'alpal_id');
     }
 
     public function bekal()
     {
-        return $this->belongsTo(Bekal::class, 'bekal_id');
+        return $this->belongsTo(Bekal::class, 'bekal_id', 'bekal_id');
     }
 }

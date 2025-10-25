@@ -11,11 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('golongan_bbms', function (Blueprint $table) {
-            $table->id('golongan_bbm_id');
-            $table->string('golongan', 50)->index('idx_golongan');
+        Schema::create('ms_golongan_bbm', function (Blueprint $table) {
+            $table->bigIncrements('golongan_bbm_id');
+            $table->string('golongan', 50);
             $table->softDeletes();
             $table->timestamps();
+
+            $table->index('golongan', 'idx_golongan_ms_golongan_bbm');
         });
     }
 
@@ -24,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('golongan_bbms');
+        Schema::dropIfExists('ms_golongan_bbm');
     }
 };

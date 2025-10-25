@@ -15,7 +15,7 @@ class CreatePagu extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // Apply ucwords() to the 'bekal' field before saving
+        // Apply formatting to fields before saving
         $data['dasar'] = ucwords($data['dasar']);
         $data['nilai_pagu'] = (int) preg_replace('/[^\d]/', '', $data['nilai_pagu']);
 
@@ -54,5 +54,25 @@ class CreatePagu extends CreateRecord
             // Prevent form submission
             $this->halt();
         }
+    }
+
+    protected function getCreatedNotification(): ?Notification
+    {
+        return Notification::make()
+            ->success()
+            ->title('Berhasil')
+            ->body('Data pagu berhasil ditambahkan.');
+    }
+
+    public function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction()
+                ->label('Buat'),
+            $this->getCreateAnotherFormAction()
+                ->label('Buat & Buat lainnya'),
+            $this->getCancelFormAction()
+                ->label('Batal'),
+        ];
     }
 }

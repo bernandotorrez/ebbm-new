@@ -9,10 +9,14 @@ class KantorSar extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'kantor_sars';
+    protected $table = 'ms_kantor_sar';
     protected $primaryKey = 'kantor_sar_id';
+    public $timestamps = true;
+    protected $keyType = 'bigint';
+    public $incrementing = false;
 
     protected $fillable = [
+        'kantor_sar_id',
         'kantor_sar',
     ];
 }

@@ -11,13 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
+        Schema::create('ms_user', function (Blueprint $table) {
+            $table->bigIncrements('user_id');
+            $table->unsignedBigInteger('kantor_sar_id')->index('idx_kantor_sar_id_ms_user')->nullable();
+            $table->string('name', 255);
+            $table->string('email', 255)->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
+            $table->string('password', 255);
+            $table->string('remember_token', 100)->nullable();
+            $table->enum('level', ['admin', 'kanpus', 'kanwil', 'crew'])->default('crew');
+            $table->softDeletes();
             $table->timestamps();
         });
 
@@ -42,7 +45,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('ms_user');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
     }

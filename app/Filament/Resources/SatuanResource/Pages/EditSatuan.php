@@ -71,4 +71,9 @@ class EditSatuan extends EditRecord
             $this->halt();
         }
     }
+
+    public function getTitle(): string
+    {
+        return 'Ubah Satuan';
+    }
 }

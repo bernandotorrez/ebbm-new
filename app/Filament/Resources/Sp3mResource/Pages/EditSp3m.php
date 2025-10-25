@@ -25,7 +25,7 @@ class EditSp3m extends EditRecord
         ];
     }
 
-    protected function mutateFormDataBeforeCreate(array $data): array
+    protected function mutateFormDataBeforeSave(array $data): array
     {
         // Apply ucwords() to the 'bekal' field before saving
         $data['qty'] = (int) preg_replace('/[^\d]/', '', $data['qty']);
@@ -44,7 +44,7 @@ class EditSp3m extends EditRecord
     protected function beforeSave(): void
     {
         // Get input values
-        $id = $this->data['pagu_id'] ?? null;
+        $id = $this->data['sp3m_id'] ?? null;
         $kantorSarId = $this->data['kantor_sar_id'] ?? null;
         $alpalId = $this->data['alpal_id'] ?? null;
         $bekalId = $this->data['bekal_id'] ?? null;
@@ -87,5 +87,13 @@ class EditSp3m extends EditRecord
             Actions\RestoreAction::make()
                 ->label('Pulihkan'),
         ];
+    }
+
+    protected function getSavedNotification(): ?Notification
+    {
+        return Notification::make()
+            ->success()
+            ->title('Berhasil')
+            ->body('Data SP3M berhasil diperbarui.');
     }
 }
