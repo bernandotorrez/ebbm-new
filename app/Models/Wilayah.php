@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Wilayah extends Model
@@ -19,4 +20,9 @@ class Wilayah extends Model
         'wilayah_id',
         'wilayah_ke',
     ];
+
+    public function kotas(): HasMany
+    {
+        return $this->hasMany(Kota::class, 'wilayah_id');
+    }
 }

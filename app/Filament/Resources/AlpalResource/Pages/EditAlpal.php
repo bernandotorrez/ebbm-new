@@ -94,4 +94,9 @@ class EditAlpal extends EditRecord
                 ->label('Batal'),
         ];
     }
+    
+    public function getTitle(): string
+    {
+        return 'Ubah Alpal';
+    }
 }

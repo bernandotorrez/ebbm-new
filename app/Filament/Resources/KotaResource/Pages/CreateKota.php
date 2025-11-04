@@ -67,4 +67,9 @@ class CreateKota extends CreateRecord
                 ->label('Batal'),
         ];
     }
+    
+    public function getTitle(): string
+    {
+        return 'Buat Kota';
+    }
 }

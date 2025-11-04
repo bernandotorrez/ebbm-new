@@ -67,4 +67,9 @@ class CreatePosSandar extends CreateRecord
                 ->label('Batal'),
         ];
     }
+    
+    public function getTitle(): string
+    {
+        return 'Buat Pos Sandar';
+    }
 }

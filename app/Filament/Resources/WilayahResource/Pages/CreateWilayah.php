@@ -59,4 +59,9 @@ class CreateWilayah extends CreateRecord
                 ->label('Batal'),
         ];
     }
+    
+    public function getTitle(): string
+    {
+        return 'Buat Wilayah';
+    }
 }

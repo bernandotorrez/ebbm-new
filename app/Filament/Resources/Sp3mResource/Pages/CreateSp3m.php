@@ -26,6 +26,11 @@ class CreateSp3m extends CreateRecord
                 ->label('Batal'),
         ];
     }
+    
+    public function getTitle(): string
+    {
+        return 'Buat SP3M';
+    }
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {

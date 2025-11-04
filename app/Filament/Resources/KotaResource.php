@@ -44,6 +44,12 @@ class KotaResource extends Resource
                 Forms\Components\TextInput::make('kota')
                     ->required()
                     ->maxLength(50),
+                Forms\Components\Select::make('wilayah_id')
+                    ->label('Wilayah')
+                    ->options(\App\Models\Wilayah::all()->pluck('wilayah_ke', 'wilayah_id'))
+                    ->searchable()
+                    ->placeholder('Pilih Wilayah')
+                    ->required(),
             ]);
     }
 
@@ -53,6 +59,10 @@ class KotaResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('kota')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('wilayah.wilayah_ke')
+                    ->label('Wilayah')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()
                     ->sortable()
@@ -67,6 +77,9 @@ class KotaResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                Tables\Filters\SelectFilter::make('wilayah_id')
+                    ->relationship('wilayah', 'wilayah_ke')
+                    ->placeholder('Pilih Wilayah'),
                 // Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([

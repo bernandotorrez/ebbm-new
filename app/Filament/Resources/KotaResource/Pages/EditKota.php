@@ -79,4 +79,9 @@ class EditKota extends EditRecord
             ->title('Berhasil')
             ->body('Data kota berhasil diperbarui.');
     }
+    
+    public function getTitle(): string
+    {
+        return 'Ubah Kota';
+    }
 }

@@ -71,4 +71,9 @@ class EditWilayah extends EditRecord
             ->title('Berhasil')
             ->body('Data wilayah berhasil diperbarui.');
     }
+    
+    public function getTitle(): string
+    {
+        return 'Ubah Wilayah';
+    }
 }

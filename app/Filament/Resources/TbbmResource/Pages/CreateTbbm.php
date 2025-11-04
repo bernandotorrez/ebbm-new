@@ -83,4 +83,9 @@ class CreateTbbm extends CreateRecord
                 ->label('Batal'),
         ];
     }
+    
+    public function getTitle(): string
+    {
+        return 'Buat TBBM/DDPU';
+    }
 }

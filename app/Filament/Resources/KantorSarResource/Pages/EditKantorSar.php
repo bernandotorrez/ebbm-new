@@ -79,4 +79,9 @@ class EditKantorSar extends EditRecord
                 ->label('Batal'),
         ];
     }
+    
+    public function getTitle(): string
+    {
+        return 'Ubah Kantor SAR';
+    }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Kota extends Model
@@ -18,5 +19,11 @@ class Kota extends Model
     protected $fillable = [
         'kota_id',
         'kota',
+        'wilayah_id',
     ];
+
+    public function wilayah(): BelongsTo
+    {
+        return $this->belongsTo(Wilayah::class, 'wilayah_id');
+    }
 }

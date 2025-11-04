@@ -75,4 +75,9 @@ class CreatePagu extends CreateRecord
                 ->label('Batal'),
         ];
     }
+    
+    public function getTitle(): string
+    {
+        return 'Buat Pagu';
+    }
 }

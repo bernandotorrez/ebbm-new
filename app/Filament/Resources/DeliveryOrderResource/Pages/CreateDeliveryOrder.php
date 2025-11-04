@@ -81,4 +81,9 @@ class CreateDeliveryOrder extends CreateRecord
                 ->label('Batal'),
         ];
     }
+    
+    public function getTitle(): string
+    {
+        return 'Buat Delivery Order';
+    }
 }
