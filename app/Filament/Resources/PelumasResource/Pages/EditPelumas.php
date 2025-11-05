@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Filament\Resources\KemasanResource\Pages;
+namespace App\Filament\Resources\PelumasResource\Pages;
 
-use App\Filament\Resources\KemasanResource;
-use App\Models\Kemasan;
+use App\Filament\Resources\PelumasResource;
+use App\Models\Pelumas;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 
-class EditKemasan extends EditRecord
+class EditPelumas extends EditRecord
 {
-    protected static string $resource = KemasanResource::class;
+    protected static string $resource = PelumasResource::class;
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
@@ -20,21 +20,23 @@ class EditKemasan extends EditRecord
     protected function beforeSave(): void
     {
         // Get input values
-        $id = $this->data['kemasan_id'] ?? null;
-        $kemasanLiter = $this->data['kemasan_liter'] ?? null;
-        $kemasanPack = $this->data['kemasan_pack'] ?? null;
+        $id = $this->data['pelumas_id'] ?? null;
+        $namaPelumas = $this->data['nama_pelumas'] ?? null;
+        $packId = $this->data['pack_id'] ?? null;
+        $kemasanId = $this->data['kemasan_id'] ?? null;
 
         // Check if the same record exists
-        $exists = Kemasan::where('kemasan_liter', $kemasanLiter)
-            ->where('kemasan_pack', $kemasanPack)
-            ->where('kemasan_id', '!=', $id) // Exclude the current record
+        $exists = Pelumas::where('nama_pelumas', $namaPelumas)
+            ->where('pack_id', $packId)
+            ->where('kemasan_id', $kemasanId)
+            ->where('pelumas_id', '!=', $id) // Exclude the current record
             ->exists();
 
         if ($exists) {
             // Show Filament error notification
             Notification::make()
                 ->title('Error!')
-                ->body('Kemasan dengan liter "'.$kemasanLiter.'" dan pack "'.$kemasanPack.'" sudah ada')
+                ->body('Pelumas "'.$namaPelumas.'" dengan pack dan kemasan yang sama sudah ada')
                 ->danger()
                 ->send();
 
@@ -66,11 +68,11 @@ class EditKemasan extends EditRecord
         return Notification::make()
             ->success()
             ->title('Berhasil')
-            ->body('Data kemasan berhasil diperbarui.');
+            ->body('Data pelumas berhasil diperbarui.');
     }
     
     public function getTitle(): string
     {
-        return 'Ubah Kemasan';
+        return 'Ubah Pelumas';
     }
 }

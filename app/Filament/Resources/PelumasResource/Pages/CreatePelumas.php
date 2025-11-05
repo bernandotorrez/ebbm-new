@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Filament\Resources\KemasanResource\Pages;
+namespace App\Filament\Resources\PelumasResource\Pages;
 
-use App\Filament\Resources\KemasanResource;
-use App\Models\Kemasan;
+use App\Filament\Resources\PelumasResource;
+use App\Models\Pelumas;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 
-class CreateKemasan extends CreateRecord
+class CreatePelumas extends CreateRecord
 {
-    protected static string $resource = KemasanResource::class;
+    protected static string $resource = PelumasResource::class;
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
@@ -19,19 +19,21 @@ class CreateKemasan extends CreateRecord
     protected function beforeCreate(): void
     {
         // Get input values
-        $kemasanLiter = $this->data['kemasan_liter'] ?? null;
-        $kemasanPack = $this->data['kemasan_pack'] ?? null;
+        $namaPelumas = $this->data['nama_pelumas'] ?? null;
+        $packId = $this->data['pack_id'] ?? null;
+        $kemasanId = $this->data['kemasan_id'] ?? null;
 
         // Check if the same record exists
-        $exists = Kemasan::where('kemasan_liter', $kemasanLiter)
-            ->where('kemasan_pack', $kemasanPack)
+        $exists = Pelumas::where('nama_pelumas', $namaPelumas)
+            ->where('pack_id', $packId)
+            ->where('kemasan_id', $kemasanId)
             ->exists();
 
         if ($exists) {
             // Show Filament error notification
             Notification::make()
                 ->title('Error!')
-                ->body('Kemasan dengan liter "'.$kemasanLiter.'" dan pack "'.$kemasanPack.'" sudah ada')
+                ->body('Pelumas "'.$namaPelumas.'" dengan pack dan kemasan yang sama sudah ada')
                 ->danger()
                 ->send();
 
@@ -50,7 +52,7 @@ class CreateKemasan extends CreateRecord
         return Notification::make()
             ->success()
             ->title('Berhasil')
-            ->body('Data kemasan berhasil ditambahkan.');
+            ->body('Data pelumas berhasil ditambahkan.');
     }
 
     public function getFormActions(): array
@@ -67,6 +69,6 @@ class CreateKemasan extends CreateRecord
     
     public function getTitle(): string
     {
-        return 'Buat Kemasan';
+        return 'Buat Pelumas';
     }
 }
