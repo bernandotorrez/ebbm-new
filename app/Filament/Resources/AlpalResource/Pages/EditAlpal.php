@@ -82,7 +82,7 @@ class EditAlpal extends EditRecord
         return Notification::make()
             ->success()
             ->title('Berhasil')
-            ->body('Data alpal berhasil diperbarui.');
+            ->body('Data alut berhasil diperbarui.');
     }
 
     public function getFormActions(): array
@@ -97,6 +97,6 @@ class EditAlpal extends EditRecord
     
     public function getTitle(): string
     {
-        return 'Ubah Alpal';
+        return 'Ubah Alut';
     }
 }
