@@ -83,7 +83,7 @@ class UserResource extends Resource
                 Forms\Components\Select::make('level')
                     ->options(LevelUser::values())
                     ->label('Level')
-                    ->default('crew')
+                    ->default('abk')
                     ->required()
             ]);
     }
@@ -105,8 +105,8 @@ class UserResource extends Resource
                     ->color(fn (string $state): string => match ($state) {
                         'admin' => 'danger',
                         'kanpus' => 'warning',
-                        'kanwil' => 'info',
-                        'crew' => 'success',
+                        'kansar' => 'info',
+                        'abk' => 'success',
                         default => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('created_at')

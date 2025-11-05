@@ -29,6 +29,7 @@ class User extends Authenticatable implements FilamentUser
         'user_id',
         'kantor_sar_id',
         'name',
+        'username',
         'email',
         'password',
         'remember_token',
@@ -57,6 +58,11 @@ class User extends Authenticatable implements FilamentUser
             'password' => 'hashed',
             'level' => \App\Enums\LevelUser::class,
         ];
+    }
+
+    public function getAuthIdentifierName()
+    {
+        return 'username'; // atau 'email' jika masih ingin support keduanya
     }
 
     public function kantorSar()

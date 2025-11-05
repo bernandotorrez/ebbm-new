@@ -6,16 +6,16 @@ enum LevelUser: string
 {
     case ADMIN = 'admin';
     case KANPUS = 'kanpus';
-    case KANWIL = 'kanwil';
-    case CREW = 'crew';
+    case KANSAR = 'kansar';
+    case ABK = 'abk';
 
     public static function values(): array
     {
         return [
             self::ADMIN->value => 'Admin',
             self::KANPUS->value => 'Kantor Pusat',
-            self::KANWIL->value => 'Kantor Wilayah',
-            self::CREW->value => 'Crew',
+            self::KANSAR->value => 'Kantor SAR',
+            self::ABK->value => 'ABK',
         ];
     }
 
@@ -24,8 +24,8 @@ enum LevelUser: string
         return match($this) {
             self::ADMIN => 'Admin',
             self::KANPUS => 'Kantor Pusat',
-            self::KANWIL => 'Kantor Wilayah',
-            self::CREW => 'Crew',
+            self::KANSAR => 'Kantor SAR',
+            self::ABK => 'ABK',
         };
     }
 }
