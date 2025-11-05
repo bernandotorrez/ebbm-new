@@ -72,11 +72,11 @@ class PelumasResource extends Resource
                 Forms\Components\TextInput::make('harga')
                     ->label('Harga')
                     ->required()
-                    ->numeric()
                     ->prefix('Rp')
                     ->inputMode('numeric')
                     ->extraInputAttributes([
-                        'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
+                        'oninput' => 'if(this.value.length > 20) return; this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")',
+                        'maxlength' => '20'
                     ])
                     ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
                     ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
