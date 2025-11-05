@@ -87,4 +87,9 @@ class EditPagu extends EditRecord
             ->title('Berhasil')
             ->body('Data pagu berhasil diperbarui.');
     }
+    
+    public function getTitle(): string
+    {
+        return 'Ubah Pagu';
+    }
 }

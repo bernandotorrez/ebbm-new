@@ -79,4 +79,9 @@ class EditPosSandar extends EditRecord
                 ->label('Batal'),
         ];
     }
+    
+    public function getTitle(): string
+    {
+        return 'Ubah Pos Sandar';
+    }
 }

@@ -2,54 +2,59 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\KotaResource\Pages;
-use App\Filament\Resources\KotaResource\RelationManagers;
-use App\Models\Kota;
+use App\Filament\Resources\WilayahResource\Pages;
+use App\Filament\Resources\WilayahResource\RelationManagers;
+use App\Models\Wilayah;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class KotaResource extends Resource
+class WilayahResource extends Resource
 {
-    protected static ?string $model = Kota::class;
+    protected static ?string $model = Wilayah::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-map';
 
     protected static ?string $navigationGroup = 'Master';
 
-    protected static ?string $navigationLabel = 'Kota';
+    protected static ?string $navigationLabel = 'Wilayah';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 3;
 
-    protected static ?string $slug = 'kota';
+    protected static ?string $slug = 'wilayah';
 
     public static function getModelLabel(): string
     {
-        return 'Kota'; // Singular name
+        return 'Wilayah'; // Singular name
     }
 
     public static function getPluralModelLabel(): string
     {
-        return 'Daftar Kota'; // Custom title for the table
+        return 'Daftar Wilayah'; // Custom title for the table
     }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('kota')
+                Forms\Components\TextInput::make('wilayah_ke')
+                    ->label('Wilayah Ke')
                     ->required()
-                    ->maxLength(50),
-                Forms\Components\Select::make('wilayah_id')
-                    ->label('Wilayah')
-                    ->options(\App\Models\Wilayah::all()->pluck('wilayah_ke', 'wilayah_id'))
-                    ->searchable()
-                    ->placeholder('Pilih Wilayah')
-                    ->required(),
+                    ->minLength(1)
+                    ->maxLength(3)
+                    ->inputMode('numeric')  // Change to numeric for better UX
+                    ->rule('integer')
+                    ->rule('between:1,999')
+                    ->extraInputAttributes([
+                        'onkeypress' => 'return event.charCode >= 48 && event.charCode <= 57', // Only allow numbers 0-9
+                        'onkeyup' => 'this.value = this.value.replace(/[^0-9]/g, "")', // Remove non-numeric characters on keyup
+                        'onpaste' => 'return false', // Prevent paste
+                        'autocomplete' => 'off',
+                        'type' => 'text'  // Explicitly set to text type
+                    ]),
             ]);
     }
 
@@ -57,11 +62,9 @@ class KotaResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('kota')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('wilayah.wilayah_ke')
-                    ->label('Wilayah')
-                    ->searchable()
+                Tables\Columns\TextColumn::make('wilayah_ke')
+                    ->label('Wilayah Ke')
+                    ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()
@@ -77,10 +80,7 @@ class KotaResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('wilayah_id')
-                    ->relationship('wilayah', 'wilayah_ke')
-                    ->placeholder('Pilih Wilayah'),
-                // Tables\Filters\TrashedFilter::make(),
+                //
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
@@ -108,14 +108,20 @@ class KotaResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListKotas::route('/'),
-            'create' => Pages\CreateKota::route('/create'),
-            'edit' => Pages\EditKota::route('/{record}/edit'),
+            'index' => Pages\ListWilayahs::route('/'),
+            'create' => Pages\CreateWilayah::route('/create'),
+            'edit' => Pages\EditWilayah::route('/{record}/edit'),
         ];
     }
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery();
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes();
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return true;
     }
 }

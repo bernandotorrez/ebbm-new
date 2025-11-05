@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Filament\Resources\KotaResource\Pages;
+namespace App\Filament\Resources\WilayahResource\Pages;
 
-use App\Filament\Resources\KotaResource;
-use App\Models\Kota;
+use App\Filament\Resources\WilayahResource;
+use App\Models\Wilayah;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 
-class EditKota extends EditRecord
+class EditWilayah extends EditRecord
 {
-    protected static string $resource = KotaResource::class;
+    protected static string $resource = WilayahResource::class;
 
     protected function getFormActions(): array
     {
@@ -40,30 +40,22 @@ class EditKota extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
-    protected function mutateFormDataBeforeSave(array $data): array
-    {
-        // Apply formatting to fields before saving
-        $data['kota'] = ucwords($data['kota']);
-
-        return $data;
-    }
-
     protected function beforeSave(): void
     {
         // Get input values
-        $id = $this->data['kota_id'] ?? null;
-        $kota = $this->data['kota'] ?? null;
+        $id = $this->data['wilayah_id'] ?? null;
+        $wilayah_ke = $this->data['wilayah_ke'] ?? null;
 
         // Check if the same record exists
-        $exists = Kota::where('kota', ucwords($kota))
-            ->where('kota_id', '!=', $id) // Exclude the current record
+        $exists = Wilayah::where('wilayah_ke', $wilayah_ke)
+            ->where('wilayah_id', '!=', $id) // Exclude the current record
             ->exists();
 
         if ($exists) {
             // Show Filament error notification
             Notification::make()
                 ->title('Error!')
-                ->body('Kota "'.ucwords($kota).'" sudah ada')
+                ->body('Wilayah ke "'.$wilayah_ke.'" sudah ada')
                 ->danger()
                 ->send();
 
@@ -77,11 +69,11 @@ class EditKota extends EditRecord
         return Notification::make()
             ->success()
             ->title('Berhasil')
-            ->body('Data kota berhasil diperbarui.');
+            ->body('Data wilayah berhasil diperbarui.');
     }
     
     public function getTitle(): string
     {
-        return 'Ubah Kota';
+        return 'Ubah Wilayah';
     }
 }

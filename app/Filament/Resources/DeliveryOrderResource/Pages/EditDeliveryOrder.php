@@ -93,4 +93,9 @@ class EditDeliveryOrder extends EditRecord
             ->title('Berhasil')
             ->body('Data delivery order berhasil diperbarui.');
     }
+    
+    public function getTitle(): string
+    {
+        return 'Ubah Delivery Order';
+    }
 }

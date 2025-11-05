@@ -3,27 +3,26 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Kota extends Model
+class Wilayah extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'ms_kota';
-    protected $primaryKey = 'kota_id';
+    protected $table = 'ms_wilayah';
+    protected $primaryKey = 'wilayah_id';
     public $timestamps = true;
     protected $keyType = 'bigint';
     public $incrementing = false;
 
     protected $fillable = [
-        'kota_id',
-        'kota',
         'wilayah_id',
+        'wilayah_ke',
     ];
 
-    public function wilayah(): BelongsTo
+    public function kotas(): HasMany
     {
-        return $this->belongsTo(Wilayah::class, 'wilayah_id');
+        return $this->hasMany(Kota::class, 'wilayah_id');
     }
 }

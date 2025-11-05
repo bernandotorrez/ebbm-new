@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Filament\Resources\KotaResource\Pages;
+namespace App\Filament\Resources\WilayahResource\Pages;
 
-use App\Filament\Resources\KotaResource;
-use App\Models\Kota;
+use App\Filament\Resources\WilayahResource;
+use App\Models\Wilayah;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 
-class CreateKota extends CreateRecord
+class CreateWilayah extends CreateRecord
 {
-    protected static string $resource = KotaResource::class;
+    protected static string $resource = WilayahResource::class;
 
     protected function getRedirectUrl(): string
     {
@@ -18,28 +18,20 @@ class CreateKota extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
-    protected function mutateFormDataBeforeCreate(array $data): array
-    {
-        // Apply formatting to fields before saving
-        $data['kota'] = ucwords($data['kota']);
-
-        return $data;
-    }
-
     protected function beforeCreate(): void
     {
         // Get input values
-        $kota = $this->data['kota'] ?? null;
+        $wilayah_ke = $this->data['wilayah_ke'] ?? null;
 
         // Check if the same record exists
-        $exists = Kota::where('kota', ucwords($kota))
+        $exists = Wilayah::where('wilayah_ke', $wilayah_ke)
             ->exists();
 
         if ($exists) {
             // Show Filament error notification
             Notification::make()
                 ->title('Error!')
-                ->body('Kota "'.ucwords($kota).'" sudah ada')
+                ->body('Wilayah ke "'.$wilayah_ke.'" sudah ada')
                 ->danger()
                 ->send();
 
@@ -53,7 +45,7 @@ class CreateKota extends CreateRecord
         return Notification::make()
             ->success()
             ->title('Berhasil')
-            ->body('Data kota berhasil ditambahkan.');
+            ->body('Data wilayah berhasil ditambahkan.');
     }
 
     public function getFormActions(): array
@@ -70,6 +62,6 @@ class CreateKota extends CreateRecord
     
     public function getTitle(): string
     {
-        return 'Buat Kota';
+        return 'Buat Wilayah';
     }
 }

@@ -42,4 +42,9 @@ class EditPemakaian extends EditRecord
             ->title('Berhasil')
             ->body('Data pemakaian berhasil diperbarui.');
     }
+    
+    public function getTitle(): string
+    {
+        return 'Ubah Pemakaian';
+    }
 }

@@ -96,4 +96,9 @@ class EditSp3m extends EditRecord
             ->title('Berhasil')
             ->body('Data SP3M berhasil diperbarui.');
     }
+    
+    public function getTitle(): string
+    {
+        return 'Ubah SP3M';
+    }
 }

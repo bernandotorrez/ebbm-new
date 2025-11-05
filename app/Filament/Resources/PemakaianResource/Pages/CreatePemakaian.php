@@ -37,4 +37,9 @@ class CreatePemakaian extends CreateRecord
                 ->label('Batal'),
         ];
     }
+    
+    public function getTitle(): string
+    {
+        return 'Buat Pemakaian';
+    }
 }

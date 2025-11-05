@@ -67,4 +67,9 @@ class CreateKantorSar extends CreateRecord
                 ->label('Batal'),
         ];
     }
+    
+    public function getTitle(): string
+    {
+        return 'Buat Kantor SAR';
+    }
 }
