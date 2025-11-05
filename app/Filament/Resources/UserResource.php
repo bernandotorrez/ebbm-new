@@ -3,18 +3,17 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
-use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use App\Enums\LevelUser;
+use App\Models\KantorSar;
 use Filament\Notifications\Notification;
 
 class UserResource extends Resource
@@ -58,6 +57,7 @@ class UserResource extends Resource
                 Forms\Components\Select::make('kantor_sar_id')
                     ->relationship(name: 'kantorSar', titleAttribute: 'kantor_sar')
                     ->label('Kantor SAR')
+                    ->options(static::getKantorSarOptions())
                     ->searchable()
                     ->preload()
                     ->required(),
@@ -86,6 +86,26 @@ class UserResource extends Resource
                     ->default('abk')
                     ->required()
             ]);
+    }
+
+    protected static function getKantorSarOptions(): array
+    {
+        $user = Auth::user();
+        
+        // If user is admin, show all Kantor SAR
+        if ($user && $user->level === LevelUser::ADMIN->value) {
+            return KantorSar::pluck('kantor_sar', 'kantor_sar_id')->toArray();
+        }
+        
+        // For non-admin users, only show their assigned Kantor SAR
+        if ($user && $user->kantor_sar_id) {
+            return KantorSar::where('kantor_sar_id', $user->kantor_sar_id)
+                ->pluck('kantor_sar', 'kantor_sar_id')
+                ->toArray();
+        }
+        
+        // If no user or no kantor_sar_id assigned, return empty array
+        return [];
     }
 
     public static function table(Table $table): Table
@@ -145,6 +165,7 @@ class UserResource extends Resource
                 Tables\Actions\EditAction::make()
                     ->label('Ubah'),
             ]);
+
     }
 
     public static function getRelations(): array
@@ -165,6 +186,17 @@ class UserResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery();
+        $query = parent::getEloquentQuery();
+            
+        $user = Auth::user();
+        
+        // Apply user-level filtering for non-admin users
+        // Admin users can see all users
+        // Non-admin users can only see users from their own Kantor SAR
+        if ($user && $user->level !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
+            $query->where('kantor_sar_id', $user->kantor_sar_id);
+        }
+        
+        return $query;
     }
 }

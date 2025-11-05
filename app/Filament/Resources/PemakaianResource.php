@@ -11,6 +11,9 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
+use App\Enums\LevelUser;
+use App\Models\KantorSar;
 
 class PemakaianResource extends Resource
 {
@@ -46,7 +49,8 @@ class PemakaianResource extends Resource
                             ->required()
                             ->searchable()
                             ->preload()
-                            ->label('Kantor SAR'),
+                            ->label('Kantor SAR')
+                            ->options(static::getKantorSarOptions()),
 
                         Forms\Components\Select::make('alpal_id')
                             ->relationship('alpal', 'alpal')  // Changed from 'nama' to 'alpal'
@@ -82,6 +86,26 @@ class PemakaianResource extends Resource
                     ])
                     ->columns(2)
             ]);
+    }
+
+    protected static function getKantorSarOptions(): array
+    {
+        $user = Auth::user();
+        
+        // If user is admin, show all Kantor SAR
+        if ($user && $user->level === LevelUser::ADMIN->value) {
+            return KantorSar::pluck('kantor_sar', 'kantor_sar_id')->toArray();
+        }
+        
+        // For non-admin users, only show their assigned Kantor SAR
+        if ($user && $user->kantor_sar_id) {
+            return KantorSar::where('kantor_sar_id', $user->kantor_sar_id)
+                ->pluck('kantor_sar', 'kantor_sar_id')
+                ->toArray();
+        }
+        
+        // If no user or no kantor_sar_id assigned, return empty array
+        return [];
     }
 
     public static function table(Table $table): Table
@@ -166,5 +190,19 @@ class PemakaianResource extends Resource
             'create' => Pages\CreatePemakaian::route('/create'),
             'edit' => Pages\EditPemakaian::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+            
+        $user = Auth::user();
+        
+        // Apply user-level filtering for non-admin users
+        if ($user && $user->level !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
+            $query->where('kantor_sar_id', $user->kantor_sar_id);
+        }
+        
+        return $query;
     }
 }
