@@ -69,7 +69,7 @@ class CreateAlpal extends CreateRecord
         return Notification::make()
             ->success()
             ->title('Berhasil')
-            ->body('Data alpal berhasil ditambahkan.');
+            ->body('Data alut berhasil ditambahkan.');
     }
 
     public function getFormActions(): array
@@ -86,6 +86,6 @@ class CreateAlpal extends CreateRecord
     
     public function getTitle(): string
     {
-        return 'Buat Alpal';
+        return 'Buat Alut';
     }
 }

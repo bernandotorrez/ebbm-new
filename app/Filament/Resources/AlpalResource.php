@@ -33,12 +33,12 @@ class AlpalResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return 'Alpal'; // Singular name
+        return 'Alut'; // Singular name
     }
 
     public static function getPluralModelLabel(): string
     {
-        return 'Daftar Alpal';
+        return 'Daftar Alut';
     }
 
     public static function form(Form $form): Form

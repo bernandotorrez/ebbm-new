@@ -14,7 +14,7 @@ class ListAlpals extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('Tambah Alpal'),
+                ->label('Tambah Alut'),
         ];
     }
 }
