@@ -21,8 +21,8 @@ return [
 
     'form' => [
 
-        'email' => [
-            'label' => 'Alamat email',
+        'username' => [
+            'label' => 'Nama pengguna',
         ],
 
         'password' => [
