@@ -3,6 +3,8 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 return new class extends Migration
 {
@@ -13,16 +15,29 @@ return new class extends Migration
     {
         Schema::create('ms_user', function (Blueprint $table) {
             $table->bigIncrements('user_id');
-            $table->unsignedBigInteger('kantor_sar_id')->index('idx_kantor_sar_id_ms_user')->nullable();
-            $table->string('name', 255);
-            $table->string('email', 255)->unique();
+            $table->unsignedBigInteger('kantor_sar_id')->nullable();
+            $table->string('name', 100);
+            $table->string('username', 50)->unique();
+            $table->string('email', 100)->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password', 255);
             $table->string('remember_token', 100)->nullable();
-            $table->enum('level', ['admin', 'kanpus', 'kanwil', 'crew'])->default('crew');
+            $table->enum('level', ['admin', 'kanpus', 'kansar', 'abk'])->default('abk');
             $table->softDeletes();
             $table->timestamps();
         });
+
+        // Insert default admin user
+        DB::table('ms_user')->insert([
+            'user_id' => 1,
+            'name' => 'Administrator',
+            'username' => 'admin',
+            'email' => 'admin@basarnas.go.id',
+            'password' => Hash::make('AdminEbmpBasarnas!'),
+            'level' => 'admin',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
