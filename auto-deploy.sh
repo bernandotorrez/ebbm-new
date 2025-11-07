@@ -1,87 +1,94 @@
 #!/bin/bash
 
-# Automated deployment and error fixing script for Unix/Linux/macOS
-
 echo "=== Laravel Docker Deployment ==="
 echo ""
 
-# Check if Docker is running
-echo "Checking if Docker is running..."
-if ! docker info >/dev/null 2>&1; then
-    echo "Error: Docker is not running. Please start Docker and try again."
+# -- 1. Tentukan perintah docker (docker atau sudo docker)
+DOCKER="docker"
+if ! $DOCKER info >/dev/null 2>&1; then
+    # coba pakai sudo
+    if sudo docker info >/dev/null 2>&1; then
+        DOCKER="sudo docker"
+    else
+        echo "Error: Docker is not running or you don't have permission to access the Docker daemon."
+        echo "Hint: jalankan: sudo usermod -aG docker \$USER && logout/login"
+        exit 1
+    fi
+fi
+
+echo "Docker is running and accessible via: $DOCKER"
+echo ""
+
+# -- 2. Deteksi docker compose (plugin baru atau binary lama)
+if $DOCKER compose version >/dev/null 2>&1; then
+    DC="$DOCKER compose"
+elif docker-compose version >/dev/null 2>&1; then
+    DC="docker-compose"
+else
+    echo "Error: Docker Compose not found."
     exit 1
 fi
 
-echo "Docker is running."
+echo "Using Docker Compose command: $DC"
 echo ""
 
-# Stop any existing containers
 echo "Stopping any existing containers..."
-docker-compose down
+$DC down
 
-# Build and start containers
 echo ""
 echo "Building and starting containers..."
-if docker-compose up -d --build; then
+if $DC up -d --build; then
     echo "Containers built and started successfully!"
 else
     echo "Error occurred while building/starting containers."
     echo "Checking logs for details..."
-    docker-compose logs
+    $DC logs
     exit 1
 fi
 
-# Wait for containers to initialize
 echo ""
 echo "Waiting for containers to initialize..."
 sleep 15
 
-# Show running containers
 echo ""
 echo "Running containers:"
-docker-compose ps
+$DC ps
 
-# Monitor logs for errors and attempt to fix
 echo ""
 echo "Monitoring logs for errors..."
 echo ""
 
-# Function to check for errors and attempt fixes
 check_and_fix_errors() {
     ERROR_FOUND=0
-    
-    # Check app container logs for common errors
+
     echo "Checking app container logs..."
-    if docker-compose logs app 2>&1 | grep -i "permission\|failed\|error\|exception\|fatal"; then
+    if $DC logs app 2>&1 | grep -iE "permission|failed|error|exception|fatal"; then
         ERROR_FOUND=1
         echo "Errors detected in app container. Attempting to fix..."
-        
-        # Try to fix common permission issues
-        if docker-compose logs app 2>&1 | grep -i "permission"; then
-            echo "Attempting to fix permission issues..."
-            docker-compose exec app chown -R www-data:www-data /var/www/html/storage
-            docker-compose exec app chmod -R 755 /var/www/html/storage
+
+        if $DC logs app 2>&1 | grep -i "permission"; then
+            echo "Fixing storage permissions..."
+            $DC exec app chown -R www-data:www-data /var/www/html/storage >/dev/null 2>&1
+            $DC exec app chmod -R 755 /var/www/html/storage >/dev/null 2>&1
         fi
     fi
-    
-    # Check MySQL container logs for errors
+
     echo "Checking MySQL container logs..."
-    if docker-compose logs mysql 2>&1 | grep -i "error\|fatal"; then
+    if $DC logs mysql 2>&1 | grep -iE "error|fatal"; then
         ERROR_FOUND=1
         echo "Errors detected in MySQL container."
     fi
-    
+
     return $ERROR_FOUND
 }
 
-# Check for errors and fix if found
 if check_and_fix_errors; then
     echo ""
     echo "No critical errors found in logs."
 else
     echo ""
     echo "Errors were found. Attempting to restart containers..."
-    docker-compose restart
+    $DC restart
     sleep 10
     if check_and_fix_errors; then
         echo "Errors resolved after restart."
@@ -95,5 +102,4 @@ echo "=== Deployment completed successfully! ==="
 echo "Application should be accessible at http://localhost"
 echo ""
 
-# Final status check
-docker-compose ps
+$DC ps
