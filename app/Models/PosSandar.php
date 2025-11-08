@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\PreventUpdateTimestamp;
 
 class PosSandar extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, PreventUpdateTimestamp;
 
     protected $table = 'ms_pos_sandar';
     protected $primaryKey = 'pos_sandar_id';
@@ -18,5 +19,8 @@ class PosSandar extends Model
     protected $fillable = [
         'pos_sandar_id',
         'pos_sandar',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 }

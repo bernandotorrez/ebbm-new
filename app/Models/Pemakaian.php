@@ -25,6 +25,9 @@ class Pemakaian extends Model
         'tanggal_pakai',
         'qty',
         'keterangan',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 
     protected $casts = [

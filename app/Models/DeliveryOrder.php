@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\PreventUpdateTimestamp;
 
 class DeliveryOrder extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, PreventUpdateTimestamp;
 
     protected $table = 'tx_do';
     protected $primaryKey = 'do_id';
@@ -29,6 +30,9 @@ class DeliveryOrder extends Model
         'jumlah_harga',
         'file_upload_do',
         'file_upload_laporan',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 
     public function sp3m()

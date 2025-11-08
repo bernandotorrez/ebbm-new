@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\PreventUpdateTimestamp;
 
 class Sp3m extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, PreventUpdateTimestamp;
 
     protected $table = 'tx_sp3m';
     protected $primaryKey = 'sp3m_id';
@@ -28,6 +29,9 @@ class Sp3m extends Model
         'jumlah_harga',
         'file_upload_sp3m',
         'file_upload_kelengkapan_sp3m',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 
     public function kantorSar()

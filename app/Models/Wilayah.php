@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\PreventUpdateTimestamp;
 
 class Wilayah extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, PreventUpdateTimestamp;
 
     protected $table = 'ms_wilayah';
     protected $primaryKey = 'wilayah_id';
@@ -19,6 +20,9 @@ class Wilayah extends Model
     protected $fillable = [
         'wilayah_id',
         'wilayah_ke',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 
     public function kotas(): HasMany

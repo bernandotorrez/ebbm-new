@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\PreventUpdateTimestamp;
 
 class Satuan extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, PreventUpdateTimestamp;
 
     protected $table = 'ms_satuan';
     protected $primaryKey = 'satuan_id';
@@ -18,5 +19,8 @@ class Satuan extends Model
     protected $fillable = [
         'satuan_id',
         'satuan',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 }
