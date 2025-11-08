@@ -43,7 +43,6 @@ class UserResource extends Resource
         return 'Daftar User';
     }
 
-
     public static function form(Form $form): Form
     {
         return $form
@@ -57,22 +56,22 @@ class UserResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
+                Forms\Components\TextInput::make('username')
+                    ->required()
+                    ->maxLength(200)
+                    ->unique(ignoreRecord: true),
                 Forms\Components\TextInput::make('email')
                     ->email()
                     ->autocomplete(false)
                     ->required()
                     ->maxLength(255),
-                Forms\Components\DateTimePicker::make('email_verified_at')
-                    ->label('Email Verified At')
-                    ->default(null),
                 Forms\Components\TextInput::make('password')
                     ->password()
                     ->autocomplete(false)
                     ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('remember_token')
-                    ->label('Remember Token')
-                    ->maxLength(100),
+                    ->maxLength(255)
+                    ->dehydrateStateUsing(fn ($state) => $state !== '' ? bcrypt($state) : $state)
+                    ->dehydrated(fn ($state) => $state !== ''),
                 Forms\Components\Select::make('level')
                     ->options(LevelUser::values())
                     ->label('Level')
@@ -91,13 +90,15 @@ class UserResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('username')
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('level')
                     ->badge()
                     ->formatStateUsing(fn ($state) => match($state) {
                         LevelUser::ADMIN => 'Admin',
-                        LevelUser::KANPUS => 'Kantor Pusat', 
+                        LevelUser::KANPUS => 'Kantor Pusat',
                         LevelUser::KANSAR => 'Kantor SAR',
                         LevelUser::ABK => 'ABK',
                         default => $state,
@@ -109,6 +110,7 @@ class UserResource extends Resource
                         LevelUser::ABK => 'success',
                         default => 'gray',
                     }),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -129,21 +131,18 @@ class UserResource extends Resource
                 // Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\DeleteAction::make()
-                ->label('Hapus')
-                ->before(function (User $record) {
-                    if ($record->level === 'admin') {
-                        Notification::make()
-                            ->title('Penghapusan Gagal')
-                            ->body('User dengan level admin tidak bisa dihapus.')
-                            ->danger()
-                            ->send();
-
-                        return false; // Mencegah penghapusan
-                    }
-                }),
                 Tables\Actions\EditAction::make()
                     ->label('Ubah'),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('Hapus Terpilih')
+                        ->modalHeading('Konfirmasi Hapus Data')
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
+                        ->modalButton('Ya, Hapus Sekarang'),
+                ])
+                ->label('Hapus'),
             ]);
     }
 
