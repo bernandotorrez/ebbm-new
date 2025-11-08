@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\PreventUpdateTimestamp;
 
 class Pagu extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, PreventUpdateTimestamp;
 
     protected $table = 'tx_pagu';
     protected $primaryKey = 'pagu_id';
@@ -21,7 +22,10 @@ class Pagu extends Model
         'nilai_pagu',
         'tahun_anggaran',
         'dasar',
-        'tanggal'
+        'tanggal',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 
     public function golonganBbm()

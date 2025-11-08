@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\PreventUpdateTimestamp;
 
 class Alpal extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, PreventUpdateTimestamp;
 
     protected $table = 'tx_alpal';
     protected $primaryKey = 'alpal_id';
@@ -24,6 +25,9 @@ class Alpal extends Model
         'ukuran',
         'kapasitas',
         'rob',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 
     public function kantorSar()

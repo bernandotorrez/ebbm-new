@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\PreventUpdateTimestamp;
 
 class Pelumas extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, PreventUpdateTimestamp;
 
     protected $table = 'ms_pelumas';
     protected $primaryKey = 'pelumas_id';
@@ -23,6 +24,9 @@ class Pelumas extends Model
         'isi',
         'harga',
         'tahun',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 
     protected $casts = [

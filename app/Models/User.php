@@ -9,10 +9,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use App\Traits\PreventUpdateTimestamp;
 
 class User extends Authenticatable implements FilamentUser
 {
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasFactory, Notifiable, SoftDeletes, PreventUpdateTimestamp;
 
     protected $table = 'ms_user';
     protected $primaryKey = 'user_id';

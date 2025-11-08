@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\PreventUpdateTimestamp;
 
 class Bekal extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, PreventUpdateTimestamp;
 
     protected $table = 'ms_bekal';
     protected $primaryKey = 'bekal_id';
@@ -20,13 +21,15 @@ class Bekal extends Model
         'golongan_bbm_id',
         'satuan_id',
         'bekal',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 
     public function golonganBbm()
     {
         return $this->belongsTo(GolonganBbm::class, 'golongan_bbm_id', 'golongan_bbm_id');
     }
-
 
     public function satuan()
     {

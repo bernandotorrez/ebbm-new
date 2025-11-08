@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\PreventUpdateTimestamp;
 
 class Tbbm extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, PreventUpdateTimestamp;
 
     protected $table = 'ms_tbbm';
     protected $primaryKey = 'tbbm_id';
@@ -22,6 +23,9 @@ class Tbbm extends Model
         'depot',
         'pbbkb',
         'ship_to',
+        'created_by',
+        'updated_by',
+        'deleted_by',
     ];
 
     public function kota()
