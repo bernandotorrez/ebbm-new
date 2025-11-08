@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\HargaBekalResource\Pages;
 use App\Filament\Resources\HargaBekalResource\RelationManagers;
 use App\Models\HargaBekal;
+use App\Traits\RoleBasedResourceAccess;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class HargaBekalResource extends Resource
 {
+    use RoleBasedResourceAccess;
     protected static ?string $model = HargaBekal::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';

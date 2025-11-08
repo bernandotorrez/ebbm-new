@@ -11,9 +11,11 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use App\Traits\RoleBasedResourceAccess;
 
 class WilayahResource extends Resource
 {
+    use RoleBasedResourceAccess;
     protected static ?string $model = Wilayah::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-map';

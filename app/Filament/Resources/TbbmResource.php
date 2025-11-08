@@ -13,9 +13,11 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Traits\RoleBasedResourceAccess;
 
 class TbbmResource extends Resource
 {
+    use RoleBasedResourceAccess;
     protected static ?string $model = Tbbm::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-queue-list';

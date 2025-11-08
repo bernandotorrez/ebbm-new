@@ -7,6 +7,7 @@ use App\Filament\Resources\Sp3mResource\RelationManagers;
 use App\Models\Sp3m;
 use App\Models\KantorSar;
 use App\Enums\LevelUser;
+use App\Traits\RoleBasedResourceAccess;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\DB;
 
 class Sp3mResource extends Resource
 {
+    use RoleBasedResourceAccess;
     protected static ?string $model = Sp3m::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-envelope';

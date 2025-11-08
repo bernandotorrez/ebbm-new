@@ -16,9 +16,11 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use App\Enums\LevelUser;
 use Filament\Notifications\Notification;
+use App\Traits\RoleBasedResourceAccess;
 
 class UserResource extends Resource
 {
+    use RoleBasedResourceAccess;
     protected static ?string $model = User::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-user-plus';

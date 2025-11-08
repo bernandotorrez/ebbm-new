@@ -11,9 +11,11 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use App\Traits\RoleBasedResourceAccess;
 
 class PackResource extends Resource
 {
+    use RoleBasedResourceAccess;
     protected static ?string $model = Pack::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-square-3-stack-3d';

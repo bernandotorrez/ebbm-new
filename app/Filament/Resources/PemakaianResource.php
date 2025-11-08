@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PemakaianResource\Pages;
 use App\Models\Pemakaian;
+use App\Traits\RoleBasedResourceAccess;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -14,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PemakaianResource extends Resource
 {
+    use RoleBasedResourceAccess;
     protected static ?string $model = Pemakaian::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard';

@@ -12,9 +12,11 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\RoleBasedResourceAccess;
 
 class PosSandarResource extends Resource
 {
+    use RoleBasedResourceAccess;
     protected static ?string $model = PosSandar::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-truck';

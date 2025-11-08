@@ -15,9 +15,11 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\DB;
+use App\Traits\RoleBasedResourceAccess;
 
 class PelumasResource extends Resource
 {
+    use RoleBasedResourceAccess;
     protected static ?string $model = Pelumas::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-archive-box';
