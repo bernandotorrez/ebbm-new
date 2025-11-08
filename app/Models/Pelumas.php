@@ -22,6 +22,7 @@ class Pelumas extends Model
         'kemasan_id',
         'isi',
         'harga',
+        'tahun',
     ];
 
     protected $casts = [
@@ -29,6 +30,7 @@ class Pelumas extends Model
         'kemasan_id' => 'integer',
         'isi' => 'integer',
         'harga' => 'decimal:2',
+        'tahun' => 'integer',
     ];
 
     // Relationships

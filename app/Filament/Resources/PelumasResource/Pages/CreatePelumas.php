@@ -22,18 +22,20 @@ class CreatePelumas extends CreateRecord
         $namaPelumas = $this->data['nama_pelumas'] ?? null;
         $packId = $this->data['pack_id'] ?? null;
         $kemasanId = $this->data['kemasan_id'] ?? null;
+        $tahun = $this->data['tahun'] ?? null;
 
         // Check if the same record exists
         $exists = Pelumas::where('nama_pelumas', $namaPelumas)
             ->where('pack_id', $packId)
             ->where('kemasan_id', $kemasanId)
+            ->where('tahun', $tahun)
             ->exists();
 
         if ($exists) {
             // Show Filament error notification
             Notification::make()
                 ->title('Error!')
-                ->body('Pelumas "'.$namaPelumas.'" dengan pack dan kemasan yang sama sudah ada')
+                ->body('Pelumas "'.$namaPelumas.'" dengan pack, kemasan, dan tahun yang sama sudah ada')
                 ->danger()
                 ->send();
 

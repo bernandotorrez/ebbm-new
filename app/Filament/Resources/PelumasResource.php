@@ -14,6 +14,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\DB;
 
 class PelumasResource extends Resource
 {
@@ -25,7 +26,7 @@ class PelumasResource extends Resource
 
     protected static ?string $navigationLabel = 'Pelumas';
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 6;
 
     protected static ?string $slug = 'pelumas';
 
@@ -58,17 +59,32 @@ class PelumasResource extends Resource
                     ->relationship('kemasan', 'kemasan_pack')
                     ->searchable()
                     ->preload()
-                    ->required(),
+                    ->required()
+                    ->live()
+                    ->afterStateUpdated(function (callable $get, callable $set, $state) {
+                        if ($state) {
+                            $kemasan = Kemasan::find($state);
+                            if ($kemasan) {
+                                $set('isi', $kemasan->kemasan_liter);
+                            }
+                        } else {
+                            $set('isi', null);
+                        }
+                    }),
                 Forms\Components\TextInput::make('isi')
                     ->label('Isi')
                     ->required()
+                    ->placeholder('Pilih Kemasan')
                     ->inputMode('numeric')
                     ->extraInputAttributes([
                         'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "")',
-                        'maxlength' => '6'
+                        'maxlength' => '6',
+                        'class' => 'bg-gray-800 dark:bg-gray-800 text-gray-500 dark:text-gray-400',
+                        'style' => 'cursor: not-allowed !important;'
                     ])
                     ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
-                    ->live(),
+                    ->live()
+                    ->readOnly(),
                 Forms\Components\TextInput::make('harga')
                     ->label('Harga')
                     ->required()
@@ -80,6 +96,16 @@ class PelumasResource extends Resource
                     ])
                     ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
                     ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
+                    ->live(),
+                Forms\Components\TextInput::make('tahun')
+                    ->label('Tahun')
+                    ->required()
+                    ->inputMode('numeric')
+                    ->extraInputAttributes([
+                        'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "")',
+                        'maxlength' => '4',
+                        'minlength' => '4'
+                    ])
                     ->live(),
             ]);
     }
@@ -107,6 +133,10 @@ class PelumasResource extends Resource
                     ->label('Harga')
                     ->formatStateUsing(fn ($state) => 'Rp ' . number_format($state, 0, ',', '.'))
                     ->alignment('right')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('tahun')
+                    ->label('Tahun')
+                    ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->label('Dihapus Pada')
