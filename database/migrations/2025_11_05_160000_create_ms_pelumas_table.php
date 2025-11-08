@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('nama_pelumas', 200);
             $table->unsignedBigInteger('pack_id');
             $table->unsignedBigInteger('kemasan_id');
+            $table->char('tahun', 4);
             $table->unsignedInteger('isi')->default(0);
             $table->decimal('harga', 20, 2)->default(0);
             $table->softDeletes();
