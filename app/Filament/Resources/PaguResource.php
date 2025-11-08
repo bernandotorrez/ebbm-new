@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\PaguResource\Pages;
 use App\Filament\Resources\PaguResource\RelationManagers;
 use App\Models\Pagu;
+use App\Traits\RoleBasedResourceAccess;
 use Filament\Forms;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -18,6 +19,7 @@ use Filament\Support\RawJs;
 
 class PaguResource extends Resource
 {
+    use RoleBasedResourceAccess;
     protected static ?string $model = Pagu::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-calculator';

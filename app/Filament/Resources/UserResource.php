@@ -16,9 +16,11 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use App\Enums\LevelUser;
 use Filament\Notifications\Notification;
+use App\Traits\RoleBasedResourceAccess;
 
 class UserResource extends Resource
 {
+    use RoleBasedResourceAccess;
     protected static ?string $model = User::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-user-plus';
@@ -41,15 +43,6 @@ class UserResource extends Resource
         return 'Daftar User';
     }
 
-    public static function shouldRegisterNavigation(): bool
-    {
-        return Auth::user()?->level === 'admin'; // Hanya admin yang bisa melihat menu
-    }
-
-    public static function canAccess(array $parameters = []): bool
-    {
-        return Auth::user()?->level === 'admin'; // Hanya admin yang bisa mengakses
-    }
 
     public static function form(Form $form): Form
     {
@@ -83,7 +76,7 @@ class UserResource extends Resource
                 Forms\Components\Select::make('level')
                     ->options(LevelUser::values())
                     ->label('Level')
-                    ->default('abk')
+                    ->default(LevelUser::ABK->value)  // Use enum value instead of string
                     ->required()
             ]);
     }
@@ -102,11 +95,18 @@ class UserResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('level')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'admin' => 'danger',
-                        'kanpus' => 'warning',
-                        'kansar' => 'info',
-                        'abk' => 'success',
+                    ->formatStateUsing(fn ($state) => match($state) {
+                        LevelUser::ADMIN => 'Admin',
+                        LevelUser::KANPUS => 'Kantor Pusat', 
+                        LevelUser::KANSAR => 'Kantor SAR',
+                        LevelUser::ABK => 'ABK',
+                        default => $state,
+                    })
+                    ->color(fn ($state): string => match ($state) {
+                        LevelUser::ADMIN => 'danger',
+                        LevelUser::KANPUS => 'warning',
+                        LevelUser::KANSAR => 'info',
+                        LevelUser::ABK => 'success',
                         default => 'gray',
                     }),
                 Tables\Columns\TextColumn::make('created_at')

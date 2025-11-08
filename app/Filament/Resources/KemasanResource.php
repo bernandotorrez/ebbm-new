@@ -12,9 +12,11 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Traits\RoleBasedResourceAccess;
 
 class KemasanResource extends Resource
 {
+    use RoleBasedResourceAccess;
     protected static ?string $model = Kemasan::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-archive-box';

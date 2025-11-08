@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\GolonganBbmResource\Pages;
 use App\Filament\Resources\GolonganBbmResource\RelationManagers;
 use App\Models\GolonganBbm;
+use App\Traits\RoleBasedResourceAccess;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class GolonganBbmResource extends Resource
 {
+    use RoleBasedResourceAccess;
     protected static ?string $model = GolonganBbm::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
