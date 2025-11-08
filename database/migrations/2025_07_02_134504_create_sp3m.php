@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('bekal_id')->index('idx_bekal_id_tx_sp3m');
             $table->string('nomor_sp3m', 200)->index('idx_nomor_sp3m_tx_sp3m');
             $table->char('tahun_anggaran', 4)->index('idx_tahun_anggaran');
-            $table->string('tw', 25);
+            $table->char('tw', 1)->index('idx_tw');
             $table->unsignedInteger('qty');
             $table->decimal('harga_satuan', 20, 2, true); // unsigned decimal
             $table->decimal('jumlah_harga', 20, 2, true); // unsigned decimal
