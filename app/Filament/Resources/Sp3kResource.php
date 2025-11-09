@@ -129,7 +129,11 @@ class Sp3kResource extends Resource
                         Forms\Components\TextInput::make('qty')
                             ->label('Qty')
                             ->required()
-                            ->numeric()
+                            ->inputMode('numeric')
+                            ->extraInputAttributes([
+                                'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "")',
+                                'maxlength' => '6'
+                            ])
                             ->minValue(1)
                             ->live()
                             ->afterStateUpdated(function (callable $get, callable $set) {
