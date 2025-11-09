@@ -96,10 +96,16 @@ class Sp3mResource extends Resource
                         'required' => 'Pilih Tahun Anggaran',
                     ])
                     ->preload(),
-                Forms\Components\TextInput::make('tw')
+                Forms\Components\Select::make('tw')
                     ->label('Triwulan')
                     ->required()
-                    ->maxLength(25),
+                    ->options([
+                        '1' => 'Triwulan I',
+                        '2' => 'Triwulan II',
+                        '3' => 'Triwulan III',
+                        '4' => 'Triwulan IV',
+                    ])
+                    ->searchable(),
                 Forms\Components\TextInput::make('qty')
                     ->required()
                     ->label('Qty')
@@ -175,7 +181,7 @@ class Sp3mResource extends Resource
         $user = Auth::user();
         
         // If user is admin, show all Kantor SAR
-        if ($user && $user->level === LevelUser::ADMIN->value) {
+        if ($user && $user->level->value === LevelUser::ADMIN->value) {
             return KantorSar::pluck('kantor_sar', 'kantor_sar_id')->toArray();
         }
         
@@ -299,7 +305,7 @@ class Sp3mResource extends Resource
         $user = Auth::user();
         
         // Apply user-level filtering for non-admin users
-        if ($user && $user->level !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
+        if ($user && $user->level->value !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
             $query->where('kantor_sar_id', $user->kantor_sar_id);
         }
         

@@ -16,11 +16,9 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
-use App\Traits\RoleBasedResourceAccess;
 
 class AlpalResource extends Resource
 {
-    use RoleBasedResourceAccess;
     protected static ?string $model = Alpal::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-paper-airplane';
@@ -35,12 +33,12 @@ class AlpalResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return 'Alut'; // Singular name
+        return 'Alpal'; // Singular name
     }
 
     public static function getPluralModelLabel(): string
     {
-        return 'Daftar Alut';
+        return 'Daftar Alpal';
     }
 
     public static function form(Form $form): Form
@@ -98,7 +96,7 @@ class AlpalResource extends Resource
         $user = Auth::user();
         
         // If user is admin, show all Kantor SAR
-        if ($user && $user->level === LevelUser::ADMIN->value) {
+        if ($user && $user->level->value === LevelUser::ADMIN->value) {
             return KantorSar::pluck('kantor_sar', 'kantor_sar_id')->toArray();
         }
         
@@ -215,7 +213,7 @@ class AlpalResource extends Resource
         $user = Auth::user();
         
         // Apply user-level filtering for non-admin users
-        if ($user && $user->level !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
+        if ($user && $user->level->value !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
             $query->where('kantor_sar_id', $user->kantor_sar_id);
         }
         

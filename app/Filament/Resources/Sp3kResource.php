@@ -163,7 +163,7 @@ class Sp3kResource extends Resource
         $user = Auth::user();
         
         // If user is admin, show all Kantor SAR
-        if ($user && $user->level === LevelUser::ADMIN->value) {
+        if ($user && $user->level->value === LevelUser::ADMIN->value) {
             return KantorSar::pluck('kantor_sar', 'kantor_sar_id')->toArray();
         }
         
@@ -269,7 +269,7 @@ class Sp3kResource extends Resource
         $user = Auth::user();
         
         // Apply user-level filtering for non-admin users
-        if ($user && $user->level !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
+        if ($user && $user->level->value !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
             $query->where('kantor_sar_id', $user->kantor_sar_id);
         }
         
