@@ -26,6 +26,7 @@ class TxSp3k extends Model
         'tw',
         'jumlah_qty',
         'jumlah_harga',
+        'jumlah_liter',
         'created_by',
         'updated_by',
         'deleted_by',
@@ -35,6 +36,7 @@ class TxSp3k extends Model
         'kantor_sar_id' => 'integer',
         'jumlah_qty' => 'integer',
         'jumlah_harga' => 'decimal:2',
+        'jumlah_liter' => 'integer',
     ];
 
     // Relationships

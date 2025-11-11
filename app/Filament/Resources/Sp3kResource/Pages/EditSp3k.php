@@ -27,8 +27,9 @@ class EditSp3k extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        // Set updated_by to current user
-        $data['updated_by'] = Auth::id();
+        // Set updated_by to current user ID (not username)
+        $userId = Auth::id();
+        $data['updated_by'] = $userId;
         
         // Calculate jumlah_qty and jumlah_harga from details
         $jumlahQty = 0;

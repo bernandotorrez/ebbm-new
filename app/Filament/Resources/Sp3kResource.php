@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\DB;
 class Sp3kResource extends Resource
 {
     use RoleBasedResourceAccess;
-    
+
     protected static ?string $model = TxSp3k::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
@@ -93,7 +93,7 @@ class Sp3kResource extends Resource
                     ])
                     ->searchable(),
                 Forms\Components\Repeater::make('details')
-                    ->relationship()
+                    ->relationship('details')
                     ->label('Detail SP3K')
                     ->schema([
                         Forms\Components\Select::make('pelumas_id')
@@ -112,7 +112,7 @@ class Sp3kResource extends Resource
                                     if ($pelumas) {
                                         $pack = $pelumas->pack;
                                         $kemasan = $pelumas->kemasan;
-                                        
+
                                         $set('pack', $pack ? $pack->nama_pack : '');
                                         $set('kemasan_liter', $kemasan ? $kemasan->kemasan_liter : '');
                                     }
@@ -161,19 +161,19 @@ class Sp3kResource extends Resource
     protected static function getKantorSarOptions(): array
     {
         $user = Auth::user();
-        
+
         // If user is admin, show all Kantor SAR
         if ($user && $user->level->value === LevelUser::ADMIN->value) {
             return KantorSar::pluck('kantor_sar', 'kantor_sar_id')->toArray();
         }
-        
+
         // For non-admin users, only show their assigned Kantor SAR
         if ($user && $user->kantor_sar_id) {
             return KantorSar::where('kantor_sar_id', $user->kantor_sar_id)
                 ->pluck('kantor_sar', 'kantor_sar_id')
                 ->toArray();
         }
-        
+
         // If no user or no kantor_sar_id assigned, return empty array
         return [];
     }
@@ -265,14 +265,14 @@ class Sp3kResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-            
+
         $user = Auth::user();
-        
+
         // Apply user-level filtering for non-admin users
         if ($user && $user->level->value !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
             $query->where('kantor_sar_id', $user->kantor_sar_id);
         }
-        
+
         return $query;
     }
 }
