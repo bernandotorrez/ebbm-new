@@ -198,6 +198,17 @@ class Sp3kResource extends Resource
                 Tables\Columns\TextColumn::make('tw')
                     ->label('Triwulan')
                     ->searchable(),
+                 Tables\Columns\TextColumn::make('pelumas_list')
+                    ->label('Pelumas')
+                    ->html()
+                    ->getStateUsing(function ($record) {
+                        // pastikan relasi sudah di-load
+                        return $record->details
+                            ->map(fn ($detail) => $detail->pelumas?->nama_pelumas)
+                            ->filter() // buang null
+                            ->map(fn ($nama) => "<p>{$nama}</p>")
+                            ->implode('');
+                    }),
                 Tables\Columns\TextColumn::make('jumlah_qty')
                     ->label('Jumlah Qty')
                     ->numeric()
@@ -264,12 +275,11 @@ class Sp3kResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()
+            ->with(['details.pelumas']); // 👈 penting
 
         $user = Auth::user();
-
-        // Apply user-level filtering for non-admin users
-        if ($user && $user->level->value !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
+        if ($user && $user->level->value !== \App\Enums\LevelUser::ADMIN->value && $user->kantor_sar_id) {
             $query->where('kantor_sar_id', $user->kantor_sar_id);
         }
 
