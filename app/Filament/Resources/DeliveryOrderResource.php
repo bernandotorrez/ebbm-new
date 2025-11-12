@@ -243,7 +243,7 @@ class DeliveryOrderResource extends Resource
         $user = Auth::user();
         
         // If user is admin, show all SP3M
-        if ($user && $user->level === LevelUser::ADMIN->value) {
+        if ($user && $user->level->value === LevelUser::ADMIN->value) {
             return Sp3m::pluck('nomor_sp3m', 'sp3m_id')->toArray();
         }
         
@@ -267,7 +267,7 @@ class DeliveryOrderResource extends Resource
                 $query->with(['sp3m', 'tbbm']);
                 
                 // Apply user-level filtering for non-admin users
-                if ($user && $user->level !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
+                if ($user && $user->level->value !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
                     $query->whereHas('sp3m', function ($q) use ($user) {
                         $q->where('kantor_sar_id', $user->kantor_sar_id);
                     });
@@ -409,7 +409,7 @@ class DeliveryOrderResource extends Resource
         $user = Auth::user();
         
         // Apply user-level filtering for non-admin users through SP3M relationship
-        if ($user && $user->level !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
+        if ($user && $user->level->value !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
             $query->whereHas('sp3m', function ($q) use ($user) {
                 $q->where('kantor_sar_id', $user->kantor_sar_id);
             });
