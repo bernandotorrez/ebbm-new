@@ -6,6 +6,7 @@ use App\Filament\Resources\Sp3mResource;
 use App\Models\Alpal;
 use App\Models\Bekal;
 use App\Models\KantorSar;
+use App\Models\HargaBekal;
 use App\Models\Sp3m;
 use Filament\Actions;
 use Filament\Notifications\Notification;
@@ -49,6 +50,43 @@ class EditSp3m extends EditRecord
         $alpalId = $this->data['alpal_id'] ?? null;
         $bekalId = $this->data['bekal_id'] ?? null;
         $tahunAnggaran = $this->data['tahun_anggaran'] ?? null;
+
+        // If the Kantor SAR select is disabled it may not be submitted by the browser.
+        // Derive kantor_sar_id from the selected Alpal on the server side when missing.
+        if (empty($kantorSarId) && $alpalId) {
+            $alpal = Alpal::find($alpalId);
+            $kantorSarId = $alpal ? $alpal->kantor_sar_id : null;
+            // ensure the derived value is available for subsequent checks and saving
+            $this->data['kantor_sar_id'] = $kantorSarId;
+        }
+
+        // If harga_satuan is missing (readonly/derived), derive from latest HargaBekal for the bekal
+        $hargaSatuan = $this->data['harga_satuan'] ?? null;
+        if ((empty($hargaSatuan) || $hargaSatuan === 0) && $bekalId) {
+            $harga = HargaBekal::where('bekal_id', $bekalId)
+                ->orderBy('created_at', 'desc')
+                ->value('harga');
+
+            $this->data['harga_satuan'] = $harga !== null ? (int) $harga : $this->data['harga_satuan'] ?? null;
+        }
+
+        $nomorSp3m    = strtoupper($this->data['nomor_sp3m']);
+
+        $duplicateSp3kNumber = Sp3m::where('nomor_sp3m', $nomorSp3m)
+            ->where('sp3m_id', '!=', $id)
+            ->exists();
+
+        if ($duplicateSp3kNumber) {
+            $message = 'Nomor SP3M : '.$nomorSp3m.' Sudah ada';
+
+            Notification::make()
+                ->title('Kesalahan!')
+                ->body($message)
+                ->danger()
+                ->send();
+
+            $this->halt();
+        }
 
         // Check if the same record exists
         $exists = Sp3m::where('kantor_sar_id', $kantorSarId)
@@ -96,7 +134,7 @@ class EditSp3m extends EditRecord
             ->title('Berhasil')
             ->body('Data SP3M berhasil diperbarui.');
     }
-    
+
     public function getTitle(): string
     {
         return 'Ubah SP3M';

@@ -5,7 +5,9 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\Sp3mResource\Pages;
 use App\Filament\Resources\Sp3mResource\RelationManagers;
 use App\Models\Sp3m;
+use App\Models\Alpal;
 use App\Models\KantorSar;
+use App\Models\HargaBekal;
 use App\Enums\LevelUser;
 use App\Traits\RoleBasedResourceAccess;
 use Filament\Forms;
@@ -50,17 +52,29 @@ class Sp3mResource extends Resource
             ->schema([
                 Forms\Components\Select::make('alpal_id')
                     ->relationship(name: 'alpal', titleAttribute: 'alpal')
-                    ->label('Alpal')
+                    ->label('Alut')
                     ->searchable()
                     ->preload()
+                    ->reactive()
+                    ->afterStateUpdated(function (callable $get, callable $set) {
+                        $alpalId = $get('alpal_id');
+
+                        if ($alpalId) {
+                            $alpal = Alpal::find($alpalId);
+                            $set('kantor_sar_id', $alpal ? $alpal->kantor_sar_id : null);
+                        } else {
+                            $set('kantor_sar_id', null);
+                        }
+                    })
                     ->validationMessages([
-                        'required' => 'Pilih Alpal',
+                        'required' => 'Pilih Alut',
                     ])
                     ->required(),
                 Forms\Components\Select::make('kantor_sar_id')
                     ->relationship(name: 'kantorSar', titleAttribute: 'kantor_sar')
                     ->label('Kantor SAR')
                     ->options(static::getKantorSarOptions())
+                    ->disabled()
                     ->searchable()
                     ->preload()
                     ->validationMessages([
@@ -72,6 +86,22 @@ class Sp3mResource extends Resource
                     ->label('Bekal')
                     ->searchable()
                     ->preload()
+                    ->reactive()
+                    ->afterStateUpdated(function (callable $get, callable $set) {
+                        $bekalId = $get('bekal_id');
+
+                        if ($bekalId) {
+                            // Try get the latest harga for this bekal
+                            $harga = HargaBekal::where('bekal_id', $bekalId)
+                                ->orderBy('created_at', 'desc')
+                                ->value('harga');
+
+                            // set raw integer value; Filament's formatStateUsing will display thousand separators
+                            $set('harga_satuan', $harga !== null ? (int) $harga : null);
+                        } else {
+                            $set('harga_satuan', null);
+                        }
+                    })
                     ->validationMessages([
                         'required' => 'Pilih Bekal',
                     ])
@@ -126,6 +156,7 @@ class Sp3mResource extends Resource
                     ->label('Harga Satuan')
                     ->prefix('Rp')
                     ->inputMode('numeric')
+                    ->readonly()
                     ->afterStateUpdated(function (callable $get, callable $set) {
                         $qty = (int) str_replace(['.', ',', ' '], '', $get('qty'));
                         $harga = (int) str_replace(['.', ',', ' '], '', $get('harga_satuan'));
@@ -179,19 +210,19 @@ class Sp3mResource extends Resource
     protected static function getKantorSarOptions(): array
     {
         $user = Auth::user();
-        
+
         // If user is admin, show all Kantor SAR
         if ($user && $user->level->value === LevelUser::ADMIN->value) {
             return KantorSar::pluck('kantor_sar', 'kantor_sar_id')->toArray();
         }
-        
+
         // For non-admin users, only show their assigned Kantor SAR
         if ($user && $user->kantor_sar_id) {
             return KantorSar::where('kantor_sar_id', $user->kantor_sar_id)
                 ->pluck('kantor_sar', 'kantor_sar_id')
                 ->toArray();
         }
-        
+
         // If no user or no kantor_sar_id assigned, return empty array
         return [];
     }
@@ -202,7 +233,7 @@ class Sp3mResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('alpal.alpal')
                     ->numeric()
-                    ->label('Alpal')
+                    ->label('Alut')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('kantorSar.kantor_sar')
                     ->numeric()
@@ -301,14 +332,14 @@ class Sp3mResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-            
+
         $user = Auth::user();
-        
+
         // Apply user-level filtering for non-admin users
         if ($user && $user->level->value !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
             $query->where('kantor_sar_id', $user->kantor_sar_id);
         }
-        
+
         return $query;
     }
 }
