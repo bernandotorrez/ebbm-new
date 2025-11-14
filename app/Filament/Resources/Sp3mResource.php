@@ -262,7 +262,11 @@ class Sp3mResource extends Resource
                     ->label('Triwulan')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('qty')
-                    ->label('Kuantitas')
+                    ->label('Qty')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('sisa_qty')
+                    ->label('Sisa Qty')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('harga_satuan')
