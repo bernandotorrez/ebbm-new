@@ -30,17 +30,17 @@ class EditSp3k extends EditRecord
         // Set updated_by to current user ID (not username)
         $userId = Auth::id();
         $data['updated_by'] = $userId;
-        
+
         // Calculate jumlah_qty and jumlah_harga from details
         $jumlahQty = 0;
         $jumlahHarga = 0;
-        
+
         if (isset($data['details'])) {
             foreach ($data['details'] as $index => $detail) {
                 // Get harga from pelumas model
                 $pelumas = Pelumas::find($detail['pelumas_id']);
                 $harga = $pelumas ? $pelumas->harga : 0;
-                
+
                 $jumlahQty += $detail['qty'];
                 $jumlahHarga += $detail['qty'] * $harga;
                 // Set sort order
@@ -49,10 +49,10 @@ class EditSp3k extends EditRecord
                 $data['details'][$index]['harga'] = $harga;
             }
         }
-        
+
         $data['jumlah_qty'] = $jumlahQty;
         $data['jumlah_harga'] = $jumlahHarga;
-        
+
         return $data;
     }
 
@@ -69,6 +69,23 @@ class EditSp3k extends EditRecord
         $kantorSarId = $this->data['kantor_sar_id'] ?? null;
         $tahunAnggaran = $this->data['tahun_anggaran'] ?? null;
         $tw = $this->data['tw'] ?? null;
+        $nomor_sp3k    = $this->data['nomor_sp3k'];
+
+        $duplicateSp3kNumber = TxSp3k::where('nomor_sp3k', $nomor_sp3k)
+            ->where('sp3k_id', '!=', $id)
+            ->exists();
+
+        if ($duplicateSp3kNumber) {
+            $message = 'Nomor SP3K : '.$nomor_sp3k.' Sudah ada';
+
+            Notification::make()
+                ->title('Kesalahan!')
+                ->body($message)
+                ->danger()
+                ->send();
+
+            $this->halt();
+        }
 
         // Check if the same record exists
         $exists = TxSp3k::where('kantor_sar_id', $kantorSarId)
@@ -113,7 +130,7 @@ class EditSp3k extends EditRecord
             ->title('Berhasil')
             ->body('Data SP3K berhasil diperbarui.');
     }
-    
+
     public function getTitle(): string
     {
         return 'Ubah SP3K';

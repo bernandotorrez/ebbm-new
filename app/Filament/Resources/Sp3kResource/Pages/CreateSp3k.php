@@ -40,6 +40,7 @@ class CreateSp3k extends CreateRecord
         $data['jumlah_qty'] = 0;
         $data['jumlah_harga'] = 0;
         $data['jumlah_liter'] = 0;
+        $data['nomor_sp3k'] = strtoupper($data['nomor_sp3k']);
 
         return $data;
     }
