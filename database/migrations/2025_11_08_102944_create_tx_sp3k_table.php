@@ -14,13 +14,13 @@ return new class extends Migration
         Schema::create('tx_sp3k', function (Blueprint $table) {
             $table->bigIncrements('sp3k_id');
             $table->unsignedBigInteger('kantor_sar_id');
-            $table->string('nomor_sp3k', 200)->unique();
-            $table->char('tahun_anggaran', 4);
+            $table->string('nomor_sp3k', 200)->index('idx_nomor_sp3k');
+            $table->char('tahun_anggaran', 4)->index('idx_tahun_anggaran');
             $table->date('tanggal_sp3k');
-            $table->char('tw', 1);
-            $table->unsignedSmallInteger('jumlah_qty');
+            $table->char('tw', 1)->index('idx_tw');
+            $table->unsignedInteger('jumlah_qty');
             $table->decimal('jumlah_harga', 20, 2)->unsigned();
-            $table->unsignedMediumInteger('jumlah_liter');
+            $table->unsignedInteger('jumlah_liter');
             $table->dateTime('deleted_at')->nullable();
             $table->dateTime('created_at')->nullable();
             $table->dateTime('updated_at')->nullable();

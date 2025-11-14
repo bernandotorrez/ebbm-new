@@ -17,6 +17,9 @@ else
     php artisan migrate --force || echo "Initial migrations failed, continuing..."
 fi
 
+echo "Creating storage symbolic link..."
+php artisan storage:link || echo "Storage link already exists or failed, continuing..."
+
 echo "Running cache optimizations..."
 # Clear and rebuild caches
 php artisan config:clear || echo "Config clear failed, continuing..."

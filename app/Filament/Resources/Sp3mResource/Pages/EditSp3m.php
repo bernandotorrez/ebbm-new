@@ -32,6 +32,9 @@ class EditSp3m extends EditRecord
         $data['qty'] = (int) preg_replace('/[^\d]/', '', $data['qty']);
         $data['harga_satuan'] = (int) preg_replace('/[^\d]/', '', $data['harga_satuan']);
         $data['jumlah_harga'] = (int) preg_replace('/[^\d]/', '', $data['jumlah_harga']);
+        
+        // Set sisa_qty sama dengan qty
+        $data['sisa_qty'] = $data['qty'];
 
         return $data;
     }

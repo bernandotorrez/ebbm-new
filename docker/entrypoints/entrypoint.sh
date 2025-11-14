@@ -13,6 +13,10 @@ mkdir -p storage/logs
 chmod -R 755 storage bootstrap/cache
 chown -R www-data:www-data storage bootstrap/cache
 
+# Create storage symbolic link
+echo "Creating storage symbolic link..."
+php artisan storage:link || echo "Storage link already exists or failed, continuing..."
+
 # Ensure PHP-FPM directory exists
 mkdir -p /var/run/php-fpm
 
