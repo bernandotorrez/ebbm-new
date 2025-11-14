@@ -75,6 +75,7 @@ class Sp3mResource extends Resource
                     ->label('Kantor SAR')
                     ->options(static::getKantorSarOptions())
                     ->disabled()
+                    ->dehydrated() // Tetap kirim nilai meskipun disabled
                     ->searchable()
                     ->preload()
                     ->validationMessages([
