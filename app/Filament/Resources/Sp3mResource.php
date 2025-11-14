@@ -96,10 +96,10 @@ class Sp3mResource extends Resource
                                 ->orderBy('created_at', 'desc')
                                 ->value('harga');
 
-                            // set raw integer value; Filament's formatStateUsing will display thousand separators
-                            $set('harga_satuan', $harga !== null ? (int) $harga : null);
+                            // set formatted string so the readonly input shows thousand separators immediately
+                            $set('harga_satuan', $harga !== null ? number_format((int) $harga, 0, ',', '.') : null);
                         } else {
-                            $set('harga_satuan', null);
+                            $set('harga_satuan', 0);
                         }
                     })
                     ->validationMessages([
