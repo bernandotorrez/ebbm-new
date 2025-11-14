@@ -149,9 +149,11 @@ class Sp3mResource extends Resource
                     ->extraInputAttributes([
                         'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
                     ])
+                    ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
+                    ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
                     ->minValue(0)
                     ->maxLength(10)
-                    ->live(),
+                    ->live(debounce: 500),
                 Forms\Components\TextInput::make('harga_satuan')
                     ->required()
                     ->label('Harga Satuan')
