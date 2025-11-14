@@ -51,15 +51,6 @@ class EditSp3m extends EditRecord
         $bekalId = $this->data['bekal_id'] ?? null;
         $tahunAnggaran = $this->data['tahun_anggaran'] ?? null;
 
-        // If the Kantor SAR select is disabled it may not be submitted by the browser.
-        // Derive kantor_sar_id from the selected Alpal on the server side when missing.
-        if (empty($kantorSarId) && $alpalId) {
-            $alpal = Alpal::find($alpalId);
-            $kantorSarId = $alpal ? $alpal->kantor_sar_id : null;
-            // ensure the derived value is available for subsequent checks and saving
-            $this->data['kantor_sar_id'] = $kantorSarId;
-        }
-
         // If harga_satuan is missing (readonly/derived), derive from latest HargaBekal for the bekal
         $hargaSatuan = $this->data['harga_satuan'] ?? null;
         if ((empty($hargaSatuan) || $hargaSatuan === 0) && $bekalId) {
