@@ -6,6 +6,7 @@ use App\Filament\Resources\DeliveryOrderResource;
 use App\Models\DeliveryOrder;
 use App\Models\Sp3m;
 use App\Models\Tbbm;
+use App\Models\HargaBekal;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
@@ -16,11 +17,44 @@ class CreateDeliveryOrder extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // Apply ucwords() to the 'bekal' field before saving
+        // Clean numeric fields
         $data['qty'] = (int) preg_replace('/[^\d]/', '', $data['qty']);
-        $data['harga_satuan'] = (int) preg_replace('/[^\d]/', '', $data['harga_satuan']);
-        $data['pbbkb'] = (int) number_format($data['pbbkb'], 0, ',', '.');
-        $data['jumlah_harga'] = (int) preg_replace('/[^\d]/', '', $data['jumlah_harga']);
+        
+        // Get kota_id from SP3M -> Alpal -> TBBM
+        $sp3mId = $data['sp3m_id'] ?? null;
+        if ($sp3mId) {
+            $sp3m = Sp3m::with(['alpal.tbbm'])->find($sp3mId);
+            
+            if ($sp3m && $sp3m->alpal && $sp3m->alpal->tbbm) {
+                $kotaId = $sp3m->alpal->tbbm->kota_id;
+                $bekalId = $sp3m->bekal_id;
+                
+                // Get harga from ms_harga_bekal based on kota_id and bekal_id
+                $hargaBekal = HargaBekal::where('kota_id', $kotaId)
+                    ->where('bekal_id', $bekalId)
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+                
+                if ($hargaBekal) {
+                    $data['harga_bekal_id'] = $hargaBekal->harga_bekal_id;
+                    $harga = $hargaBekal->harga;
+                    
+                    // Calculate jumlah_harga = qty * harga
+                    $data['jumlah_harga'] = (int) ($data['qty'] * $harga);
+                } else {
+                    // Fallback jika tidak ada harga bekal
+                    $data['harga_bekal_id'] = null;
+                    $data['jumlah_harga'] = 0;
+                }
+            } else {
+                $data['harga_bekal_id'] = null;
+                $data['jumlah_harga'] = 0;
+            }
+        }
+        
+        // Remove PPN and PBBKB (tidak digunakan lagi)
+        unset($data['ppn']);
+        unset($data['pbbkb']);
 
         return $data;
     }
@@ -37,29 +71,70 @@ class CreateDeliveryOrder extends CreateRecord
         $sp3mId = $this->data['sp3m_id'] ?? null;
         $tbbmId = $this->data['tbbm_id'] ?? null;
         $tahunAnggaran = $this->data['tahun_anggaran'] ?? null;
+        $qty = (int) preg_replace('/[^\d]/', '', $this->data['qty'] ?? 0);
 
-        // Check if the same record exists
-        $exists = DeliveryOrder::where('sp3m_id', $sp3mId)
-            ->where('tbbm_id', $tbbmId)
-            ->where('tahun_anggaran', $tahunAnggaran)
-            ->exists();
-
-        if ($exists) {
-            // Show Filament error notification
-            $dataSp3m = Sp3m::find($sp3mId);
-            $dataTbbm = Tbbm::find($tbbmId);
-
-            $message = 'Nomor SP3M "'.ucwords($dataSp3m->nomor_sp3m).'", TBBM "'.ucwords($dataTbbm->depot).'" dan Tahun Anggaran "'.ucwords($tahunAnggaran).'" sudah ada';
-
+        // Validasi sisa_qty di SP3M
+        $sp3m = Sp3m::with(['alpal.tbbm', 'bekal', 'kantorSar'])->find($sp3mId);
+        
+        if (!$sp3m) {
             Notification::make()
-                ->title('Error!')
-                ->body($message)
+                ->title('Gagal Membuat Delivery Order!')
+                ->body('SP3M tidak ditemukan.')
                 ->danger()
+                ->duration(5000)
                 ->send();
-
-            // Prevent form submission
             $this->halt();
         }
+
+        // Validasi harga_bekal_id
+        if ($sp3m->alpal && $sp3m->alpal->tbbm) {
+            $kotaId = $sp3m->alpal->tbbm->kota_id;
+            $bekalId = $sp3m->bekal_id;
+            
+            $hargaBekal = \App\Models\HargaBekal::where('kota_id', $kotaId)
+                ->where('bekal_id', $bekalId)
+                ->orderBy('created_at', 'desc')
+                ->first();
+            
+            if (!$hargaBekal) {
+                $kotaName = $sp3m->alpal->tbbm->kota->kota ?? 'Unknown';
+                $bekalName = $sp3m->bekal->bekal ?? 'Unknown';
+                
+                Notification::make()
+                    ->title('Gagal Membuat Delivery Order!')
+                    ->body("Harga bekal tidak ditemukan untuk Kota: {$kotaName} dan Jenis Bahan Bakar: {$bekalName}. Silakan hubungi administrator untuk menambahkan data harga bekal.")
+                    ->danger()
+                    ->duration(10000)
+                    ->send();
+                $this->halt();
+            }
+        } else {
+            Notification::make()
+                ->title('Gagal Membuat Delivery Order!')
+                ->body('Data Alpal atau TBBM tidak lengkap pada SP3M yang dipilih.')
+                ->danger()
+                ->duration(7000)
+                ->send();
+            $this->halt();
+        }
+
+        // Cek apakah sisa_qty mencukupi
+        if ($sp3m->sisa_qty < $qty) {
+            $qtyFormatted = number_format($qty, 0, ',', '.');
+            $sisaQtyFormatted = number_format($sp3m->sisa_qty, 0, ',', '.');
+            
+            Notification::make()
+                ->title('Gagal Membuat Delivery Order!')
+                ->body("Qty DO ({$qtyFormatted}) melebihi sisa qty SP3M ({$sisaQtyFormatted}). Silakan kurangi qty atau pilih SP3M lain.")
+                ->danger()
+                ->duration(7000)
+                ->send();
+            $this->halt();
+        }
+
+        // Kurangi sisa_qty di SP3M
+        $sp3m->sisa_qty -= $qty;
+        $sp3m->save();
     }
 
     protected function getCreatedNotification(): ?Notification
@@ -74,12 +149,35 @@ class CreateDeliveryOrder extends CreateRecord
     {
         return [
             $this->getCreateFormAction()
-                ->label('Buat'),
+                ->label('Buat')
+                ->disabled(function () {
+                    return $this->isQtyInvalid();
+                }),
             $this->getCreateAnotherFormAction()
-                ->label('Buat & Buat lainnya'),
+                ->label('Buat & Buat lainnya')
+                ->disabled(function () {
+                    return $this->isQtyInvalid();
+                }),
             $this->getCancelFormAction()
                 ->label('Batal'),
         ];
+    }
+    
+    protected function isQtyInvalid(): bool
+    {
+        $sp3mId = $this->data['sp3m_id'] ?? null;
+        $qty = (int) preg_replace('/[^\d]/', '', $this->data['qty'] ?? 0);
+        
+        if (!$sp3mId || $qty <= 0) {
+            return false;
+        }
+        
+        $sp3m = Sp3m::find($sp3mId);
+        if (!$sp3m) {
+            return false;
+        }
+        
+        return $qty > $sp3m->sisa_qty;
     }
     
     public function getTitle(): string
