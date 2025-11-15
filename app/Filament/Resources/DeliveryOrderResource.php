@@ -361,11 +361,11 @@ class DeliveryOrderResource extends Resource
                     ->numeric()
                     ->formatStateUsing(fn ($state) => number_format($state, 0, ',', '.'))
                     ->sortable(),
-                Tables\Columns\TextColumn::make('harga_satuan')
-                    ->label('Harga Satuan')
-                    ->numeric()
-                    ->formatStateUsing(fn ($state) => 'Rp ' . number_format($state, 0, ',', '.'))
-                    ->sortable(),
+                // Tables\Columns\TextColumn::make('harga_satuan')
+                //     ->label('Harga Satuan')
+                //     ->numeric()
+                //     ->formatStateUsing(fn ($state) => 'Rp ' . number_format($state, 0, ',', '.'))
+                //     ->sortable(),
                 Tables\Columns\TextColumn::make('jumlah_harga')
                     ->label('Jumlah Harga')
                     ->numeric()

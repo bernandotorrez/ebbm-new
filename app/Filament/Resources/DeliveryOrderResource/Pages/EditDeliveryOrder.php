@@ -6,6 +6,7 @@ use App\Filament\Resources\DeliveryOrderResource;
 use App\Models\DeliveryOrder;
 use App\Models\Sp3m;
 use App\Models\Tbbm;
+use App\Models\HargaBekal;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
@@ -63,7 +64,7 @@ class EditDeliveryOrder extends EditRecord
                 $bekalId = $sp3m->bekal_id;
                 
                 // Get harga from ms_harga_bekal based on kota_id and bekal_id
-                $hargaBekal = \App\Models\HargaBekal::where('kota_id', $kotaId)
+                $hargaBekal = HargaBekal::where('kota_id', $kotaId)
                     ->where('bekal_id', $bekalId)
                     ->orderBy('created_at', 'desc')
                     ->first();
@@ -140,7 +141,7 @@ class EditDeliveryOrder extends EditRecord
             $kotaId = $sp3m->alpal->tbbm->kota_id;
             $bekalId = $sp3m->bekal_id;
             
-            $hargaBekal = \App\Models\HargaBekal::where('kota_id', $kotaId)
+            $hargaBekal = HargaBekal::where('kota_id', $kotaId)
                 ->where('bekal_id', $bekalId)
                 ->orderBy('created_at', 'desc')
                 ->first();
@@ -190,6 +191,7 @@ class EditDeliveryOrder extends EditRecord
             ->where('tbbm_id', $tbbmId)
             ->where('tahun_anggaran', $tahunAnggaran)
             ->where('do_id', '!=', $id)
+            ->where('sp3m_id', '!=', $sp3mId)
             ->exists();
 
         if ($exists) {
