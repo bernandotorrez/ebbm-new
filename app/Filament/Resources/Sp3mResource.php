@@ -149,9 +149,11 @@ class Sp3mResource extends Resource
                     ->extraInputAttributes([
                         'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
                     ])
+                    ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
+                    ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
                     ->minValue(0)
                     ->maxLength(10)
-                    ->live(),
+                    ->live(debounce: 500),
                 Forms\Components\TextInput::make('harga_satuan')
                     ->required()
                     ->label('Harga Satuan')
@@ -184,6 +186,9 @@ class Sp3mResource extends Resource
                         Forms\Components\FileUpload::make('file_upload_sp3m')
                             ->required()
                             ->label('File Upload SP3M')
+                            ->disk('public')
+                            ->directory('sp3m')
+                            ->visibility('public')
                             ->acceptedFileTypes(['application/pdf', 'image/*'])
                             ->maxSize(5120)
                             ->validationMessages([
@@ -196,6 +201,9 @@ class Sp3mResource extends Resource
                         Forms\Components\FileUpload::make('file_upload_kelengkapan_sp3m')
                             ->required()
                             ->label('File Upload Kelengkapan SP3M')
+                            ->disk('public')
+                            ->directory('sp3m/kelengkapan')
+                            ->visibility('public')
                             ->acceptedFileTypes(['application/pdf', 'image/*'])
                             ->maxSize(5120)
                             ->validationMessages([
@@ -254,7 +262,11 @@ class Sp3mResource extends Resource
                     ->label('Triwulan')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('qty')
-                    ->label('Kuantitas')
+                    ->label('Qty')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('sisa_qty')
+                    ->label('Sisa Qty')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('harga_satuan')

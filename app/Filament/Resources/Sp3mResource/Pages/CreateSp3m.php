@@ -40,6 +40,9 @@ class CreateSp3m extends CreateRecord
         $data['harga_satuan'] = (int) preg_replace('/[^\d]/', '', $data['harga_satuan']);
         $data['jumlah_harga'] = (int) preg_replace('/[^\d]/', '', $data['jumlah_harga']);
         $data['nomor_sp3m'] = strtoupper($data['nomor_sp3m']);
+        
+        // Set sisa_qty sama dengan qty
+        $data['sisa_qty'] = $data['qty'];
 
         return $data;
     }

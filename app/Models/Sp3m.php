@@ -25,6 +25,7 @@ class Sp3m extends Model
         'tahun_anggaran',
         'tw',
         'qty',
+        'sisa_qty',
         'harga_satuan',
         'jumlah_harga',
         'file_upload_sp3m',

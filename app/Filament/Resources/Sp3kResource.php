@@ -131,16 +131,18 @@ class Sp3kResource extends Resource
                             ->required()
                             ->inputMode('numeric')
                             ->extraInputAttributes([
-                                'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "")',
-                                'maxlength' => '6'
+                                'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")',
+                                'maxlength' => '10'
                             ])
+                            ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
+                            ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
                             ->minValue(1)
-                            ->live()
+                            ->live(debounce: 500)
                             ->afterStateUpdated(function (callable $get, callable $set) {
                                 // Calculate jumlah_isi
-                                $qty = (int) $get('qty') ?: 0;
-                                $kemasanLiter = (int) $get('kemasan_liter') ?: 0;
-                                $set('jumlah_isi', $qty * $kemasanLiter);
+                                $qty = (int) str_replace(['.', ',', ' '], '', $get('qty')) ?: 0;
+                                $kemasanLiter = (int) str_replace(['.', ',', ' '], '', $get('kemasan_liter')) ?: 0;
+                                $set('jumlah_isi', number_format($qty * $kemasanLiter, 0, ',', '.'));
                             }),
                         Forms\Components\TextInput::make('jumlah_isi')
                             ->label('Jumlah Isi (Liter)')

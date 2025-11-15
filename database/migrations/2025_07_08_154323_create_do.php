@@ -19,10 +19,10 @@ return new class extends Migration
             $table->char('tahun_anggaran', 4);
             $table->date('tanggal_do');
             $table->unsignedInteger('qty');
-            $table->decimal('harga_satuan', 20, 2, true); // unsigned decimal
-            $table->decimal('ppn', 10, 2, true); // unsigned decimal
-            $table->decimal('pbbkb', 10, 2, true); // unsigned decimal
-            $table->decimal('jumlah_harga', 20, 2, true); // unsigned decimal
+            $table->decimal('harga_satuan', 20, 2, true)->unsigned(); // unsigned decimal
+            $table->decimal('ppn', 10, 2, true)->unsigned(); // unsigned decimal
+            $table->decimal('pbbkb', 10, 2, true)->unsigned(); // unsigned decimal
+            $table->decimal('jumlah_harga', 20, 2, true)->unsigned(); // unsigned decimal
             $table->text('file_upload_do');
             $table->text('file_upload_laporan');
             $table->softDeletes();
