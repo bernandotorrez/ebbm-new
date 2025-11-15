@@ -4,6 +4,8 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PemakaianResource\Pages;
 use App\Models\Pemakaian;
+use App\Models\Alpal;
+use App\Enums\LevelUser;
 use App\Traits\RoleBasedResourceAccess;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -12,6 +14,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 
 class PemakaianResource extends Resource
 {
@@ -44,18 +47,107 @@ class PemakaianResource extends Resource
                     ->description('Masukkan informasi pemakaian barang')
                     ->schema([
                         Forms\Components\Select::make('kantor_sar_id')
-                            ->relationship('kantorSar', 'kantor_sar')  // Changed from 'nama' to 'kantor_sar'
+                            ->relationship(
+                                name: 'kantorSar',
+                                titleAttribute: 'kantor_sar',
+                                modifyQueryUsing: function (Builder $query) {
+                                    $user = Auth::user();
+                                    
+                                    // Filter untuk KANSAR dan ABK
+                                    if ($user && $user->kantor_sar_id && 
+                                        in_array($user->level->value, [LevelUser::KANSAR->value, LevelUser::ABK->value])) {
+                                        $query->where('kantor_sar_id', $user->kantor_sar_id);
+                                    }
+                                    
+                                    return $query;
+                                }
+                            )
                             ->required()
                             ->searchable()
                             ->preload()
-                            ->label('Kantor SAR'),
+                            ->label('Kantor SAR')
+                            ->live()
+                            ->default(function () {
+                                $user = Auth::user();
+                                
+                                // Set default untuk KANSAR dan ABK
+                                if ($user && $user->kantor_sar_id && 
+                                    in_array($user->level->value, [LevelUser::KANSAR->value, LevelUser::ABK->value])) {
+                                    return $user->kantor_sar_id;
+                                }
+                                
+                                return null;
+                            })
+                            ->disabled(function () {
+                                $user = Auth::user();
+                                
+                                // Disable untuk KANSAR dan ABK
+                                return $user && $user->kantor_sar_id && 
+                                    in_array($user->level->value, [LevelUser::KANSAR->value, LevelUser::ABK->value]);
+                            })
+                            ->dehydrated()
+                            ->afterStateUpdated(function (callable $set) {
+                                // Reset alpal_id saat kantor_sar_id berubah
+                                $set('alpal_id', null);
+                                $set('rob_info', '');
+                                $set('kapasitas_info', '');
+                            }),
 
                         Forms\Components\Select::make('alpal_id')
-                            ->relationship('alpal', 'alpal')  // Changed from 'nama' to 'alpal'
+                            ->relationship(
+                                name: 'alpal',
+                                titleAttribute: 'alpal',
+                                modifyQueryUsing: function (Builder $query, callable $get) {
+                                    $user = Auth::user();
+                                    $kantorSarId = $get('kantor_sar_id');
+                                    
+                                    // Filter berdasarkan kantor_sar_id yang dipilih di form
+                                    if ($kantorSarId) {
+                                        $query->where('kantor_sar_id', $kantorSarId);
+                                    }
+                                    // Atau filter untuk KANSAR dan ABK jika belum ada kantor_sar_id
+                                    elseif ($user && $user->kantor_sar_id && 
+                                        in_array($user->level->value, [LevelUser::KANSAR->value, LevelUser::ABK->value])) {
+                                        $query->where('kantor_sar_id', $user->kantor_sar_id);
+                                    }
+                                    
+                                    return $query;
+                                }
+                            )
                             ->required()
                             ->searchable()
                             ->preload()
-                            ->label('Alat & Perlengkapan'),
+                            ->label('Alut')
+                            ->live()
+                            ->afterStateHydrated(function (callable $set, $state) {
+                                if ($state) {
+                                    $alpal = Alpal::find($state);
+                                    if ($alpal) {
+                                        $set('rob_info', number_format($alpal->rob, 0, ',', '.'));
+                                        $set('kapasitas_info', number_format($alpal->kapasitas, 0, ',', '.'));
+                                    }
+                                }
+                            })
+                            ->afterStateUpdated(function (callable $get, callable $set, $state) {
+                                if ($state) {
+                                    $alpal = Alpal::find($state);
+                                    if ($alpal) {
+                                        $set('rob_info', number_format($alpal->rob, 0, ',', '.'));
+                                        $set('kapasitas_info', number_format($alpal->kapasitas, 0, ',', '.'));
+                                    }
+                                } else {
+                                    $set('rob_info', '');
+                                    $set('kapasitas_info', '');
+                                }
+                            }),
+
+                        Forms\Components\TextInput::make('rob_info')
+                            ->label('ROB Saat Ini')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->extraAttributes([
+                                'style' => 'font-weight: 600; color: #059669;'
+                            ]),
 
                         Forms\Components\Select::make('bekal_id')
                             ->relationship('bekal', 'bekal')
@@ -64,6 +156,14 @@ class PemakaianResource extends Resource
                             ->preload()
                             ->label('Bekal'),
 
+                        Forms\Components\TextInput::make('kapasitas_info')
+                            ->label('Kapasitas')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->extraAttributes([
+                                'style' => 'font-weight: 600; color: #3b82f6;'
+                            ]),
+
                         Forms\Components\DatePicker::make('tanggal_pakai')
                             ->required()
                             ->maxDate(now())
@@ -71,10 +171,65 @@ class PemakaianResource extends Resource
 
                         Forms\Components\TextInput::make('qty')
                             ->required()
-                            ->numeric()
+                            ->label('Quantity')
+                            ->inputMode('numeric')
+                            ->live(debounce: 500)
+                            ->afterStateUpdated(function (callable $get, callable $set, $state, $livewire) {
+                                $qty = (int) str_replace(['.', ',', ' '], '', $state);
+                                $alpalId = $get('alpal_id');
+                                
+                                if ($alpalId && $qty > 0) {
+                                    $alpal = Alpal::find($alpalId);
+                                    if ($alpal) {
+                                        $availableRob = $alpal->rob;
+                                        
+                                        // Jika sedang edit, tambahkan qty lama ke ROB untuk validasi
+                                        if (isset($livewire->record) && $livewire->record->alpal_id == $alpalId) {
+                                            $availableRob += $livewire->record->qty;
+                                        }
+                                        
+                                        if ($qty > $availableRob) {
+                                            $set('qty_error', "Qty melebihi ROB yang tersedia (" . number_format($availableRob, 0, ',', '.') . ")");
+                                        } else {
+                                            $set('qty_error', null);
+                                        }
+                                    }
+                                }
+                            })
+                            ->extraInputAttributes([
+                                'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
+                            ])
+                            ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
+                            ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
                             ->minValue(1)
-                            ->maxValue(99999)  // Adjusted for 5 digits as per schema
-                            ->label('Quantity'),
+                            ->maxValue(99999)
+                            ->helperText(fn ($get) => $get('qty_error') ? 
+                                new \Illuminate\Support\HtmlString('<span style="color: #ef4444; font-weight: 600;">' . $get('qty_error') . '</span>') 
+                                : null
+                            )
+                            ->rules([
+                                function ($get, $livewire) {
+                                    return function (string $attribute, $value, \Closure $fail) use ($get, $livewire) {
+                                        $qty = (int) str_replace(['.', ',', ' '], '', $value);
+                                        $alpalId = $get('alpal_id');
+                                        
+                                        if ($alpalId && $qty > 0) {
+                                            $alpal = Alpal::find($alpalId);
+                                            if ($alpal) {
+                                                $availableRob = $alpal->rob;
+                                                
+                                                if (isset($livewire->record) && $livewire->record->alpal_id == $alpalId) {
+                                                    $availableRob += $livewire->record->qty;
+                                                }
+                                                
+                                                if ($qty > $availableRob) {
+                                                    $fail("Qty ({$qty}) melebihi ROB yang tersedia ({$availableRob}).");
+                                                }
+                                            }
+                                        }
+                                    };
+                                },
+                            ]),
 
                         Forms\Components\Textarea::make('keterangan')
                             ->required()
@@ -88,7 +243,18 @@ class PemakaianResource extends Resource
 
     public static function table(Table $table): Table
     {
+        $user = Auth::user();
+        
         return $table
+            ->modifyQueryUsing(function (Builder $query) use ($user) {
+                // Apply user-level filtering for KANSAR and ABK users
+                if ($user && $user->kantor_sar_id && 
+                    in_array($user->level->value, [LevelUser::KANSAR->value, LevelUser::ABK->value])) {
+                    $query->where('kantor_sar_id', $user->kantor_sar_id);
+                }
+                
+                return $query;
+            })
             ->columns([
                 Tables\Columns\TextColumn::make('kantorSar.kantor_sar')  // Changed from 'nama' to 'kantor_sar'
                     ->sortable()
@@ -130,7 +296,7 @@ class PemakaianResource extends Resource
                     ->relationship('alpal', 'alpal')  // Changed from 'nama' to 'alpal'
                     ->searchable()
                     ->preload()
-                    ->label('Alat & Perlengkapan'),
+                    ->label('Alut'),
                 Tables\Filters\SelectFilter::make('bekal_id')
                     ->relationship('bekal', 'bekal')
                     ->searchable()
@@ -148,7 +314,17 @@ class PemakaianResource extends Resource
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
                         ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->before(function ($records) {
+                            // Kembalikan ROB untuk setiap pemakaian yang dihapus
+                            foreach ($records as $record) {
+                                $alpal = Alpal::find($record->alpal_id);
+                                if ($alpal) {
+                                    $alpal->rob += $record->qty;
+                                    $alpal->save();
+                                }
+                            }
+                        }),
                 ])
                 ->label('Hapus'),
             ]);
@@ -168,5 +344,20 @@ class PemakaianResource extends Resource
             'create' => Pages\CreatePemakaian::route('/create'),
             'edit' => Pages\EditPemakaian::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+            
+        $user = Auth::user();
+        
+        // Apply user-level filtering for KANSAR and ABK users
+        if ($user && $user->kantor_sar_id && 
+            in_array($user->level->value, [LevelUser::KANSAR->value, LevelUser::ABK->value])) {
+            $query->where('kantor_sar_id', $user->kantor_sar_id);
+        }
+        
+        return $query;
     }
 }
