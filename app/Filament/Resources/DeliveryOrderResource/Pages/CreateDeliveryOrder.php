@@ -6,6 +6,7 @@ use App\Filament\Resources\DeliveryOrderResource;
 use App\Models\DeliveryOrder;
 use App\Models\Sp3m;
 use App\Models\Tbbm;
+use App\Models\HargaBekal;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
@@ -29,7 +30,7 @@ class CreateDeliveryOrder extends CreateRecord
                 $bekalId = $sp3m->bekal_id;
                 
                 // Get harga from ms_harga_bekal based on kota_id and bekal_id
-                $hargaBekal = \App\Models\HargaBekal::where('kota_id', $kotaId)
+                $hargaBekal = HargaBekal::where('kota_id', $kotaId)
                     ->where('bekal_id', $bekalId)
                     ->orderBy('created_at', 'desc')
                     ->first();
@@ -73,7 +74,7 @@ class CreateDeliveryOrder extends CreateRecord
         $qty = (int) preg_replace('/[^\d]/', '', $this->data['qty'] ?? 0);
 
         // Validasi sisa_qty di SP3M
-        $sp3m = Sp3m::find($sp3mId);
+        $sp3m = Sp3m::with(['alpal.tbbm', 'bekal', 'kantorSar'])->find($sp3mId);
         
         if (!$sp3m) {
             Notification::make()
@@ -81,6 +82,38 @@ class CreateDeliveryOrder extends CreateRecord
                 ->body('SP3M tidak ditemukan.')
                 ->danger()
                 ->duration(5000)
+                ->send();
+            $this->halt();
+        }
+
+        // Validasi harga_bekal_id
+        if ($sp3m->alpal && $sp3m->alpal->tbbm) {
+            $kotaId = $sp3m->alpal->tbbm->kota_id;
+            $bekalId = $sp3m->bekal_id;
+            
+            $hargaBekal = \App\Models\HargaBekal::where('kota_id', $kotaId)
+                ->where('bekal_id', $bekalId)
+                ->orderBy('created_at', 'desc')
+                ->first();
+            
+            if (!$hargaBekal) {
+                $kotaName = $sp3m->alpal->tbbm->kota->kota ?? 'Unknown';
+                $bekalName = $sp3m->bekal->bekal ?? 'Unknown';
+                
+                Notification::make()
+                    ->title('Gagal Membuat Delivery Order!')
+                    ->body("Harga bekal tidak ditemukan untuk Kota: {$kotaName} dan Jenis Bahan Bakar: {$bekalName}. Silakan hubungi administrator untuk menambahkan data harga bekal.")
+                    ->danger()
+                    ->duration(10000)
+                    ->send();
+                $this->halt();
+            }
+        } else {
+            Notification::make()
+                ->title('Gagal Membuat Delivery Order!')
+                ->body('Data Alpal atau TBBM tidak lengkap pada SP3M yang dipilih.')
+                ->danger()
+                ->duration(7000)
                 ->send();
             $this->halt();
         }
@@ -96,29 +129,6 @@ class CreateDeliveryOrder extends CreateRecord
                 ->danger()
                 ->duration(7000)
                 ->send();
-            $this->halt();
-        }
-
-        // Check if the same record exists
-        $exists = DeliveryOrder::where('sp3m_id', $sp3mId)
-            ->where('tbbm_id', $tbbmId)
-            ->where('tahun_anggaran', $tahunAnggaran)
-            ->exists();
-
-        if ($exists) {
-            // Show Filament error notification
-            $dataSp3m = Sp3m::find($sp3mId);
-            $dataTbbm = Tbbm::find($tbbmId);
-
-            $message = 'Nomor SP3M "'.ucwords($dataSp3m->nomor_sp3m).'", TBBM "'.ucwords($dataTbbm->depot).'" dan Tahun Anggaran "'.ucwords($tahunAnggaran).'" sudah ada';
-
-            Notification::make()
-                ->title('Error!')
-                ->body($message)
-                ->danger()
-                ->send();
-
-            // Prevent form submission
             $this->halt();
         }
 
