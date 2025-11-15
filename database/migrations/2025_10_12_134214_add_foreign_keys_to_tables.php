@@ -16,112 +16,118 @@ return new class extends Migration
             $table->foreign('kantor_sar_id')
                 ->references('kantor_sar_id')
                 ->on('ms_kantor_sar')
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
         });
 
         Schema::table('ms_tbbm', function (Blueprint $table) {
             $table->foreign('kota_id')
                 ->references('kota_id')
                 ->on('ms_kota')
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
         });
 
         Schema::table('ms_bekal', function (Blueprint $table) {
             $table->foreign('golongan_bbm_id')
                 ->references('golongan_bbm_id')
                 ->on('ms_golongan_bbm')
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
             
             $table->foreign('satuan_id')
                 ->references('satuan_id')
                 ->on('ms_satuan')
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
         });
 
         Schema::table('tx_pagu', function (Blueprint $table) {
             $table->foreign('golongan_bbm_id')
                 ->references('golongan_bbm_id')
                 ->on('ms_golongan_bbm')
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
         });
 
         Schema::table('tx_alpal', function (Blueprint $table) {
             $table->foreign('kantor_sar_id')
                 ->references('kantor_sar_id')
                 ->on('ms_kantor_sar')
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
                 
             $table->foreign('tbbm_id')
                 ->references('tbbm_id')
                 ->on('ms_tbbm')
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
                 
             $table->foreign('pos_sandar_id')
                 ->references('pos_sandar_id')
                 ->on('ms_pos_sandar')
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
         });
 
         Schema::table('tx_sp3m', function (Blueprint $table) {
             $table->foreign('kantor_sar_id')
                 ->references('kantor_sar_id')
                 ->on('ms_kantor_sar')
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
                 
             $table->foreign('alpal_id')
                 ->references('alpal_id')
                 ->on('tx_alpal')
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
                 
             $table->foreign('bekal_id')
                 ->references('bekal_id')
                 ->on('ms_bekal')
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
         });
 
         Schema::table('tx_do', function (Blueprint $table) {
             $table->foreign('sp3m_id')
                 ->references('sp3m_id')
                 ->on('tx_sp3m')
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
                 
             $table->foreign('tbbm_id')
                 ->references('tbbm_id')
                 ->on('ms_tbbm')
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
+
+            $table->foreign('harga_bekal_id')
+                ->references('harga_bekal_id')
+                ->on('ms_harga_bekal')
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
         });
 
         Schema::table('tx_pemakaian', function (Blueprint $table) {
             $table->foreign('kantor_sar_id')
                 ->references('kantor_sar_id')
                 ->on('ms_kantor_sar')
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
                 
             $table->foreign('alpal_id')
                 ->references('alpal_id')
                 ->on('tx_alpal')
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
                 
             $table->foreign('bekal_id')
                 ->references('bekal_id')
                 ->on('ms_bekal')
-                ->cascadeOnDelete()
-                ->cascadeOnUpdate();
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
         });
     }
 

@@ -49,192 +49,234 @@ class DeliveryOrderResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('sp3m_id')
-                    ->relationship(name: 'sp3m', titleAttribute: 'nomor_sp3m')
-                    ->label('Nomor SP3M')
-                    ->options(static::getSp3mOptions())
-                    ->searchable()
-                    ->preload()
-                    ->validationMessages([
-                        'required' => 'Pilih Nomor SP3M',
-                    ])
-                    ->required()
-                    ->live()
-                    ->afterStateHydrated(function (callable $set, $state) {
-                        // This runs when editing - populate kapal_no_reg from existing SP3M
-                        if ($state) {
-                            $sp3m = Sp3m::find($state);
-                            if ($sp3m) {
-                                if ($sp3m->alpal_id) {
-                                    $alpal = DB::table('tx_alpal')->where('alpal_id', $sp3m->alpal_id)->first();
-                                    $set('kapal_no_reg', $alpal->alpal);
-                                } else {
-                                    $set('kapal_no_reg', '-');
-                                }
-                            }
-                        }
-                    })
-                    ->afterStateUpdated(function (callable $get, callable $set, $state) {
-                        if ($state) {
-                            $sp3m = Sp3m::find($state);
-                            if ($sp3m) {
-                                if ($sp3m->alpal_id) {
-                                    $alpal = DB::table('tx_alpal')->where('alpal_id', $sp3m->alpal_id)->first();
-
-                                    $set('kapal_no_reg', $alpal->alpal);
-                                } else {
-                                    $set('kapal_no_reg', '-');
-                                }
-
-                                // Auto-fill harga_satuan
-                                $set('harga_satuan', number_format($sp3m->harga_satuan, 0, ',', '.'));
-
-                                // Optionally auto-fill qty if needed
-                                // $set('qty', number_format($sp3m->qty, 0, ',', '.'));
-
-                                // Recalculate jumlah_harga
-                                $qty = (int) str_replace(['.', ',', ' '], '', $get('qty'));
-                                $harga = (int) str_replace(['.', ',', ' '], '', $get('harga_satuan'));
-                                $set('jumlah_harga', number_format($qty * $harga, 0, ',', '.'));
-                            }
-                        } else {
-                            // Clear fields when no SP3M is selected
-                            $set('kapal_no_reg', '');
-                            $set('harga_satuan', '');
-                            $set('jumlah_harga', '');
-                        }
-                    }),
-                Forms\Components\Select::make('tbbm_id')
-                    ->relationship(name: 'tbbm', titleAttribute: 'depot')
-                    ->label('Dari TBBM/DDPU')
-                    ->searchable()
-                    ->preload()
-                    ->validationMessages([
-                        'required' => 'Pilih TBBM/DDPU',
-                    ])
-                    ->live()
-                    ->afterStateUpdated(function (callable $get, callable $set, $state) {
-                        if ($state) {
-                            $tbbm = DB::table('ms_tbbm')->where('tbbm_id', $state)->first();
-                            $set('pbbkb', $tbbm->pbbkb);
-                        }
-                    })
-                    ->required(),
-                Forms\Components\Select::make('tahun_anggaran')
-                    ->label('Tahun Anggaran')
-                    ->required()
-                    ->options(function () {
-                        return DB::table('tx_pagu')
-                            ->select('tahun_anggaran')
-                            ->distinct()
-                            ->orderBy('tahun_anggaran', 'desc')
-                            ->pluck('tahun_anggaran', 'tahun_anggaran')
-                            ->toArray();
-                    })
-                    ->searchable()
-                    ->validationMessages([
-                        'required' => 'Pilih Tahun Anggaran',
-                    ])
-                    ->preload(),
-                Forms\Components\TextInput::make('nomor_do')
-                    ->label('Nomor DO/Nota')
-                    ->required()
-                    ->maxLength(200),
-                Forms\Components\DatePicker::make('tanggal_do')
-                    ->required(),
-                Forms\Components\TextInput::make('kapal_no_reg')
-                    ->label('Kapal/No Reg')
-                    ->readOnly()
-                    ->extraAttributes([
-                        'class' => '!bg-black-100 !text-gray-500 !cursor-not-allowed !border-gray-200'
-                    ])
-                    ->required(),
-                Forms\Components\TextInput::make('qty')
-                    ->required()
-                    ->label('Qty')
-                    ->inputMode('numeric')
-                    ->afterStateUpdated(function (callable $get, callable $set) {
-
-                        $qty = (int) $get('qty');
-                        $harga = (int) str_replace(['.', ',', ' '], '', $get('harga_satuan'));
-                        $pbbkb = (int) number_format($get('pbbkb'), 0, ',', '.') / 100;
-                        $ppn = 0.11;
-
-                        // Jumlah Harga = Harga satuan + (harga satuan * ppn) + (harga satuan * pbbkb) * qty = jumlah harga
-
-                        $jumlah_harga = $qty * ($harga + ($harga * $ppn) + ($harga * $pbbkb));
-
-                        $set('jumlah_harga', number_format($jumlah_harga, 0, ',', '.'));
-                    })
-                    ->extraInputAttributes([
-                        'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
-                    ])
-                    ->minValue(0)
-                    ->maxLength(10)
-                    ->live(),
-                Forms\Components\TextInput::make('harga_satuan')
-                    ->required()
-                    ->label('Harga Satuan')
-                    ->prefix('Rp')
-                    ->inputMode('numeric')
-                    ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : '')
-                    ->dehydrateStateUsing(fn ($state) => (int) str_replace('.', '', $state))
-                    ->extraInputAttributes([
-                        'class' => 'bg-black-100 cursor-not-allowed opacity-60'
-                    ])
-                    ->readonly(),
-                Forms\Components\TextInput::make('pbbkb')
-                    ->label('PKBB %')
-                    ->readOnly()
-                    ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : '')
-                    ->dehydrateStateUsing(fn ($state) => (int) str_replace('.', '', $state))
-                    ->numeric()
-                    ->minValue(0),
-                Forms\Components\TextInput::make('ppn')
-                    ->required()
-                    ->readOnly()
-                    ->label('PPN %')
-                    ->default(11)
-                    ->numeric()
-                    ->minValue(0),
                 Forms\Components\Grid::make(2)
                     ->schema([
-                        Forms\Components\TextInput::make('jumlah_harga')
+                        // Kolom Kiri
+                        Forms\Components\Select::make('sp3m_id')
+                            ->relationship(name: 'sp3m', titleAttribute: 'nomor_sp3m')
+                            ->label('Nomor SP3M')
+                            ->options(static::getSp3mOptions())
+                            ->searchable()
+                            ->preload()
+                            ->validationMessages([
+                                'required' => 'Pilih Nomor SP3M',
+                            ])
                             ->required()
-                            ->label('Jumlah Harga')
-                            ->prefix('Rp')
-                            ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : '')
-                            ->dehydrateStateUsing(fn ($state) => (int) str_replace('.', '', $state))
-                            ->readonly(),
-                        Forms\Components\Placeholder::make('empty_field')
+                            ->live()
+                            ->afterStateHydrated(function (callable $set, $state) {
+                                if ($state) {
+                                    $sp3m = Sp3m::with(['alpal', 'kantorSar', 'bekal'])->find($state);
+                                    if ($sp3m) {
+                                        // Set alut
+                                        if ($sp3m->alpal_id && $sp3m->alpal) {
+                                            $set('alut_info', $sp3m->alpal->alpal);
+                                        }
+                                        
+                                        // Set tahun anggaran
+                                        $set('tahun_anggaran', $sp3m->tahun_anggaran);
+                                        
+                                        // Set kantor sar
+                                        if ($sp3m->kantorSar) {
+                                            $set('kantor_sar_info', $sp3m->kantorSar->kantor_sar);
+                                        }
+                                        
+                                        // Set jenis bahan bakar
+                                        if ($sp3m->bekal) {
+                                            $set('jenis_bahan_bakar_info', $sp3m->bekal->bekal);
+                                        }
+                                        
+                                        // Set harga satuan
+                                        $set('harga_satuan', $sp3m->harga_satuan);
+                                        
+                                        // Set sisa qty
+                                        $set('sisa_qty_info', number_format($sp3m->sisa_qty, 0, ',', '.'));
+                                    }
+                                }
+                            })
+                            ->afterStateUpdated(function (callable $get, callable $set, $state) {
+                                if ($state) {
+                                    $sp3m = Sp3m::with(['alpal', 'kantorSar', 'bekal'])->find($state);
+                                    if ($sp3m) {
+                                        // Set alut
+                                        if ($sp3m->alpal_id && $sp3m->alpal) {
+                                            $set('alut_info', $sp3m->alpal->alpal);
+                                        }
+                                        
+                                        // Set tahun anggaran
+                                        $set('tahun_anggaran', $sp3m->tahun_anggaran);
+                                        
+                                        // Set kantor sar
+                                        if ($sp3m->kantorSar) {
+                                            $set('kantor_sar_info', $sp3m->kantorSar->kantor_sar);
+                                        }
+                                        
+                                        // Set jenis bahan bakar
+                                        if ($sp3m->bekal) {
+                                            $set('jenis_bahan_bakar_info', $sp3m->bekal->bekal);
+                                        }
+                                        
+                                        // Set harga satuan
+                                        $set('harga_satuan', $sp3m->harga_satuan);
+                                        
+                                        // Set sisa qty
+                                        $set('sisa_qty_info', number_format($sp3m->sisa_qty, 0, ',', '.'));
+                                    }
+                                } else {
+                                    $set('alut_info', '');
+                                    $set('tahun_anggaran', null);
+                                    $set('kantor_sar_info', '');
+                                    $set('jenis_bahan_bakar_info', '');
+                                    $set('harga_satuan', null);
+                                    $set('sisa_qty_info', '');
+                                }
+                            }),
+                        
+                        // Kolom Kanan
+                        Forms\Components\TextInput::make('alut_info')
+                            ->label('Alut')
+                            ->disabled()
+                            ->dehydrated(false),
+                    ]),
+                
+                Forms\Components\Grid::make(2)
+                    ->schema([
+                        Forms\Components\TextInput::make('tahun_anggaran')
+                            ->label('Tahun Anggaran (TA)')
+                            ->disabled()
+                            ->dehydrated()
+                            ->required(),
+                        
+                        Forms\Components\TextInput::make('kantor_sar_info')
+                            ->label('Kantor SAR')
+                            ->disabled()
+                            ->dehydrated(false),
+                    ]),
+                
+                Forms\Components\Grid::make(2)
+                    ->schema([
+                        Forms\Components\TextInput::make('sisa_qty_info')
+                            ->label('Sisa Qty SP3M')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->extraAttributes([
+                                'style' => 'font-weight: 600; color: #d97706;'
+                            ]),
+                        
+                        Forms\Components\Placeholder::make('spacer')
                             ->label('')
                             ->content(''),
                     ]),
+                
+                Forms\Components\Grid::make(2)
+                    ->schema([
+                        Forms\Components\TextInput::make('nomor_do')
+                            ->label('Nomor DO')
+                            ->required()
+                            ->maxLength(200),
+                        
+                        Forms\Components\TextInput::make('qty')
+                            ->required()
+                            ->label('Qty')
+                            ->inputMode('numeric')
+                            ->afterStateUpdated(function (callable $get, callable $set, $state, $livewire) {
+                                $qty = (int) str_replace(['.', ',', ' '], '', $get('qty'));
+
+                                // Validasi qty terhadap sisa_qty SP3M
+                                $sp3mId = $get('sp3m_id');
+                                if ($sp3mId && $qty > 0) {
+                                    $sp3m = Sp3m::find($sp3mId);
+                                    if ($sp3m) {
+                                        $sisaQty = $sp3m->sisa_qty;
+                                        
+                                        // Jika sedang edit, tambahkan qty lama ke sisa_qty untuk validasi
+                                        if (isset($livewire->record) && $livewire->record->sp3m_id == $sp3mId) {
+                                            $sisaQty += $livewire->record->qty;
+                                        }
+                                        
+                                        if ($qty > $sisaQty) {
+                                            $set('qty_error', "Qty melebihi sisa qty SP3M (" . number_format($sisaQty, 0, ',', '.') . ")");
+                                        } else {
+                                            $set('qty_error', null);
+                                        }
+                                    }
+                                }
+                            })
+                            ->extraInputAttributes([
+                                'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
+                            ])
+                            ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
+                            ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
+                            ->minValue(0)
+                            ->maxLength(10)
+                            ->live(debounce: 500)
+                            ->helperText(fn ($get) => $get('qty_error') ? 
+                                new \Illuminate\Support\HtmlString('<span style="color: #ef4444; font-weight: 600;">' . $get('qty_error') . '</span>') 
+                                : null
+                            )
+                            ->rules([
+                                function ($get, $livewire) {
+                                    return function (string $attribute, $value, \Closure $fail) use ($get, $livewire) {
+                                        $qty = (int) str_replace(['.', ',', ' '], '', $value);
+                                        $sp3mId = $get('sp3m_id');
+                                        
+                                        if ($sp3mId && $qty > 0) {
+                                            $sp3m = Sp3m::find($sp3mId);
+                                            if ($sp3m) {
+                                                $sisaQty = $sp3m->sisa_qty;
+                                                
+                                                if (isset($livewire->record) && $livewire->record->sp3m_id == $sp3mId) {
+                                                    $sisaQty += $livewire->record->qty;
+                                                }
+                                                
+                                                if ($qty > $sisaQty) {
+                                                    $fail("Qty ({$qty}) melebihi sisa qty SP3M ({$sisaQty}).");
+                                                }
+                                            }
+                                        }
+                                    };
+                                },
+                            ]),
+                    ]),
+                
+                Forms\Components\Grid::make(2)
+                    ->schema([
+                        Forms\Components\DatePicker::make('tanggal_do')
+                            ->label('Tanggal')
+                            ->required(),
+                        
+                        Forms\Components\Select::make('tbbm_id')
+                            ->relationship(name: 'tbbm', titleAttribute: 'depot')
+                            ->label('TBBM/DPPU')
+                            ->searchable()
+                            ->preload()
+                            ->validationMessages([
+                                'required' => 'Pilih TBBM/DDPU',
+                            ])
+                            ->required(),
+                    ]),
+                
                 Forms\Components\Grid::make(2)
                     ->schema([
                         Forms\Components\FileUpload::make('file_upload_do')
-                        ->required()
-                        ->label('File Upload DO')
-                        ->acceptedFileTypes(['application/pdf', 'image/*'])
-                        ->maxSize(5120)
-                        ->validationMessages([
-                            'required' => 'File DO harus diunggah',
-                            'file' => 'File DO harus berupa PDF atau gambar',
-                            'max' => 'Ukuran file DO maksimal 5MB',
-                        ])
-                        ->uploadingMessage('Mengunggah...'),
-                        Forms\Components\FileUpload::make('file_upload_laporan')
-                            ->required()
-                            ->label('File Upload Laporan')
+                            ->label('Lampiran')
+                            ->disk('public')
+                            ->directory('delivery-order')
+                            ->visibility('public')
                             ->acceptedFileTypes(['application/pdf', 'image/*'])
                             ->maxSize(5120)
                             ->validationMessages([
-                                'required' => 'File Laporan harus diunggah',
-                                'file' => 'File Laporan harus berupa PDF atau gambar',
-                                'max' => 'Ukuran file Laporan maksimal 5MB',
+                                'required' => 'File DO harus diunggah',
+                                'file' => 'File DO harus berupa PDF atau gambar',
+                                'max' => 'Ukuran file DO maksimal 5MB',
                             ])
                             ->uploadingMessage('Mengunggah...')
-                ]),
+                            ->required(),
+                        
+                        Forms\Components\Placeholder::make('spacer2')
+                            ->label('')
+                            ->content(''),
+                    ]),
+
             ]);
     }
 
@@ -247,7 +289,15 @@ class DeliveryOrderResource extends Resource
             return Sp3m::pluck('nomor_sp3m', 'sp3m_id')->toArray();
         }
         
-        // For non-admin users, only show SP3M from their assigned Kantor SAR
+        // For KANSAR and ABK users, only show SP3M from their assigned Kantor SAR
+        if ($user && $user->kantor_sar_id && 
+            in_array($user->level->value, [LevelUser::KANSAR->value, LevelUser::ABK->value])) {
+            return Sp3m::where('kantor_sar_id', $user->kantor_sar_id)
+                ->pluck('nomor_sp3m', 'sp3m_id')
+                ->toArray();
+        }
+        
+        // For other non-admin users with kantor_sar_id
         if ($user && $user->kantor_sar_id) {
             return Sp3m::where('kantor_sar_id', $user->kantor_sar_id)
                 ->pluck('nomor_sp3m', 'sp3m_id')
@@ -280,6 +330,12 @@ class DeliveryOrderResource extends Resource
                     ->label('Nomor SP3M')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('sp3m.sisa_qty')
+                    ->label('Sisa Qty SP3M')
+                    ->numeric()
+                    ->formatStateUsing(fn ($state) => number_format($state, 0, ',', '.'))
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
                 Tables\Columns\TextColumn::make('tbbm.depot')
                     ->label('TBBM/DDPU')
                     ->searchable()
@@ -305,11 +361,11 @@ class DeliveryOrderResource extends Resource
                     ->numeric()
                     ->formatStateUsing(fn ($state) => number_format($state, 0, ',', '.'))
                     ->sortable(),
-                Tables\Columns\TextColumn::make('harga_satuan')
-                    ->label('Harga Satuan')
-                    ->numeric()
-                    ->formatStateUsing(fn ($state) => 'Rp ' . number_format($state, 0, ',', '.'))
-                    ->sortable(),
+                // Tables\Columns\TextColumn::make('harga_satuan')
+                //     ->label('Harga Satuan')
+                //     ->numeric()
+                //     ->formatStateUsing(fn ($state) => 'Rp ' . number_format($state, 0, ',', '.'))
+                //     ->sortable(),
                 Tables\Columns\TextColumn::make('jumlah_harga')
                     ->label('Jumlah Harga')
                     ->numeric()
@@ -369,9 +425,39 @@ class DeliveryOrderResource extends Resource
                 // Tables\Actions\ViewAction::make()
                 //     ->label('Lihat'),
                 Tables\Actions\EditAction::make()
-                    ->label('Ubah'),
-                // Tables\Actions\DeleteAction::make()
-                //     ->label('Hapus'),
+                    ->label('Ubah')
+                    ->visible(function (DeliveryOrder $record) {
+                        // Cek apakah ini DO terakhir dari SP3M
+                        $latestDo = DeliveryOrder::where('sp3m_id', $record->sp3m_id)
+                            ->orderBy('created_at', 'desc')
+                            ->first();
+                        
+                        return $latestDo && $latestDo->do_id === $record->do_id;
+                    }),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Hapus')
+                    ->visible(function (DeliveryOrder $record) {
+                        // Cek apakah ini DO terakhir dari SP3M
+                        $latestDo = DeliveryOrder::where('sp3m_id', $record->sp3m_id)
+                            ->orderBy('created_at', 'desc')
+                            ->first();
+                        
+                        return $latestDo && $latestDo->do_id === $record->do_id;
+                    })
+                    ->before(function (DeliveryOrder $record) {
+                        // Kembalikan sisa_qty ke SP3M saat delete
+                        $sp3m = Sp3m::with('alpal')->find($record->sp3m_id);
+                        if ($sp3m) {
+                            $sp3m->sisa_qty += $record->qty;
+                            $sp3m->save();
+                            
+                            // Kurangi rob di alpal
+                            if ($sp3m->alpal) {
+                                $sp3m->alpal->rob -= $record->qty;
+                                $sp3m->alpal->save();
+                            }
+                        }
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -379,7 +465,23 @@ class DeliveryOrderResource extends Resource
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
                         ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->before(function ($records) {
+                            // Kembalikan sisa_qty untuk setiap DO yang dihapus
+                            foreach ($records as $record) {
+                                $sp3m = Sp3m::with('alpal')->find($record->sp3m_id);
+                                if ($sp3m) {
+                                    $sp3m->sisa_qty += $record->qty;
+                                    $sp3m->save();
+                                    
+                                    // Kurangi rob di alpal
+                                    if ($sp3m->alpal) {
+                                        $sp3m->alpal->rob -= $record->qty;
+                                        $sp3m->alpal->save();
+                                    }
+                                }
+                            }
+                        }),
                 ])
                 ->label('Hapus'),
             ])
