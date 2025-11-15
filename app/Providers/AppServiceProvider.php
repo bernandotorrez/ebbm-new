@@ -14,9 +14,9 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         //
-        FilamentAsset::register([
-            Css::make('custom-styles', resource_path('css/filament-custom.css')),
-        ]);
+        // FilamentAsset::register([
+        //     Css::make('custom-styles', resource_path('css/filament-custom.css')),
+        // ]);
     }
 
     /**
