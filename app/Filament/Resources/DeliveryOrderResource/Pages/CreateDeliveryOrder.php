@@ -37,6 +37,34 @@ class CreateDeliveryOrder extends CreateRecord
         $sp3mId = $this->data['sp3m_id'] ?? null;
         $tbbmId = $this->data['tbbm_id'] ?? null;
         $tahunAnggaran = $this->data['tahun_anggaran'] ?? null;
+        $qty = (int) preg_replace('/[^\d]/', '', $this->data['qty'] ?? 0);
+
+        // Validasi sisa_qty di SP3M
+        $sp3m = Sp3m::find($sp3mId);
+        
+        if (!$sp3m) {
+            Notification::make()
+                ->title('Gagal Membuat Delivery Order!')
+                ->body('SP3M tidak ditemukan.')
+                ->danger()
+                ->duration(5000)
+                ->send();
+            $this->halt();
+        }
+
+        // Cek apakah sisa_qty mencukupi
+        if ($sp3m->sisa_qty < $qty) {
+            $qtyFormatted = number_format($qty, 0, ',', '.');
+            $sisaQtyFormatted = number_format($sp3m->sisa_qty, 0, ',', '.');
+            
+            Notification::make()
+                ->title('Gagal Membuat Delivery Order!')
+                ->body("Qty DO ({$qtyFormatted}) melebihi sisa qty SP3M ({$sisaQtyFormatted}). Silakan kurangi qty atau pilih SP3M lain.")
+                ->danger()
+                ->duration(7000)
+                ->send();
+            $this->halt();
+        }
 
         // Check if the same record exists
         $exists = DeliveryOrder::where('sp3m_id', $sp3mId)
@@ -60,6 +88,10 @@ class CreateDeliveryOrder extends CreateRecord
             // Prevent form submission
             $this->halt();
         }
+
+        // Kurangi sisa_qty di SP3M
+        $sp3m->sisa_qty -= $qty;
+        $sp3m->save();
     }
 
     protected function getCreatedNotification(): ?Notification
@@ -74,12 +106,35 @@ class CreateDeliveryOrder extends CreateRecord
     {
         return [
             $this->getCreateFormAction()
-                ->label('Buat'),
+                ->label('Buat')
+                ->disabled(function () {
+                    return $this->isQtyInvalid();
+                }),
             $this->getCreateAnotherFormAction()
-                ->label('Buat & Buat lainnya'),
+                ->label('Buat & Buat lainnya')
+                ->disabled(function () {
+                    return $this->isQtyInvalid();
+                }),
             $this->getCancelFormAction()
                 ->label('Batal'),
         ];
+    }
+    
+    protected function isQtyInvalid(): bool
+    {
+        $sp3mId = $this->data['sp3m_id'] ?? null;
+        $qty = (int) preg_replace('/[^\d]/', '', $this->data['qty'] ?? 0);
+        
+        if (!$sp3mId || $qty <= 0) {
+            return false;
+        }
+        
+        $sp3m = Sp3m::find($sp3mId);
+        if (!$sp3m) {
+            return false;
+        }
+        
+        return $qty > $sp3m->sisa_qty;
     }
     
     public function getTitle(): string
