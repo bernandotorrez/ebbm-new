@@ -209,6 +209,42 @@ class EditDeliveryOrder extends EditRecord
             $this->halt();
         }
 
+        // Validasi kapasitas alpal (rob + qtyDiff tidak boleh melebihi kapasitas)
+        if ($sp3m->alpal) {
+            $alpal = $sp3m->alpal;
+            $newRob = $alpal->rob + $qtyDiff;
+            
+            if ($newRob > $alpal->kapasitas) {
+                $newQtyFormatted = number_format($newQty, 0, ',', '.');
+                $robFormatted = number_format($alpal->rob, 0, ',', '.');
+                $kapasitasFormatted = number_format($alpal->kapasitas, 0, ',', '.');
+                $sisaKapasitas = $alpal->kapasitas - $alpal->rob;
+                $sisaKapasitasFormatted = number_format($sisaKapasitas, 0, ',', '.');
+                
+                Notification::make()
+                    ->title('Gagal Mengubah Delivery Order!')
+                    ->body("Qty baru ({$newQtyFormatted}) melebihi sisa kapasitas alpal. ROB saat ini: {$robFormatted}, Kapasitas: {$kapasitasFormatted}, Sisa kapasitas: {$sisaKapasitasFormatted}.")
+                    ->danger()
+                    ->duration(7000)
+                    ->send();
+                $this->halt();
+            }
+            
+            if ($newRob < 0) {
+                Notification::make()
+                    ->title('Gagal Mengubah Delivery Order!')
+                    ->body("ROB tidak boleh negatif.")
+                    ->danger()
+                    ->duration(5000)
+                    ->send();
+                $this->halt();
+            }
+            
+            // Update rob di alpal
+            $alpal->rob = $newRob;
+            $alpal->save();
+        }
+
         // Update sisa_qty di SP3M
         // Kembalikan qty lama, lalu kurangi dengan qty baru
         $sp3m->sisa_qty = $sp3m->sisa_qty - $qtyDiff;
@@ -222,30 +258,48 @@ class EditDeliveryOrder extends EditRecord
                 ->label('Hapus')
                 ->before(function () {
                     // Kembalikan sisa_qty ke SP3M saat delete
-                    $sp3m = Sp3m::find($this->record->sp3m_id);
+                    $sp3m = Sp3m::with('alpal')->find($this->record->sp3m_id);
                     if ($sp3m) {
                         $sp3m->sisa_qty += $this->record->qty;
                         $sp3m->save();
+                        
+                        // Kurangi rob di alpal
+                        if ($sp3m->alpal) {
+                            $sp3m->alpal->rob -= $this->record->qty;
+                            $sp3m->alpal->save();
+                        }
                     }
                 }),
             Actions\ForceDeleteAction::make()
                 ->label('Hapus Permanen')
                 ->before(function () {
                     // Kembalikan sisa_qty ke SP3M saat force delete
-                    $sp3m = Sp3m::find($this->record->sp3m_id);
+                    $sp3m = Sp3m::with('alpal')->find($this->record->sp3m_id);
                     if ($sp3m) {
                         $sp3m->sisa_qty += $this->record->qty;
                         $sp3m->save();
+                        
+                        // Kurangi rob di alpal
+                        if ($sp3m->alpal) {
+                            $sp3m->alpal->rob -= $this->record->qty;
+                            $sp3m->alpal->save();
+                        }
                     }
                 }),
             Actions\RestoreAction::make()
                 ->label('Pulihkan')
                 ->after(function () {
                     // Kurangi sisa_qty dari SP3M saat restore
-                    $sp3m = Sp3m::find($this->record->sp3m_id);
+                    $sp3m = Sp3m::with('alpal')->find($this->record->sp3m_id);
                     if ($sp3m) {
                         $sp3m->sisa_qty -= $this->record->qty;
                         $sp3m->save();
+                        
+                        // Tambah rob di alpal
+                        if ($sp3m->alpal) {
+                            $sp3m->alpal->rob += $this->record->qty;
+                            $sp3m->alpal->save();
+                        }
                     }
                 }),
         ];

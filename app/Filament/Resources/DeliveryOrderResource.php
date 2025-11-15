@@ -446,10 +446,16 @@ class DeliveryOrderResource extends Resource
                     })
                     ->before(function (DeliveryOrder $record) {
                         // Kembalikan sisa_qty ke SP3M saat delete
-                        $sp3m = Sp3m::find($record->sp3m_id);
+                        $sp3m = Sp3m::with('alpal')->find($record->sp3m_id);
                         if ($sp3m) {
                             $sp3m->sisa_qty += $record->qty;
                             $sp3m->save();
+                            
+                            // Kurangi rob di alpal
+                            if ($sp3m->alpal) {
+                                $sp3m->alpal->rob -= $record->qty;
+                                $sp3m->alpal->save();
+                            }
                         }
                     }),
             ])
@@ -463,10 +469,16 @@ class DeliveryOrderResource extends Resource
                         ->before(function ($records) {
                             // Kembalikan sisa_qty untuk setiap DO yang dihapus
                             foreach ($records as $record) {
-                                $sp3m = Sp3m::find($record->sp3m_id);
+                                $sp3m = Sp3m::with('alpal')->find($record->sp3m_id);
                                 if ($sp3m) {
                                     $sp3m->sisa_qty += $record->qty;
                                     $sp3m->save();
+                                    
+                                    // Kurangi rob di alpal
+                                    if ($sp3m->alpal) {
+                                        $sp3m->alpal->rob -= $record->qty;
+                                        $sp3m->alpal->save();
+                                    }
                                 }
                             }
                         }),
