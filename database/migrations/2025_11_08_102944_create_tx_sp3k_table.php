@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('tx_sp3k', function (Blueprint $table) {
             $table->bigIncrements('sp3k_id');
-            $table->unsignedBigInteger('kantor_sar_id');
+            $table->unsignedBigInteger('kantor_sar_id')->index('idx_kantor_sar_id');
             $table->string('nomor_sp3k', 200)->index('idx_nomor_sp3k');
             $table->char('tahun_anggaran', 4)->index('idx_tahun_anggaran');
             $table->date('tanggal_sp3k');
@@ -32,9 +32,6 @@ return new class extends Migration
                 ->references('kantor_sar_id')
                 ->on('ms_kantor_sar')
                 ->onDelete('restrict');
-
-            $table->index('kantor_sar_id', 'idx_kantor_sar_id');
-            $table->index('tahun_anggaran', 'idx_tahun_anggaran');
         });
     }
 
