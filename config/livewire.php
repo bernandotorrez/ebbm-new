@@ -84,7 +84,7 @@ return [
     |
     | This value determines if Livewire will run a component's `render()` method
     | after a redirect has been triggered using something like `redirect(...)`
-    | Setting this to true will render the view once more before redirecting
+    | Setting this to false prevents the second Livewire update request
     |
     */
 
@@ -92,16 +92,14 @@ return [
     
     /*
     |---------------------------------------------------------------------------
-    | Update Route (for production/Docker)
+    | Back Button Cache
     |---------------------------------------------------------------------------
     |
-    | Customize the Livewire update endpoint if needed
+    | This will prevent Livewire from making requests when using browser back button
     |
     */
     
-    'update_route' => env('LIVEWIRE_UPDATE_ROUTE', '/livewire/update'),
-    
-    'asset_url' => env('LIVEWIRE_ASSET_URL', null),
+    'back_button_cache' => false,
 
     /*
     |---------------------------------------------------------------------------

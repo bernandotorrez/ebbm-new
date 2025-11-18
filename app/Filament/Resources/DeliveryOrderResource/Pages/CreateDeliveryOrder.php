@@ -14,6 +14,8 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateDeliveryOrder extends CreateRecord
 {
     protected static string $resource = DeliveryOrderResource::class;
+    
+    public bool $isCreating = false;
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
@@ -67,12 +69,28 @@ class CreateDeliveryOrder extends CreateRecord
     
     protected function afterCreate(): void
     {
-        // Stop any pending Livewire updates
-        $this->dispatch('close-modal');
+        // Prevent any further Livewire updates after successful creation
+        $this->skipRender();
+        
+        // Dispatch browser event to stop Livewire
+        $this->dispatch('stop-livewire-updates');
+    }
+    
+    protected function getViewData(): array
+    {
+        return array_merge(parent::getViewData(), [
+            'isCreating' => $this->isCreating,
+        ]);
     }
 
     protected function beforeCreate(): void
     {
+        // Set flag to prevent double processing
+        if ($this->isCreating) {
+            return;
+        }
+        $this->isCreating = true;
+        
         // Get input values
         $sp3mId = $this->data['sp3m_id'] ?? null;
         $tbbmId = $this->data['tbbm_id'] ?? null;
@@ -159,25 +177,32 @@ class CreateDeliveryOrder extends CreateRecord
                 $this->halt();
             }
             
-            // Update rob di alpal
-            $alpal->rob = $newRob;
-            $alpal->save();
+            // Update rob di alpal dan sisa_qty di SP3M dalam transaction
+            \DB::transaction(function () use ($alpal, $newRob, $sp3m, $qty) {
+                $alpal->rob = $newRob;
+                $alpal->save();
+                
+                $sp3m->sisa_qty -= $qty;
+                $sp3m->save();
+            });
+        } else {
+            // Jika tidak ada alpal, hanya update sisa_qty
+            $sp3m->sisa_qty -= $qty;
+            $sp3m->save();
         }
-
-        // Kurangi sisa_qty di SP3M
-        $sp3m->sisa_qty -= $qty;
-        $sp3m->save();
     }
 
     protected function getCreatedNotification(): ?Notification
     {
-        return Notification::make()
+        // Send notification immediately
+        Notification::make()
             ->success()
             ->title('Berhasil')
             ->body('Data delivery order berhasil ditambahkan.')
             ->send();
         
-        return null; // Prevent double notification
+        // Return null to prevent Filament from sending it again
+        return null;
     }
 
     public function getFormActions(): array

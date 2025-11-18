@@ -55,26 +55,25 @@ echo "Running containers:"
 $DC ps
 
 echo ""
-echo "Monitoring logs for errors..."
-echo ""
+echo "Checking for critical errors..."
 
 check_and_fix_errors() {
     ERROR_FOUND=0
 
-    echo "Checking app container logs..."
-    if $DC logs app 2>&1 | grep -iE "permission|failed|error|exception|fatal"; then
+    # Check app container logs silently
+    if $DC logs app 2>&1 | grep -iE "permission|failed|error|exception|fatal" >/dev/null 2>&1; then
         ERROR_FOUND=1
         echo "Errors detected in app container. Attempting to fix..."
 
-        if $DC logs app 2>&1 | grep -i "permission"; then
+        if $DC logs app 2>&1 | grep -i "permission" >/dev/null 2>&1; then
             echo "Fixing storage permissions..."
             $DC exec app chown -R www-data:www-data /var/www/html/storage >/dev/null 2>&1
-            $DC exec app chmod -R 755 /var/www/html/storage >/dev/null 2>&1
+            $DC exec app chmod -R 775 /var/www/html/storage >/dev/null 2>&1
         fi
     fi
 
-    echo "Checking MySQL container logs..."
-    if $DC logs mysql 2>&1 | grep -iE "error|fatal"; then
+    # Check MySQL container logs silently
+    if $DC logs mysql 2>&1 | grep -iE "error|fatal" >/dev/null 2>&1; then
         ERROR_FOUND=1
         echo "Errors detected in MySQL container."
     fi
@@ -83,23 +82,29 @@ check_and_fix_errors() {
 }
 
 if check_and_fix_errors; then
-    echo ""
-    echo "No critical errors found in logs."
+    echo "✓ No critical errors found."
 else
     echo ""
-    echo "Errors were found. Attempting to restart containers..."
+    echo "⚠ Errors detected. Attempting to restart containers..."
     $DC restart
     sleep 10
     if check_and_fix_errors; then
-        echo "Errors resolved after restart."
+        echo "✓ Errors resolved after restart."
     else
-        echo "Some errors persist after restart. Manual intervention may be required."
+        echo "⚠ Some errors persist. Check logs manually: docker compose logs"
     fi
 fi
 
 echo ""
 echo "=== Deployment completed successfully! ==="
-echo "Application should be accessible at http://localhost"
 echo ""
-
+echo "Application is accessible at:"
+echo "  - http://localhost"
+echo "  - http://$(hostname -I | awk '{print $1}') (if on network)"
+echo ""
+echo "Container status:"
 $DC ps
+
+echo ""
+echo "To view logs: docker compose logs -f"
+echo "To stop: docker compose down"

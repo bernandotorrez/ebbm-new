@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
+use Filament\Support\Facades\FilamentAsset;
+use Filament\Support\Assets\Js;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -38,6 +40,11 @@ class AppServiceProvider extends ServiceProvider
                 config(['app.asset_url' => $dynamicUrl]);
             }
         }
+        
+        // Register custom JavaScript for Filament
+        FilamentAsset::register([
+            Js::make('fix-livewire-redirect', public_path('js/fix-livewire-redirect.js')),
+        ]);
         
         // Force HTTPS in production if behind proxy (optional)
         // if ($this->app->environment('production')) {

@@ -101,8 +101,8 @@ class EditDeliveryOrder extends EditRecord
     
     protected function afterSave(): void
     {
-        // Stop any pending Livewire updates
-        $this->dispatch('close-modal');
+        // Prevent any further Livewire updates after successful save
+        $this->skipRender();
     }
 
     protected function beforeSave(): void
@@ -315,13 +315,15 @@ class EditDeliveryOrder extends EditRecord
 
     protected function getSavedNotification(): ?Notification
     {
-        return Notification::make()
+        // Send notification immediately
+        Notification::make()
             ->success()
             ->title('Berhasil')
             ->body('Data delivery order berhasil diperbarui.')
             ->send();
         
-        return null; // Prevent double notification
+        // Return null to prevent Filament from sending it again
+        return null;
     }
     
     public function getTitle(): string
