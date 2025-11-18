@@ -62,12 +62,13 @@ class CreateDeliveryOrder extends CreateRecord
     protected function getRedirectUrl(): string
     {
         // Redirect to the list page after creation
-        try {
-            return $this->getResource()::getUrl('index');
-        } catch (\Exception $e) {
-            // Fallback to admin panel URL
-            return route('filament.admin.pages.dashboard');
-        }
+        return $this->getResource()::getUrl('index');
+    }
+    
+    protected function afterCreate(): void
+    {
+        // Stop any pending Livewire updates
+        $this->dispatch('close-modal');
     }
 
     protected function beforeCreate(): void
@@ -173,7 +174,10 @@ class CreateDeliveryOrder extends CreateRecord
         return Notification::make()
             ->success()
             ->title('Berhasil')
-            ->body('Data delivery order berhasil ditambahkan.');
+            ->body('Data delivery order berhasil ditambahkan.')
+            ->send();
+        
+        return null; // Prevent double notification
     }
 
     public function getFormActions(): array

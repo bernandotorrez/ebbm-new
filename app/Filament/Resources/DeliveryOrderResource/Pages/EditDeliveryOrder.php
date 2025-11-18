@@ -96,12 +96,13 @@ class EditDeliveryOrder extends EditRecord
     protected function getRedirectUrl(): string
     {
         // Redirect to the list page after update
-        try {
-            return $this->getResource()::getUrl('index');
-        } catch (\Exception $e) {
-            // Fallback to admin panel URL
-            return route('filament.admin.pages.dashboard');
-        }
+        return $this->getResource()::getUrl('index');
+    }
+    
+    protected function afterSave(): void
+    {
+        // Stop any pending Livewire updates
+        $this->dispatch('close-modal');
     }
 
     protected function beforeSave(): void
@@ -317,7 +318,10 @@ class EditDeliveryOrder extends EditRecord
         return Notification::make()
             ->success()
             ->title('Berhasil')
-            ->body('Data delivery order berhasil diperbarui.');
+            ->body('Data delivery order berhasil diperbarui.')
+            ->send();
+        
+        return null; // Prevent double notification
     }
     
     public function getTitle(): string

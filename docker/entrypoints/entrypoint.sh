@@ -8,10 +8,16 @@ mkdir -p storage/framework/cache
 mkdir -p storage/framework/sessions
 mkdir -p storage/framework/views
 mkdir -p storage/logs
+mkdir -p storage/app/livewire-tmp
+mkdir -p storage/app/public
 
 # Set proper permissions and ownership
-chmod -R 755 storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
 chown -R www-data:www-data storage bootstrap/cache
+
+# Ensure livewire-tmp has proper permissions
+chmod -R 775 storage/app/livewire-tmp
+chown -R www-data:www-data storage/app/livewire-tmp
 
 # Create storage symbolic link
 echo "Creating storage symbolic link..."
