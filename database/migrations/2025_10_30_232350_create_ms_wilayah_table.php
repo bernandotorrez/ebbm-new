@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('ms_wilayah', function (Blueprint $table) {
             $table->bigIncrements('wilayah_id');
-            $table->smallInteger('wilayah_ke')->unsigned();
+            $table->unsignedSmallInteger('wilayah_ke');
             $table->timestamps();
             $table->softDeletes();
         });

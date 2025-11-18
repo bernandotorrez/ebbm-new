@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('tx_pagu', function (Blueprint $table) {
             $table->bigIncrements('pagu_id');
             $table->unsignedBigInteger('golongan_bbm_id')->index('idx_golongan_bbm_tx_pagu');
-            $table->decimal('nilai_pagu', 20, 2, true); // unsigned decimal
+            $table->unsignedDecimal('nilai_pagu', 20, 2, true); // unsigned decimal
             $table->string('tahun_anggaran', 4);
             $table->string('dasar', 50);
             $table->date('tanggal');

@@ -17,9 +17,9 @@ return new class extends Migration
             $table->unsignedBigInteger('tbbm_id')->index('idx_tbbm_id_tx_alpal');
             $table->unsignedBigInteger('pos_sandar_id')->index('idx_pos_sandar_id_tx_alpal');
             $table->string('alpal', 100);
-            $table->decimal('ukuran', 10, 2, true); // unsigned decimal
-            $table->decimal('kapasitas', 10, 2, true); // unsigned decimal
-            $table->decimal('rob', 10, 2, true); // unsigned decimal
+            $table->unsignedDecimal('ukuran', 10, 2, true); // unsigned decimal
+            $table->unsignedDecimal('kapasitas', 10, 2, true); // unsigned decimal
+            $table->unsignedDecimal('rob', 10, 2, true); // unsigned decimal
             $table->softDeletes();
             $table->timestamps();
         });

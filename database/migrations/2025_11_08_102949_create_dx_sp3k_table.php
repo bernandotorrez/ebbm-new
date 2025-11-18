@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('sp3k_id');
             $table->unsignedBigInteger('pelumas_id');
             $table->unsignedSmallInteger('qty');
-            $table->decimal('harga', 20, 2)->unsigned()->default(0);
+            $table->unsignedDecimal('harga', 20, 2)->default(0);
             $table->unsignedMediumInteger('liter')->default(0);
             $table->unsignedSmallInteger('sort')->default(0);
             $table->dateTime('deleted_at')->nullable();
