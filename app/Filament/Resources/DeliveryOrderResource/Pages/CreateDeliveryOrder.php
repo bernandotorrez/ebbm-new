@@ -62,7 +62,12 @@ class CreateDeliveryOrder extends CreateRecord
     protected function getRedirectUrl(): string
     {
         // Redirect to the list page after creation
-        return $this->getResource()::getUrl('index');
+        try {
+            return $this->getResource()::getUrl('index');
+        } catch (\Exception $e) {
+            // Fallback to admin panel URL
+            return route('filament.admin.pages.dashboard');
+        }
     }
 
     protected function beforeCreate(): void
