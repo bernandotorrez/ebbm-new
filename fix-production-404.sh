@@ -45,8 +45,10 @@ echo "Step 6: Running migrations (if needed)..."
 $DOCKER exec ebbl_app php artisan migrate --force
 
 echo ""
-echo "Step 7: Publishing Livewire assets..."
+echo "Step 7: Publishing assets..."
 $DOCKER exec ebbl_app php artisan vendor:publish --tag=livewire:assets --force
+$DOCKER exec ebbl_app php artisan filament:assets
+$DOCKER exec ebbl_app sh -c "chmod -R 755 public && chown -R www-data:www-data public"
 
 echo ""
 echo "Step 8: Rebuilding caches for production..."

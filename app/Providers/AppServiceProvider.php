@@ -20,11 +20,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Force HTTPS in production if behind proxy
-        if ($this->app->environment('production')) {
-            URL::forceScheme('https');
-        }
-        
         // Handle dynamic APP_URL for Docker/Production
         if (isset($_SERVER['HTTP_HOST'])) {
             $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || 
@@ -34,11 +29,19 @@ class AppServiceProvider extends ServiceProvider
             $host = $_SERVER['HTTP_HOST'];
             $dynamicUrl = $protocol . '://' . $host;
             
-            // Only update if different from config
-            if (config('app.url') !== $dynamicUrl) {
-                config(['app.url' => $dynamicUrl]);
-                URL::forceRootUrl($dynamicUrl);
+            // Update APP_URL and Asset URL
+            config(['app.url' => $dynamicUrl]);
+            URL::forceRootUrl($dynamicUrl);
+            
+            // Force asset URL
+            if (empty(config('app.asset_url'))) {
+                config(['app.asset_url' => $dynamicUrl]);
             }
         }
+        
+        // Force HTTPS in production if behind proxy (optional)
+        // if ($this->app->environment('production')) {
+        //     URL::forceScheme('https');
+        // }
     }
 }
