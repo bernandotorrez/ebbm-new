@@ -64,23 +64,33 @@ php artisan view:cache
 exit
 ```
 
-### 2. Update APP_URL di .env Production
-Pastikan APP_URL sesuai dengan domain production:
+### 2. Update APP_URL di .env Production (PENTING!)
+**Masalah:** Jika Anda mengakses dari IP (contoh: `http://10.0.3.42`) tapi APP_URL masih `http://127.0.0.1:8000`, Livewire akan gagal.
+
+**Solusi:** Update APP_URL sesuai dengan URL yang diakses:
 
 ```env
-# Development
+# Development (localhost)
 APP_URL=http://127.0.0.1:8000
 
-# Production (contoh)
+# Production dengan IP
+APP_URL=http://10.0.3.42
+
+# Production dengan domain
 APP_URL=https://yourdomain.com
-# atau
-APP_URL=http://your-server-ip
 ```
 
-Setelah update .env, restart container:
+**Setelah update .env:**
 ```bash
+# Clear config cache
+docker exec -it ebbl_app php artisan config:clear
+docker exec -it ebbl_app php artisan config:cache
+
+# Restart container
 docker compose restart
 ```
+
+**Catatan:** Aplikasi sudah dikonfigurasi untuk auto-detect URL, tapi lebih baik set APP_URL yang benar di .env
 
 ### 3. Verifikasi Nginx Configuration
 File: `docker/nginx/default.conf`
@@ -131,10 +141,17 @@ Untuk mencegah error ini di masa depan:
 4. **Test di staging environment sebelum production**
 
 ## Quick Fix Command
-Jalankan satu perintah ini untuk fix cepat:
 
+### Untuk Production/Docker (RECOMMENDED):
 ```bash
-docker exec -it ebbl_app sh -c "php artisan cache:clear && php artisan config:clear && php artisan route:clear && php artisan view:clear && php artisan config:cache && php artisan route:cache"
+chmod +x fix-production-404.sh
+./fix-production-404.sh
+```
+
+### Manual Quick Fix:
+```bash
+docker exec -it ebbl_app sh -c "php artisan cache:clear && php artisan config:clear && php artisan route:clear && php artisan view:clear && mkdir -p storage/app/livewire-tmp && chmod -R 775 storage && php artisan storage:link && php artisan config:cache && php artisan route:cache"
+docker compose restart
 ```
 
 ## Catatan Penting

@@ -14,6 +14,13 @@ if ! $DOCKER info >/dev/null 2>&1; then
     fi
 fi
 
+echo "Checking APP_URL configuration..."
+$DOCKER exec ebbl_app php artisan config:show app.url
+echo ""
+echo "IMPORTANT: Make sure APP_URL in .env matches the URL you're accessing!"
+echo "Example: If accessing via http://10.0.3.42, set APP_URL=http://10.0.3.42"
+echo ""
+
 echo "Step 1: Clearing all caches..."
 $DOCKER exec ebbl_app php artisan cache:clear
 $DOCKER exec ebbl_app php artisan config:clear
