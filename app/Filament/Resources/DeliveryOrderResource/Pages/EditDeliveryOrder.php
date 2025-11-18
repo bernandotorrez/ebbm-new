@@ -101,8 +101,7 @@ class EditDeliveryOrder extends EditRecord
     
     protected function afterSave(): void
     {
-        // Prevent any further Livewire updates after successful save
-        $this->skipRender();
+        // Do nothing - let Filament handle redirect naturally
     }
 
     protected function beforeSave(): void

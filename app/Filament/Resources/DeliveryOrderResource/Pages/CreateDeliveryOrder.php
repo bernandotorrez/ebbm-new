@@ -69,18 +69,7 @@ class CreateDeliveryOrder extends CreateRecord
     
     protected function afterCreate(): void
     {
-        // Prevent any further Livewire updates after successful creation
-        $this->skipRender();
-        
-        // Dispatch browser event to stop Livewire
-        $this->dispatch('stop-livewire-updates');
-    }
-    
-    protected function getViewData(): array
-    {
-        return array_merge(parent::getViewData(), [
-            'isCreating' => $this->isCreating,
-        ]);
+        // Do nothing - let Filament handle redirect naturally
     }
 
     protected function beforeCreate(): void
