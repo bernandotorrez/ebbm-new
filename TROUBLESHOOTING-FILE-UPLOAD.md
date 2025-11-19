@@ -55,18 +55,26 @@ Script fix sudah didaftarkan di Filament assets.
 ## Cara Menerapkan Fix
 
 ### Otomatis (Recommended)
-Jalankan script yang sudah disediakan:
+
+**Local Development:**
 ```bash
 bash fix-file-upload-error.sh
 ```
 
-### Manual
+**Production/Docker:**
 ```bash
-# Clear semua cache
-php artisan cache:clear
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
+bash fix-file-upload-docker.sh
+```
+
+### Manual
+
+**Local Development:**
+```bash
+# Clear semua cache dan optimized files
+php artisan optimize:clear
+
+# Clear Filament cache
+php artisan filament:clear-cached-components
 
 # Hapus temporary files Livewire
 php artisan livewire:delete-uploaded-files --hours=0
@@ -75,10 +83,19 @@ php artisan livewire:delete-uploaded-files --hours=0
 php artisan config:cache
 ```
 
-### Di Docker
+**Production/Docker:**
 ```bash
-# Jalankan di container
-docker exec -it ebbl_app sh -c "php artisan cache:clear && php artisan config:clear && php artisan route:clear && php artisan view:clear && php artisan livewire:delete-uploaded-files --hours=0 && php artisan config:cache"
+# Clear semua cache
+docker exec -it ebbl_app php artisan optimize:clear
+
+# Clear Filament cache
+docker exec -it ebbl_app php artisan filament:clear-cached-components
+
+# Hapus temporary files Livewire
+docker exec -it ebbl_app php artisan livewire:delete-uploaded-files --hours=0
+
+# Rebuild config cache
+docker exec -it ebbl_app php artisan config:cache
 
 # Restart container
 docker compose restart

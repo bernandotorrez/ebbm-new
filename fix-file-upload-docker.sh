@@ -1,23 +1,39 @@
 #!/bin/bash
 
 echo "==================================="
-echo "Fix Livewire File Upload Error"
+echo "Fix Livewire File Upload Error (Docker)"
 echo "==================================="
 echo ""
 
-# Clear all caches
+# Check if container is running
+if ! docker ps | grep -q ebbl_app; then
+    echo "❌ Error: Container ebbl_app is not running!"
+    echo "Please start the container first: docker compose up -d"
+    exit 1
+fi
+
+echo "Container found. Clearing caches..."
+echo ""
+
+# Clear all caches in Docker
 echo "1. Clearing all optimized files..."
-php artisan optimize:clear
+docker exec -it ebbl_app php artisan optimize:clear
 
+echo ""
 echo "2. Clearing Filament cache..."
-php artisan filament:clear-cached-components
+docker exec -it ebbl_app php artisan filament:clear-cached-components
 
+echo ""
 echo "3. Clearing Livewire temporary files..."
-php artisan livewire:delete-uploaded-files --hours=0
+docker exec -it ebbl_app php artisan livewire:delete-uploaded-files --hours=0
 
 echo ""
 echo "4. Recreating optimized config..."
-php artisan config:cache
+docker exec -it ebbl_app php artisan config:cache
+
+echo ""
+echo "5. Restarting container..."
+docker compose restart
 
 echo ""
 echo "==================================="

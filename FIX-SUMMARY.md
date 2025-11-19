@@ -38,20 +38,27 @@ protected function getRedirectUrl(): string
 
 ### Local Development
 ```bash
-php artisan cache:clear
-php artisan config:clear
-php artisan view:clear
+# Otomatis (Recommended)
+bash fix-file-upload-error.sh
+
+# Manual
+php artisan optimize:clear
+php artisan filament:clear-cached-components
+php artisan livewire:delete-uploaded-files --hours=0
+php artisan config:cache
 ```
 
 ### Production/Docker
 ```bash
-docker exec -it ebbl_app sh -c "php artisan cache:clear && php artisan config:clear && php artisan view:clear && php artisan config:cache"
-docker compose restart
-```
+# Otomatis (Recommended)
+bash fix-file-upload-docker.sh
 
-### Atau gunakan script
-```bash
-bash fix-file-upload-error.sh
+# Manual
+docker exec -it ebbl_app php artisan optimize:clear
+docker exec -it ebbl_app php artisan filament:clear-cached-components
+docker exec -it ebbl_app php artisan livewire:delete-uploaded-files --hours=0
+docker exec -it ebbl_app php artisan config:cache
+docker compose restart
 ```
 
 ## Testing
