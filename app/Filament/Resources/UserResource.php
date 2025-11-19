@@ -68,10 +68,13 @@ class UserResource extends Resource
                 Forms\Components\TextInput::make('password')
                     ->password()
                     ->autocomplete(false)
-                    ->required()
+                    ->required(fn (string $operation): bool => $operation === 'create')
                     ->maxLength(255)
-                    ->dehydrateStateUsing(fn ($state) => $state !== '' ? bcrypt($state) : $state)
-                    ->dehydrated(fn ($state) => $state !== ''),
+                    ->helperText(fn (string $operation): ?string => 
+                        $operation === 'edit' ? 'Kosongkan jika tidak ingin mengubah password' : null
+                    )
+                    ->dehydrateStateUsing(fn ($state) => filled($state) ? bcrypt($state) : null)
+                    ->dehydrated(fn ($state) => filled($state)),
                 Forms\Components\Select::make('level')
                     ->options(LevelUser::values())
                     ->label('Level')

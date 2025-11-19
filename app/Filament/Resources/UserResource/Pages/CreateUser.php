@@ -20,8 +20,11 @@ class CreateUser extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // Apply ucwords() to the 'bekal' field before saving
+        // Apply ucwords() to the 'name' field before saving
         $data['name'] = ucwords($data['name']);
+        
+        // Password is required on create, so it will always be filled
+        // But we ensure it's hashed (already handled by dehydrateStateUsing in form)
 
         return $data;
     }

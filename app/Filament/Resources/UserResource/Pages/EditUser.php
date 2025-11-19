@@ -32,8 +32,13 @@ class EditUser extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        // Apply ucwords() to the 'bekal' field before saving
+        // Apply ucwords() to the 'name' field before saving
         $data['name'] = ucwords($data['name']);
+        
+        // Only update password if it's filled
+        if (empty($data['password'])) {
+            unset($data['password']);
+        }
 
         return $data;
     }
