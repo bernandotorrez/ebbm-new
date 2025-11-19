@@ -41,9 +41,10 @@ class AppServiceProvider extends ServiceProvider
             }
         }
         
-        // Register custom JavaScript for Filament
+        // Register custom JavaScript for Filament with cache busting
+        $jsVersion = filemtime(public_path('js/fix-livewire-redirect.js'));
         FilamentAsset::register([
-            Js::make('fix-livewire-redirect', public_path('js/fix-livewire-redirect.js')),
+            Js::make('fix-livewire-redirect', asset('js/fix-livewire-redirect.js?v=' . $jsVersion)),
         ]);
         
         // Force HTTPS in production if behind proxy (optional)

@@ -74,8 +74,25 @@ docker compose restart
 - Redirect tetap berfungsi normal
 
 ## Jika Masih Error
-1. Hard refresh browser (Ctrl+Shift+R)
-2. Clear browser cache
-3. Cek browser console untuk error lain
-4. Pastikan `public/js/fix-livewire-redirect.js` ter-load
-5. Cek Network tab untuk melihat request sequence
+
+### Quick Fix
+```bash
+# Force refresh everything
+bash force-refresh-assets.sh
+
+# Kemudian WAJIB clear browser cache:
+# Chrome/Edge: Ctrl+Shift+Delete
+# Firefox: Ctrl+Shift+Delete  
+# Atau buka Incognito/Private mode
+```
+
+### Troubleshooting Detail
+Lihat file: `TROUBLESHOOTING-404-KEMBALI.md`
+
+### Checklist
+1. ✓ Clear server cache (optimize:clear)
+2. ✓ Restart server/container
+3. ✓ Clear browser cache (PENTING!)
+4. ✓ Hard refresh (Ctrl+Shift+R)
+5. ✓ Cek Console: "Livewire 404 fix initialized"
+6. ✓ Test di Incognito mode

@@ -1,52 +1,75 @@
 // Fix for Livewire 404 after redirect and file upload
-document.addEventListener('DOMContentLoaded', function() {
-    if (window.Livewire) {
-        let hasRedirected = false;
-        let redirectTimeout = null;
+// Compatible with Livewire v3
+(function() {
+    let hasRedirected = false;
+    let redirectTimeout = null;
+    let isProcessingUpload = false;
+    
+    // Wait for Livewire to be ready
+    document.addEventListener('livewire:init', function() {
+        console.log('Livewire 404 fix initialized');
         
-        // Hook into Livewire lifecycle
-        Livewire.hook('commit', ({ component, commit, respond, succeed, fail }) => {
-            // Track successful commits that trigger redirects
-            succeed(({ snapshot, effect }) => {
-                if (effect.redirect) {
+        // Detect when redirect happens
+        Livewire.hook('commit', ({ succeed }) => {
+            succeed(({ effects }) => {
+                if (effects && effects.redirect) {
                     hasRedirected = true;
-                    console.log('Redirect detected, suppressing subsequent errors');
+                    console.log('Redirect detected, will suppress 404 errors');
                     
                     // Clear flag after redirect completes
                     if (redirectTimeout) clearTimeout(redirectTimeout);
                     redirectTimeout = setTimeout(() => {
                         hasRedirected = false;
-                    }, 2000);
+                        console.log('Redirect flag cleared');
+                    }, 3000);
                 }
             });
         });
         
-        // Intercept and suppress 404 errors after redirect
-        Livewire.hook('request', ({ uri, options, payload, respond, succeed, fail }) => {
-            fail(({ status, content, preventDefault }) => {
-                // Suppress 404 errors that occur after a redirect
-                if (hasRedirected && status === 404) {
-                    console.log('Suppressing 404 error after redirect');
+        // Intercept failed requests
+        Livewire.hook('request', ({ fail }) => {
+            fail(({ status, preventDefault }) => {
+                // Suppress 404 errors after redirect or during file upload
+                if ((hasRedirected || isProcessingUpload) && status === 404) {
+                    console.log('Suppressing 404 error (redirect or upload in progress)');
                     preventDefault();
-                    return;
                 }
             });
         });
         
-        // Also handle message.failed for older Livewire versions
-        if (Livewire.hook.available('message.failed')) {
-            Livewire.hook('message.failed', (message, component) => {
-                if (hasRedirected && message.status === 404) {
-                    console.log('Suppressing 404 via message.failed hook');
-                    return false;
-                }
-            });
-        }
-        
-        // Reset on navigation
-        document.addEventListener('livewire:navigated', () => {
-            hasRedirected = false;
-            if (redirectTimeout) clearTimeout(redirectTimeout);
+        // Track file upload state
+        document.addEventListener('livewire:upload-start', () => {
+            isProcessingUpload = true;
+            console.log('File upload started');
         });
-    }
-});
+        
+        document.addEventListener('livewire:upload-finish', () => {
+            setTimeout(() => {
+                isProcessingUpload = false;
+                console.log('File upload finished');
+            }, 1000);
+        });
+        
+        document.addEventListener('livewire:upload-error', () => {
+            isProcessingUpload = false;
+            console.log('File upload error');
+        });
+    });
+    
+    // Fallback for older Livewire versions or if livewire:init doesn't fire
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            if (window.Livewire && !hasRedirected) {
+                console.log('Livewire 404 fix loaded (fallback)');
+            }
+        }, 1000);
+    });
+    
+    // Reset on page navigation
+    document.addEventListener('livewire:navigated', () => {
+        hasRedirected = false;
+        isProcessingUpload = false;
+        if (redirectTimeout) clearTimeout(redirectTimeout);
+        console.log('Navigation detected, flags reset');
+    });
+})();
