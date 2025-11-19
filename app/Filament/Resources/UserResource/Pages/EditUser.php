@@ -16,9 +16,31 @@ class EditUser extends EditRecord
     {
         return [
             Actions\DeleteAction::make()
-                ->label('Hapus'),
+                ->label('Hapus')
+                ->visible(fn (): bool => $this->record->level !== \App\Enums\LevelUser::ADMIN)
+                ->before(function () {
+                    if ($this->record->level === \App\Enums\LevelUser::ADMIN) {
+                        Notification::make()
+                            ->title('Tidak Dapat Menghapus!')
+                            ->body('User dengan level Admin tidak dapat dihapus.')
+                            ->danger()
+                            ->send();
+                        return false;
+                    }
+                }),
             Actions\ForceDeleteAction::make()
-                ->label('Hapus Permanen'),
+                ->label('Hapus Permanen')
+                ->visible(fn (): bool => $this->record->level !== \App\Enums\LevelUser::ADMIN)
+                ->before(function () {
+                    if ($this->record->level === \App\Enums\LevelUser::ADMIN) {
+                        Notification::make()
+                            ->title('Tidak Dapat Menghapus!')
+                            ->body('User dengan level Admin tidak dapat dihapus secara permanen.')
+                            ->danger()
+                            ->send();
+                        return false;
+                    }
+                }),
             Actions\RestoreAction::make()
                 ->label('Pulihkan'),
         ];
@@ -46,12 +68,12 @@ class EditUser extends EditRecord
     protected function beforeSave(): void
     {
         // Get input values
-        $id = $this->data['id'] ?? null;
+        $userId = $this->record->user_id ?? null;
         $email = $this->data['email'] ?? null;
 
         // Check if the same record exists
         $exists = User::where('email', $email)
-            ->where('id', '!=', $id)
+            ->where('user_id', '!=', $userId)
             ->exists();
 
         if ($exists) {
