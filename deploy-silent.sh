@@ -54,9 +54,18 @@ else
     echo "⚠️  Some containers may not be running properly"
 fi
 
-# Fix permissions silently
+# Fix permissions and setup Livewire silently
 $DC exec app chown -R www-data:www-data /var/www/html/storage >/dev/null 2>&1
 $DC exec app chmod -R 775 /var/www/html/storage >/dev/null 2>&1
+$DC exec app mkdir -p /var/www/html/storage/app/livewire-tmp >/dev/null 2>&1
+$DC exec app chmod -R 775 /var/www/html/storage/app/livewire-tmp >/dev/null 2>&1
+$DC exec app chown -R www-data:www-data /var/www/html/storage/app/livewire-tmp >/dev/null 2>&1
+
+# Clear caches silently
+$DC exec app php artisan optimize:clear >/dev/null 2>&1
+$DC exec app php artisan filament:clear-cached-components >/dev/null 2>&1
+$DC exec app php artisan livewire:delete-uploaded-files --hours=24 >/dev/null 2>&1
+$DC exec app php artisan config:cache >/dev/null 2>&1
 
 echo ""
 echo "=== ✅ Deployment Completed! ==="

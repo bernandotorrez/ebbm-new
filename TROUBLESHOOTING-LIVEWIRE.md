@@ -148,9 +148,14 @@ chmod +x fix-production-404.sh
 ./fix-production-404.sh
 ```
 
+### Atau gunakan deployment script (sudah include fix Livewire):
+```bash
+bash deploy-after-pull.sh
+```
+
 ### Manual Quick Fix:
 ```bash
-docker exec -it ebbl_app sh -c "php artisan cache:clear && php artisan config:clear && php artisan route:clear && php artisan view:clear && mkdir -p storage/app/livewire-tmp && chmod -R 775 storage && php artisan storage:link && php artisan config:cache && php artisan route:cache"
+docker exec -it ebbl_app sh -c "php artisan optimize:clear && php artisan filament:clear-cached-components && php artisan livewire:delete-uploaded-files --hours=24 && mkdir -p storage/app/livewire-tmp && chmod -R 775 storage/app/livewire-tmp && chown -R www-data:www-data storage/app/livewire-tmp && php artisan config:cache"
 docker compose restart
 ```
 

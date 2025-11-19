@@ -47,6 +47,8 @@ $DOCKER exec ebbl_app php artisan config:clear
 $DOCKER exec ebbl_app php artisan route:clear
 $DOCKER exec ebbl_app php artisan view:clear
 $DOCKER exec ebbl_app php artisan event:clear
+$DOCKER exec ebbl_app php artisan filament:clear-cached-components
+$DOCKER exec ebbl_app php artisan livewire:delete-uploaded-files --hours=24
 
 # Step 5: Rebuild caches for production
 echo ""
@@ -71,6 +73,11 @@ $DOCKER exec ebbl_app php artisan storage:link
 echo ""
 echo "8️⃣  Fixing permissions..."
 $DOCKER exec ebbl_app sh -c "chmod -R 775 storage bootstrap/cache public && chown -R www-data:www-data storage bootstrap/cache public"
+
+# Step 8.1: Setup Livewire directories
+echo ""
+echo "8️⃣.1 Setting up Livewire directories..."
+$DOCKER exec ebbl_app sh -c "mkdir -p storage/app/livewire-tmp && chmod -R 775 storage/app/livewire-tmp && chown -R www-data:www-data storage/app/livewire-tmp"
 
 # Step 9: Restart containers
 echo ""
