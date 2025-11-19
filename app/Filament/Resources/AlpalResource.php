@@ -76,17 +76,32 @@ class AlpalResource extends Resource
                 Forms\Components\TextInput::make('ukuran')
                     ->required()
                     ->label('Ukuran (m)')
-                    ->numeric()
+                    ->maxLength(6)
+                    ->extraInputAttributes([
+                        'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
+                    ])
+                    ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
+                    ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
                     ->minValue(0),
                 Forms\Components\TextInput::make('kapasitas')
                     ->required()
                     ->label('Kapasitas (ltr)')
-                    ->numeric()
+                    ->maxLength(8)
+                    ->extraInputAttributes([
+                        'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
+                    ])
+                    ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
+                    ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
                     ->minValue(0),
                 Forms\Components\TextInput::make('rob')
                     ->required()
                     ->label('ROB (ltr)')
-                    ->numeric()
+                    ->maxLength(8)
+                    ->extraInputAttributes([
+                        'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
+                    ])
+                    ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
+                    ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
                     ->minValue(0),
             ]);
     }
@@ -133,14 +148,17 @@ class AlpalResource extends Resource
                 Tables\Columns\TextColumn::make('ukuran')
                     ->label('Ukuran (m)')
                     ->numeric()
+                    ->formatStateUsing(fn ($state) => number_format($state, 0, ',', '.'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('kapasitas')
                     ->label('Kapasitas (ltr)')
                     ->numeric()
+                    ->formatStateUsing(fn ($state) => number_format($state, 0, ',', '.'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('rob')
                     ->label('ROB (ltr)')
                     ->numeric()
+                    ->formatStateUsing(fn ($state) => number_format($state, 0, ',', '.'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()

@@ -136,6 +136,19 @@ class UserResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->label('Ubah'),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Hapus')
+                    ->visible(fn (User $record): bool => $record->level !== LevelUser::ADMIN)
+                    ->before(function (User $record) {
+                        if ($record->level === LevelUser::ADMIN) {
+                            Notification::make()
+                                ->title('Tidak Dapat Menghapus!')
+                                ->body('User dengan level Admin tidak dapat dihapus.')
+                                ->danger()
+                                ->send();
+                            return false;
+                        }
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -143,7 +156,22 @@ class UserResource extends Resource
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
                         ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->before(function ($records) {
+                            // Check if any record is Admin
+                            $hasAdmin = $records->contains(function ($record) {
+                                return $record->level === LevelUser::ADMIN;
+                            });
+                            
+                            if ($hasAdmin) {
+                                Notification::make()
+                                    ->title('Tidak Dapat Menghapus!')
+                                    ->body('Tidak dapat menghapus user dengan level Admin. Silakan hapus user non-Admin saja.')
+                                    ->danger()
+                                    ->send();
+                                return false;
+                            }
+                        }),
                 ])
                 ->label('Hapus'),
             ]);
