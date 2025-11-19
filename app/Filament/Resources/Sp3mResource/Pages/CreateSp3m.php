@@ -86,11 +86,15 @@ class CreateSp3m extends CreateRecord
             $this->halt();
         }
 
-        // Check if the same record exists
+        // Get triwulan
+        $tw = $this->data['tw'] ?? null;
+        
+        // Check if the same record exists (including triwulan)
         $exists = Sp3m::where('kantor_sar_id', $kantorSarId)
             ->where('alpal_id', $alpalId)
             ->where('bekal_id', $bekalId)
             ->where('tahun_anggaran', $tahunAnggaran)
+            ->where('tw', $tw)
             ->exists();
 
         if ($exists) {
@@ -98,13 +102,22 @@ class CreateSp3m extends CreateRecord
             $dataKantorSar = KantorSar::find($kantorSarId);
             $dataAlpal = Alpal::find($alpalId);
             $dataBekal = Bekal::find($bekalId);
+            
+            $triwulanLabel = match($tw) {
+                '1' => 'Triwulan I',
+                '2' => 'Triwulan II',
+                '3' => 'Triwulan III',
+                '4' => 'Triwulan IV',
+                default => 'Triwulan '.$tw
+            };
 
-            $message = 'Kantor SAR "'.ucwords($dataKantorSar->kantor_sar).'", Alpal "'.ucwords($dataAlpal->alpal).'", Bekal "'.ucwords($dataBekal->bekal).'" dan Tahun Anggaran "'.ucwords($tahunAnggaran).'" sudah ada';
+            $message = 'Data SP3M dengan kombinasi Kantor SAR "'.ucwords($dataKantorSar->kantor_sar).'", Alpal "'.ucwords($dataAlpal->alpal).'", Bekal "'.ucwords($dataBekal->bekal).'", Tahun Anggaran "'.$tahunAnggaran.'" dan '.$triwulanLabel.' sudah ada';
 
             Notification::make()
                 ->title('Kesalahan!')
                 ->body($message)
                 ->danger()
+                ->duration(7000)
                 ->send();
 
             // Prevent form submission

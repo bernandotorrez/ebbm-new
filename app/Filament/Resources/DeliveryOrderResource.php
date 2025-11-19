@@ -270,6 +270,8 @@ class DeliveryOrderResource extends Resource
                                 'max' => 'Ukuran file DO maksimal 5MB',
                             ])
                             ->uploadingMessage('Mengunggah...')
+                            ->downloadable()
+                            ->openable()
                             ->required(),
                         
                         Forms\Components\Placeholder::make('spacer2')

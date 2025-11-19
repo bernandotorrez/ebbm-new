@@ -60,16 +60,17 @@ class CreateDeliveryOrder extends CreateRecord
 
         return $data;
     }
-
+/*
     protected function getRedirectUrl(): string
     {
         // Redirect to the list page after creation
         return $this->getResource()::getUrl('index');
     }
-    
-    protected function afterCreate(): void
+    */
+    protected function getRedirectUrl(): string
     {
-        // Do nothing - let Filament handle redirect naturally
+        // Redirect to the list page after creation
+        return $this->getResource()::getUrl('index');
     }
 
     protected function beforeCreate(): void
