@@ -28,13 +28,21 @@ class EditSp3m extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        // Apply ucwords() to the 'bekal' field before saving
+        // Clean numeric fields
         $data['qty'] = (int) preg_replace('/[^\d]/', '', $data['qty']);
         $data['harga_satuan'] = (int) preg_replace('/[^\d]/', '', $data['harga_satuan']);
         $data['jumlah_harga'] = (int) preg_replace('/[^\d]/', '', $data['jumlah_harga']);
         
-        // Set sisa_qty sama dengan qty
-        $data['sisa_qty'] = $data['qty'];
+        // Calculate sisa_qty based on whether SP3M has DO or not
+        $oldQty = $this->record->qty;
+        $newQty = $data['qty'];
+        $oldSisaQty = $this->record->sisa_qty;
+        
+        // Calculate the difference
+        $qtyDiff = $newQty - $oldQty;
+        
+        // Update sisa_qty: sisa_qty_baru = sisa_qty_lama + (qty_baru - qty_lama)
+        $data['sisa_qty'] = $oldSisaQty + $qtyDiff;
 
         return $data;
     }
@@ -53,6 +61,32 @@ class EditSp3m extends EditRecord
         $alpalId = $this->data['alpal_id'] ?? null;
         $bekalId = $this->data['bekal_id'] ?? null;
         $tahunAnggaran = $this->data['tahun_anggaran'] ?? null;
+        
+        // Validate Qty update based on DO existence
+        $newQty = (int) preg_replace('/[^\d]/', '', $this->data['qty'] ?? 0);
+        $oldQty = $this->record->qty;
+        $oldSisaQty = $this->record->sisa_qty;
+        
+        // Check if SP3M has any DO
+        $hasDo = \App\Models\DeliveryOrder::where('sp3m_id', $id)->exists();
+        
+        if ($hasDo) {
+            // SP3M sudah memiliki DO
+            // Qty tidak boleh kurang dari sisa_qty
+            if ($newQty < $oldSisaQty) {
+                $newQtyFormatted = number_format($newQty, 0, ',', '.');
+                $sisaQtyFormatted = number_format($oldSisaQty, 0, ',', '.');
+                
+                Notification::make()
+                    ->title('Gagal Mengubah SP3M!')
+                    ->body("Qty baru ({$newQtyFormatted}) tidak boleh kurang dari Sisa Qty ({$sisaQtyFormatted}) karena SP3M ini sudah memiliki Delivery Order.")
+                    ->danger()
+                    ->duration(7000)
+                    ->send();
+                $this->halt();
+            }
+        }
+        // Jika belum memiliki DO, qty bisa diubah berapapun dan sisa_qty akan sama dengan qty
 
         // If harga_satuan is missing (readonly/derived), derive from latest HargaBekal for the bekal
         $hargaSatuan = $this->data['harga_satuan'] ?? null;
