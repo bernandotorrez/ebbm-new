@@ -31,8 +31,6 @@ php artisan cache:clear || echo "Cache clear failed, continuing..."
 if [ "$APP_ENV" = "production" ]; then
     echo "Caching for production..."
     php artisan config:cache || echo "Config cache failed, continuing..."
-    php artisan route:cache || echo "Route cache failed, continuing..."
-    php artisan view:cache || echo "View cache failed, continuing..."
 fi
 
 echo "Post-startup tasks completed."
