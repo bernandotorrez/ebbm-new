@@ -26,8 +26,8 @@ class RoleMenuHelper
                 'pagu',
                 'harga-bbm', // Harga BBM
                 'sp3m',
+                'pemakaian',
                 'delivery-order',
-                'pemakaian'
             ],
             
             // Kansar: can access specific menus
