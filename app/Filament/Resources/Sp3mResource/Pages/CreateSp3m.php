@@ -90,38 +90,38 @@ class CreateSp3m extends CreateRecord
         $tw = $this->data['tw'] ?? null;
         
         // Check if the same record exists (including triwulan)
-        $exists = Sp3m::where('kantor_sar_id', $kantorSarId)
-            ->where('alpal_id', $alpalId)
-            ->where('bekal_id', $bekalId)
-            ->where('tahun_anggaran', $tahunAnggaran)
-            ->where('tw', $tw)
-            ->exists();
+        // $exists = Sp3m::where('kantor_sar_id', $kantorSarId)
+        //     ->where('alpal_id', $alpalId)
+        //     ->where('bekal_id', $bekalId)
+        //     ->where('tahun_anggaran', $tahunAnggaran)
+        //     ->where('tw', $tw)
+        //     ->exists();
 
-        if ($exists) {
-            // Show Filament error notification
-            $dataKantorSar = KantorSar::find($kantorSarId);
-            $dataAlpal = Alpal::find($alpalId);
-            $dataBekal = Bekal::find($bekalId);
+        // if ($exists) {
+        //     // Show Filament error notification
+        //     $dataKantorSar = KantorSar::find($kantorSarId);
+        //     $dataAlpal = Alpal::find($alpalId);
+        //     $dataBekal = Bekal::find($bekalId);
             
-            $triwulanLabel = match($tw) {
-                '1' => 'Triwulan I',
-                '2' => 'Triwulan II',
-                '3' => 'Triwulan III',
-                '4' => 'Triwulan IV',
-                default => 'Triwulan '.$tw
-            };
+        //     $triwulanLabel = match($tw) {
+        //         '1' => 'Triwulan I',
+        //         '2' => 'Triwulan II',
+        //         '3' => 'Triwulan III',
+        //         '4' => 'Triwulan IV',
+        //         default => 'Triwulan '.$tw
+        //     };
 
-            $message = 'Data SP3M dengan kombinasi Kantor SAR "'.ucwords($dataKantorSar->kantor_sar).'", Alpal "'.ucwords($dataAlpal->alpal).'", Bekal "'.ucwords($dataBekal->bekal).'", Tahun Anggaran "'.$tahunAnggaran.'" dan '.$triwulanLabel.' sudah ada';
+        //     $message = 'Data SP3M dengan kombinasi Kantor SAR "'.ucwords($dataKantorSar->kantor_sar).'", Alpal "'.ucwords($dataAlpal->alpal).'", Bekal "'.ucwords($dataBekal->bekal).'", Tahun Anggaran "'.$tahunAnggaran.'" dan '.$triwulanLabel.' sudah ada';
 
-            Notification::make()
-                ->title('Kesalahan!')
-                ->body($message)
-                ->danger()
-                ->duration(7000)
-                ->send();
+        //     Notification::make()
+        //         ->title('Kesalahan!')
+        //         ->body($message)
+        //         ->danger()
+        //         ->duration(7000)
+        //         ->send();
 
-            // Prevent form submission
-            $this->halt();
-        }
+        //     // Prevent form submission
+        //     $this->halt();
+        // }
     }
 }
