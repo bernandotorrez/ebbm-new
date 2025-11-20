@@ -21,17 +21,17 @@ class HargaBekalResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
     protected static ?string $navigationGroup = 'Master';
-    protected static ?string $navigationLabel = 'Harga Bekal';
+    protected static ?string $navigationLabel = 'Harga BBM';
     protected static ?int $navigationSort = 8; // Place at the end of Master menu
     
     public static function getModelLabel(): string
     {
-        return 'Harga Bekal'; // Singular name
+        return 'Harga BBM'; // Singular name
     }
 
     public static function getPluralModelLabel(): string
     {
-        return 'Daftar Harga Bekal'; // Plural name
+        return 'Daftar Harga BBM'; // Plural name
     }
     
     public static function canAccess(): bool

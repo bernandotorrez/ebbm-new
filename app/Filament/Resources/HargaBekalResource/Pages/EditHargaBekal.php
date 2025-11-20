@@ -47,7 +47,7 @@ class EditHargaBekal extends EditRecord
             // Show Filament error notification
             Notification::make()
                 ->title('Error!')
-                ->body('Harga bekal untuk kota dan bekal yang sama sudah ada')
+                ->body('Harga BBM untuk kota dan bekal yang sama sudah ada')
                 ->danger()
                 ->send();
 
@@ -61,7 +61,7 @@ class EditHargaBekal extends EditRecord
         return Notification::make()
             ->success()
             ->title('Berhasil')
-            ->body('Data harga bekal berhasil diperbarui.');
+            ->body('Data Harga BBM berhasil diperbarui.');
     }
 
     public function getFormActions(): array
@@ -76,6 +76,6 @@ class EditHargaBekal extends EditRecord
 
     public function getTitle(): string
     {
-        return 'Ubah Harga Bekal';
+        return 'Ubah Harga BBM';
     }
 }

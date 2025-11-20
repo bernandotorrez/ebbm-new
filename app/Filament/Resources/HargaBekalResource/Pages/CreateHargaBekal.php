@@ -33,7 +33,7 @@ class CreateHargaBekal extends CreateRecord
             // Show Filament error notification
             Notification::make()
                 ->title('Error!')
-                ->body('Harga bekal untuk kota dan bekal yang sama sudah ada')
+                ->body('Harga BBM untuk kota dan bekal yang sama sudah ada')
                 ->danger()
                 ->send();
 
@@ -47,7 +47,7 @@ class CreateHargaBekal extends CreateRecord
         return Notification::make()
             ->success()
             ->title('Berhasil')
-            ->body('Data harga bekal berhasil ditambahkan.');
+            ->body('Data Harga BBM berhasil ditambahkan.');
     }
 
     public function getFormActions(): array
@@ -64,6 +64,6 @@ class CreateHargaBekal extends CreateRecord
 
     public function getTitle(): string
     {
-        return 'Buat Harga Bekal';
+        return 'Buat Harga BBM';
     }
 }
