@@ -16,9 +16,12 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
+use App\Traits\RoleBasedResourceAccess;
 
 class AlpalResource extends Resource
 {
+    use RoleBasedResourceAccess;
+    
     protected static ?string $model = Alpal::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-paper-airplane';

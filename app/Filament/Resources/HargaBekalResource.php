@@ -33,11 +33,6 @@ class HargaBekalResource extends Resource
     {
         return 'Daftar Harga BBM'; // Plural name
     }
-    
-    public static function canAccess(): bool
-    {
-        return true;
-    }
 
     public static function form(Form $form): Form
     {
