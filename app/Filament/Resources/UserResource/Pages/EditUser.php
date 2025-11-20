@@ -94,7 +94,7 @@ class EditUser extends EditRecord
         return Notification::make()
             ->success()
             ->title('Berhasil')
-            ->body('Data user berhasil diperbarui.');
+            ->body('Data Pengguna berhasil diperbarui.');
     }
 
     public function getFormActions(): array
@@ -109,6 +109,6 @@ class EditUser extends EditRecord
 
     public function getTitle(): string
     {
-        return 'Ubah User';
+        return 'Ubah Pengguna';
     }
 }

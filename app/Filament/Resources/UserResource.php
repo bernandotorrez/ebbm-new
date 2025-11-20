@@ -27,20 +27,20 @@ class UserResource extends Resource
 
     protected static ?string $navigationGroup = 'Admin';
 
-    protected static ?string $navigationLabel = 'Kelola User';
+    protected static ?string $navigationLabel = 'Pengguna';
 
     protected static ?int $navigationSort = 90;
 
-    protected static ?string $slug = 'kelola-user';
+    protected static ?string $slug = 'pengguna';
 
     public static function getModelLabel(): string
     {
-        return 'Kelola User'; // Singular name
+        return 'Pengguna'; // Singular name
     }
 
     public static function getPluralModelLabel(): string
     {
-        return 'Daftar User';
+        return 'Daftar Pengguna';
     }
 
     public static function form(Form $form): Form
