@@ -24,7 +24,7 @@ return new class extends Migration
             $table->unsignedDecimal('harga_satuan', 20, 2); // unsigned decimal
             $table->unsignedDecimal('jumlah_harga', 20, 2); // unsigned decimal
             $table->text('file_upload_sp3m');
-            $table->text('file_upload_kelengkapan_sp3m');
+            $table->text('file_upload_kelengkapan_sp3m')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });
