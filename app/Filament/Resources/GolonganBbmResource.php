@@ -23,20 +23,20 @@ class GolonganBbmResource extends Resource
 
     protected static ?string $navigationGroup = 'Master';
 
-    protected static ?string $navigationLabel = 'Golongan BBM';
+    protected static ?string $navigationLabel = 'Jenis Alut';
 
     protected static ?int $navigationSort = 1;
 
-    protected static ?string $slug = 'golongan-bbm';
+    protected static ?string $slug = 'jenis-alut';
 
     public static function getModelLabel(): string
     {
-        return 'Golongan BBM'; // Singular name
+        return 'Jenis Alut'; // Singular name
     }
 
     public static function getPluralModelLabel(): string
     {
-        return 'Daftar Golongan BBM';
+        return 'Daftar Jenis Alut';
     }
 
     public static function form(Form $form): Form
@@ -44,7 +44,7 @@ class GolonganBbmResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('golongan')
-                    ->label('Golongan BBM')
+                    ->label('Jenis Alut')
                     ->required()
                     ->maxLength(50),
             ]);
@@ -55,7 +55,7 @@ class GolonganBbmResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('golongan')
-                    ->label('Golongan BBM')
+                    ->label('Jenis Alut')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->label('Dihapus Pada')

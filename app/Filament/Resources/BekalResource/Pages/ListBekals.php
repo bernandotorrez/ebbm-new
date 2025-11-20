@@ -14,12 +14,12 @@ class ListBekals extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('Tambah Bekal'),
+                ->label('Tambah Jenis Bahan Bakar'),
         ];
     }
 
     public function getTitle(): string
     {
-        return 'Daftar Bekal';
+        return 'Daftar Jenis Bahan Bakar';
     }
 }

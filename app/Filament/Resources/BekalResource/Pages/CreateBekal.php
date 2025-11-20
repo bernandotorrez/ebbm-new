@@ -60,7 +60,7 @@ class CreateBekal extends CreateRecord
             $dataGolonganBbm = GolonganBbm::find($golonganBbmId);
             $dataSatuan = Satuan::find($satuanId);
 
-            $message = 'Bekal "'.ucwords($bekal).'" untuk Golongan BBM "'.ucwords($dataGolonganBbm->golongan).'" dan Satuan "'.ucwords($dataSatuan->satuan).'" sudah ada';
+            $message = 'Jenis Bahan Bakar "'.ucwords($bekal).'" untuk Jenis Alut "'.ucwords($dataGolonganBbm->golongan).'" dan Satuan "'.ucwords($dataSatuan->satuan).'" sudah ada';
 
             Notification::make()
                 ->title('Kesalahan!')
@@ -75,6 +75,6 @@ class CreateBekal extends CreateRecord
 
     public function getTitle(): string
     {
-        return 'Buat Bekal';
+        return 'Buat Jenis Bahan Bakar';
     }
 }
