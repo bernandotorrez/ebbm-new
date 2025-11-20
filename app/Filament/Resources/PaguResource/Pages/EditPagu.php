@@ -55,7 +55,7 @@ class EditPagu extends EditRecord
             // Show Filament error notification
             $dataGolonganBbm = GolonganBbm::find($golonganBbmId);
 
-            $message = 'Golongan BBM "'.ucwords($dataGolonganBbm->golongan).'" dan Tahun Anggaran "'.ucwords($tahunAnggaran).'" sudah ada';
+            $message = 'Jenis Alut "'.ucwords($dataGolonganBbm->golongan).'" dan Tahun Anggaran "'.ucwords($tahunAnggaran).'" sudah ada';
 
             Notification::make()
                 ->title('Error!')
@@ -85,11 +85,11 @@ class EditPagu extends EditRecord
         return Notification::make()
             ->success()
             ->title('Berhasil')
-            ->body('Data pagu berhasil diperbarui.');
+            ->body('Data Pagu Anggaran berhasil diperbarui.');
     }
     
     public function getTitle(): string
     {
-        return 'Ubah Pagu';
+        return 'Ubah Pagu Anggaran';
     }
 }

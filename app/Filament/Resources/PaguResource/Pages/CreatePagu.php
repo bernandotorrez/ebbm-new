@@ -43,7 +43,7 @@ class CreatePagu extends CreateRecord
             // Show Filament error notification
             $dataGolonganBbm = GolonganBbm::find($golonganBbmId);
 
-            $message = 'Golongan BBM "'.ucwords($dataGolonganBbm->golongan).'" dan Tahun Anggaran "'.ucwords($tahunAnggaran).'" sudah ada';
+            $message = 'Jenis Alut "'.ucwords($dataGolonganBbm->golongan).'" dan Tahun Anggaran "'.ucwords($tahunAnggaran).'" sudah ada';
 
             Notification::make()
                 ->title('Error!')
@@ -61,7 +61,7 @@ class CreatePagu extends CreateRecord
         return Notification::make()
             ->success()
             ->title('Berhasil')
-            ->body('Data pagu berhasil ditambahkan.');
+            ->body('Data Pagu Anggaran berhasil ditambahkan.');
     }
 
     public function getFormActions(): array
@@ -78,6 +78,6 @@ class CreatePagu extends CreateRecord
     
     public function getTitle(): string
     {
-        return 'Buat Pagu';
+        return 'Buat Pagu Anggaran';
     }
 }
