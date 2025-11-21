@@ -1,0 +1,53 @@
+Atur Menu dan Role yang bisa di akses :
+
+1. Admin :
+Master :
+- Jenis Alut (Golongan BBM)
+- Satuan
+- Jenis Bahan Bakar (Bekal)
+- Wilayah
+- Kantor SAR
+- Kota
+- Pack
+- Kemasan
+- Pelumas
+- Pos Sandar
+- TBBM//DPPU
+- Harga Bekal
+
+Transaksi :
+- Alut
+
+Admin :
+- Pengguna
+
+2. Kantor Pusat :
+Master :
+- Harga BBM
+
+Transaksi :
+- Pagu
+- SP3M
+- DO
+- Pemakaian
+- SP3K
+- BAST (skip dlu saat ini tidak ada tapi kasih commentar aja)
+
+
+Laporan :
+- Daftar SP3M
+- Rekap DO
+- Detil Tagihan (skip dlu saat ini tidak ada tapi kasih commentar aja)
+
+3. Kantor Sar :
+Transaksi :
+- SP3M
+- DO
+- Pemakaian
+- SP3K
+- BAST (skip dlu saat ini tidak ada tapi kasih commentar aja)
+
+4. ABK :
+Transaksi :
+- DO
+- Pemakaian

@@ -14,31 +14,51 @@ class RoleMenuHelper
         return [
             // Admin: can access all menus
             LevelUser::ADMIN->value => [
-                'pagu',
-                'harga-bbm', // Harga BBM
-                'sp3m',
-                'delivery-order',
-                'pemakaian'
+                // Master
+                'golongan-bbm',  // Jenis Alut
+                'satuan',
+                'bekal',  // Jenis Bahan Bakar
+                'wilayah',
+                'kantor-sar',
+                'kota',
+                'pack',
+                'kemasan',
+                'pelumas',
+                'pos-sandar',
+                'tbbm',  // TBBM/DPPU
+                'harga-bekal',
+                // Transaksi
+                'alut',
+                // Admin
+                'kelola-user',
             ],
             
             // Kanpus: can access specific menus
             LevelUser::KANPUS->value => [
+                // Master
+                'harga-bekal',  // Harga BBM
+                // Transaksi
                 'pagu',
-                'harga-bbm', // Harga BBM
-                'sp3m',
-                'delivery-order',
-                'pemakaian'
-            ],
-            
-            // Kansar: can access specific menus
-            LevelUser::KANSAR->value => [
                 'sp3m',
                 'delivery-order',
                 'pemakaian',
+                'sp3k',
+                // 'bast',  // TODO: Belum ada
+            ],
+            
+            // Kansar: can access specific menus (TIDAK ADA PAGU & HARGA BEKAL)
+            LevelUser::KANSAR->value => [
+                // Transaksi only
+                'sp3m',
+                'delivery-order',
+                'pemakaian',
+                'sp3k',
+                // 'bast',  // TODO: Belum ada
             ],
             
             // Abk: can access limited menus
             LevelUser::ABK->value => [
+                // Transaksi only
                 'delivery-order',
                 'pemakaian',
             ],

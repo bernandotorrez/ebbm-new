@@ -181,38 +181,20 @@ class Sp3mResource extends Resource
                     ->extraInputAttributes([
                         'inputmode' => 'numeric',
                     ]),
-                Forms\Components\Grid::make(2)
-                    ->schema([
-                        Forms\Components\FileUpload::make('file_upload_sp3m')
-                            ->required()
-                            ->label('File Upload SP3M')
-                            ->disk('public')
-                            ->directory('sp3m')
-                            ->visibility('public')
-                            ->acceptedFileTypes(['application/pdf', 'image/*'])
-                            ->maxSize(5120)
-                            ->validationMessages([
-                                'required' => 'File SP3M harus diunggah',
-                                'file' => 'File SP3M harus berupa PDF atau gambar',
-                                'max' => 'Ukuran file SP3M maksimal 5MB',
-                            ])
-                            ->uploadingMessage('Mengunggah...'),
-
-                        Forms\Components\FileUpload::make('file_upload_kelengkapan_sp3m')
-                            ->required()
-                            ->label('File Upload Kelengkapan SP3M')
-                            ->disk('public')
-                            ->directory('sp3m/kelengkapan')
-                            ->visibility('public')
-                            ->acceptedFileTypes(['application/pdf', 'image/*'])
-                            ->maxSize(5120)
-                            ->validationMessages([
-                                'required' => 'File SP3M harus diunggah',
-                                'file' => 'File SP3M harus berupa PDF atau gambar',
-                                'max' => 'Ukuran file SP3M maksimal 5MB',
-                            ])
-                            ->uploadingMessage('Mengunggah...'),
-                    ]),
+                Forms\Components\FileUpload::make('file_upload_sp3m')
+                    ->required()
+                    ->label('File Upload SP3M')
+                    ->disk('public')
+                    ->directory('sp3m')
+                    ->visibility('public')
+                    ->acceptedFileTypes(['application/pdf', 'image/*'])
+                    ->maxSize(5120)
+                    ->validationMessages([
+                        'required' => 'File SP3M harus diunggah',
+                        'file' => 'File SP3M harus berupa PDF atau gambar',
+                        'max' => 'Ukuran file SP3M maksimal 5MB',
+                    ])
+                    ->uploadingMessage('Mengunggah...'),
             ]);
     }
 

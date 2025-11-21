@@ -39,7 +39,7 @@ class CreateGolonganBbm extends CreateRecord
             // Show Filament error notification
             Notification::make()
                 ->title('Error!')
-                ->body('Golongan BBM "'.ucwords($golongan).'" sudah ada')
+                ->body('Jenis Alut "'.ucwords($golongan).'" sudah ada')
                 ->danger()
                 ->send();
 
@@ -53,7 +53,7 @@ class CreateGolonganBbm extends CreateRecord
         return Notification::make()
             ->success()
             ->title('Berhasil')
-            ->body('Data golongan BBM berhasil ditambahkan.');
+            ->body('Data Jenis Alut berhasil ditambahkan.');
     }
 
     public function getFormActions(): array
@@ -70,6 +70,6 @@ class CreateGolonganBbm extends CreateRecord
 
     public function getTitle(): string
     {
-        return 'Buat Golongan BBM';
+        return 'Buat Jenis Alut';
     }
 }

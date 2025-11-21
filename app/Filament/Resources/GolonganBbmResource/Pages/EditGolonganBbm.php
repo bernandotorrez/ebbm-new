@@ -53,7 +53,7 @@ class EditGolonganBbm extends EditRecord
             // Show Filament error notification
             Notification::make()
                 ->title('Error!')
-                ->body('Golongan BBM "'.ucwords($golongan).'" sudah ada')
+                ->body('Jenis Alut "'.ucwords($golongan).'" sudah ada')
                 ->danger()
                 ->send();
 
@@ -67,7 +67,7 @@ class EditGolonganBbm extends EditRecord
         return Notification::make()
             ->success()
             ->title('Berhasil')
-            ->body('Data golongan BBM berhasil diperbarui.');
+            ->body('Data Jenis Alut berhasil diperbarui.');
     }
 
     public function getFormActions(): array
@@ -82,6 +82,6 @@ class EditGolonganBbm extends EditRecord
 
     public function getTitle(): string
     {
-        return 'Ubah Golongan BBM';
+        return 'Ubah Jenis Alut';
     }
 }

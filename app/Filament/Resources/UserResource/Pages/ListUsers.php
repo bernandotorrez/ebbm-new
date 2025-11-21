@@ -15,12 +15,12 @@ class ListUsers extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('Tambah User'),
+                ->label('Tambah Pengguna'),
         ];
     }
 
     public function getTitle(): string
     {
-        return 'Daftar User';
+        return 'Daftar Pengguna';
     }
 }

@@ -26,20 +26,20 @@ class PaguResource extends Resource
 
     protected static ?string $navigationGroup = 'Transaksi';
 
-    protected static ?string $navigationLabel = 'Pagu';
+    protected static ?string $navigationLabel = 'Pagu Anggaran';
 
     protected static ?int $navigationSort = 1;
 
-    protected static ?string $slug = 'pagu';
+    protected static ?string $slug = 'pagu-anggaran';
 
     public static function getModelLabel(): string
     {
-        return 'Pagu'; // Singular name
+        return 'Pagu Anggaran'; // Singular name
     }
 
     public static function getPluralModelLabel(): string
     {
-        return 'Daftar Pagu';
+        return 'Daftar Pagu Anggaran';
     }
 
     public static function form(Form $form): Form
@@ -48,7 +48,7 @@ class PaguResource extends Resource
             ->schema([
                 Forms\Components\Select::make('golongan_bbm_id')
                     ->relationship(name: 'golonganBbm', titleAttribute: 'golongan')
-                    ->label('Golongan')
+                    ->label('Jenis Alut')
                     ->searchable()
                     ->preload()
                     ->required(),
@@ -89,7 +89,7 @@ class PaguResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('golonganBbm.golongan')
                     ->numeric()
-                    ->label('Golongan')
+                    ->label('Jenis Alut')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('nilai_pagu')
                     ->numeric()
@@ -122,7 +122,7 @@ class PaguResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('golongan_bbm_id')
-                    ->label('Golongan')
+                    ->label('Jenis Alut')
                     ->relationship('golonganBbm', 'golongan') // Relasi ke Golongan BBM
                     ->preload(),
                 SelectFilter::make('tahun_anggaran')

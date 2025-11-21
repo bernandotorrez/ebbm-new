@@ -56,7 +56,7 @@ class CreateUser extends CreateRecord
         return Notification::make()
             ->success()
             ->title('Berhasil')
-            ->body('Data user berhasil ditambahkan.');
+            ->body('Data Pengguna berhasil ditambahkan.');
     }
 
     public function getFormActions(): array
@@ -73,6 +73,6 @@ class CreateUser extends CreateRecord
 
     public function getTitle(): string
     {
-        return 'Buat User';
+        return 'Buat Pengguna';
     }
 }

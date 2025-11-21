@@ -30,6 +30,27 @@ class RekapDo extends Page implements HasForms
     protected static ?int $navigationSort = 3;
 
     protected static string $view = 'filament.pages.laporan.rekap-do';
+    
+    /**
+     * Check if the current user can access this page
+     * Only ADMIN and KANPUS can access Laporan
+     */
+    public static function canAccess(): bool
+    {
+        $user = Auth::user();
+        
+        if (!$user) {
+            return false;
+        }
+        
+        $levelValue = $user->level instanceof LevelUser ? $user->level->value : $user->level;
+        
+        // Only ADMIN and KANPUS can access Laporan
+        return in_array($levelValue, [
+            LevelUser::ADMIN->value,
+            LevelUser::KANPUS->value,
+        ]);
+    }
 
     public ?string $kantor_sar_id = null;
     public ?string $tahun = null;

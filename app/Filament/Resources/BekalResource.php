@@ -24,20 +24,20 @@ class BekalResource extends Resource
 
     protected static ?string $navigationGroup = 'Master';
 
-    protected static ?string $navigationLabel = 'Bekal';
+    protected static ?string $navigationLabel = 'Jenis Bahan Bakar';
 
     protected static ?int $navigationSort = 3;
 
-    protected static ?string $slug = 'bekal';
+    protected static ?string $slug = 'jenis-bahan-bakar';
 
     public static function getModelLabel(): string
     {
-        return 'Bekal'; // Singular name
+        return 'Jenis Bahan Bakar'; // Singular name
     }
 
     public static function getPluralModelLabel(): string
     {
-        return 'Daftar Bekal';
+        return 'Daftar Jenis Bahan Bakar';
     }
 
     public static function form(Form $form): Form
@@ -46,7 +46,7 @@ class BekalResource extends Resource
             ->schema([
                 Forms\Components\Select::make('golongan_bbm_id')
                     ->relationship(name: 'golonganBbm', titleAttribute: 'golongan')
-                    ->label('Golongan BBM')
+                    ->label('Jenis Alut')
                     ->searchable()
                     ->preload()
                     ->required(),
@@ -57,7 +57,7 @@ class BekalResource extends Resource
                     ->preload()
                     ->required(),
                 Forms\Components\TextInput::make('bekal')
-                    ->label('Bekal')
+                    ->label('Jenis Bahan Bakar')
                     ->required()
                     ->maxLength(50),
             ]);
@@ -68,7 +68,7 @@ class BekalResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('golonganBbm.golongan')
-                    ->label('Golongan BBM')
+                    ->label('Jenis Alut')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('satuan.satuan')
@@ -76,7 +76,7 @@ class BekalResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('bekal')
-                    ->label('Bekal')
+                    ->label('Jenis Bahan Bakar')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->label('Dihapus Pada')
@@ -96,8 +96,8 @@ class BekalResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('golongan_bbm_id')
-                ->label('Golongan BBM')
-                ->relationship('golonganBbm', 'golongan') // Relasi ke Golongan BBM
+                ->label('Jenis Alut')
+                ->relationship('golonganBbm', 'golongan') // Relasi ke Jenis Alut
                 ->preload(), // Untuk memuat data otomatis di dropdown
                 SelectFilter::make('satuan_id')
                 ->label('Satuan')

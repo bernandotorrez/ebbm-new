@@ -14,12 +14,12 @@ class ListGolonganBbms extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('Tambah Golongan BBM'),
+                ->label('Tambah Jenis Alut'),
         ];
     }
 
     public function getTitle(): string
     {
-        return 'Daftar Golongan BBM';
+        return 'Daftar Jenis Alut';
     }
 }

@@ -28,19 +28,30 @@ class RolePermissionHelper
                 'all' => true, // Admin can access all resources
             ],
             LevelUser::KANPUS->value => [
-                'Pagu' => true,
-                'GolonganBbm' => true,  // Harga BBM
+                // Master
                 'HargaBekal' => true,  // Harga BBM
+                // Transaksi
+                'Pagu' => true,
                 'Sp3m' => true,
                 'DeliveryOrder' => true,
                 'Pemakaian' => true,
+                'Sp3k' => true,
+                // 'Bast' => true,  // TODO: Belum ada, akan ditambahkan nanti
+                // Laporan
+                // 'DaftarSp3m' => true,  // TODO: Akan menggunakan Sp3m resource
+                // 'RekapDo' => true,  // TODO: Belum ada, akan ditambahkan nanti
+                // 'DetilTagihan' => true,  // TODO: Belum ada, akan ditambahkan nanti
             ],
             LevelUser::KANSAR->value => [
+                // Transaksi
                 'Sp3m' => true,
                 'DeliveryOrder' => true,
                 'Pemakaian' => true,
+                'Sp3k' => true,
+                // 'Bast' => true,  // TODO: Belum ada, akan ditambahkan nanti
             ],
             LevelUser::ABK->value => [
+                // Transaksi
                 'DeliveryOrder' => true,
                 'Pemakaian' => true,
             ],
@@ -75,19 +86,51 @@ class RolePermissionHelper
 
         $resourceMap = [
             LevelUser::ADMIN->value => [
-                'Pagu', 'GolonganBbm', 'HargaBekal', 'Sp3m', 'DeliveryOrder', 'Pemakaian', 
-                // Add other resources that Admin may access
-                'Alpal', 'Bekal', 'KantorSar', 'Kemasan', 'Kota', 'Pack', 'Pelumas', 
-                'PosSandar', 'Satuan', 'Tbbm', 'User', 'Wilayah'
+                // Master
+                'GolonganBbm',  // Jenis Alut (Golongan BBM)
+                'Satuan',
+                'Bekal',  // Jenis Bahan Bakar (Bekal)
+                'Wilayah',
+                'KantorSar',  // Kantor SAR
+                'Kota',
+                'Pack',
+                'Kemasan',
+                'Pelumas',
+                'PosSandar',  // Pos Sandar
+                'Tbbm',  // TBBM/DPPU
+                'HargaBekal',  // Harga Bekal
+                // Transaksi
+                'Alpal',  // Alut
+                // Admin
+                'User',  // Pengguna
             ],
             LevelUser::KANPUS->value => [
-                'Pagu', 'GolonganBbm', 'HargaBekal', 'Sp3m', 'DeliveryOrder', 'Pemakaian'
+                // Master
+                'HargaBekal',  // Harga BBM
+                // Transaksi
+                'Pagu',
+                'Sp3m',
+                'DeliveryOrder',
+                'Pemakaian',
+                'Sp3k',
+                // 'Bast',  // TODO: Belum ada
+                // Laporan
+                // 'DaftarSp3m',  // TODO: Menggunakan Sp3m resource
+                // 'RekapDo',  // TODO: Belum ada
+                // 'DetilTagihan',  // TODO: Belum ada
             ],
             LevelUser::KANSAR->value => [
-                'Sp3m', 'DeliveryOrder', 'Pemakaian'
+                // Transaksi
+                'Sp3m',
+                'DeliveryOrder',
+                'Pemakaian',
+                'Sp3k',
+                // 'Bast',  // TODO: Belum ada
             ],
             LevelUser::ABK->value => [
-                'DeliveryOrder', 'Pemakaian'
+                // Transaksi
+                'DeliveryOrder',
+                'Pemakaian',
             ],
         ];
 
