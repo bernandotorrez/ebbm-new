@@ -21,8 +21,8 @@ return new class extends Migration
             $table->char('tw', 1)->index('idx_tw');
             $table->unsignedInteger('qty');
             $table->unsignedInteger('sisa_qty');
-            $table->unsignedDecimal('harga_satuan', 20, 2); // unsigned decimal
-            $table->unsignedDecimal('jumlah_harga', 20, 2); // unsigned decimal
+            $table->decimal('harga_satuan', 20, 2); // unsigned decimal
+            $table->decimal('jumlah_harga', 20, 2); // unsigned decimal
             $table->text('file_upload_sp3m');
             $table->text('file_upload_kelengkapan_sp3m')->nullable();
             $table->softDeletes();

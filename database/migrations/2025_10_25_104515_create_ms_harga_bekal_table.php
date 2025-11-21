@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id('harga_bekal_id');
             $table->unsignedBigInteger('kota_id')->index('idx_kota_id');
             $table->unsignedBigInteger('bekal_id')->index('idx_bekal_id');
-            $table->unsignedDecimal('harga', 20, 2);
+            $table->decimal('harga', 20, 2);
             $table->timestamps();
             $table->softDeletes();
             

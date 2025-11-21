@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('kemasan_id');
             $table->char('tahun', 4);
             $table->unsignedInteger('isi')->default(0);
-            $table->unsignedDecimal('harga', 20, 2)->default(0);
+            $table->decimal('harga', 20, 2)->default(0);
             $table->softDeletes();
             $table->timestamps();
             
