@@ -103,11 +103,8 @@ return new class extends Migration
                 ->noActionOnDelete()
                 ->noActionOnUpdate();
 
-            $table->foreign('harga_bekal_id')
-                ->references('harga_bekal_id')
-                ->on('ms_harga_bekal')
-                ->noActionOnDelete()
-                ->noActionOnUpdate();
+            // Note: harga_bekal_id foreign key is added in a later migration
+            // after ms_harga_bekal table is created
         });
 
         Schema::table('tx_pemakaian', function (Blueprint $table) {
@@ -146,6 +143,7 @@ return new class extends Migration
         Schema::table('tx_do', function (Blueprint $table) {
             $table->dropForeign(['sp3m_id']);
             $table->dropForeign(['tbbm_id']);
+            // Note: harga_bekal_id foreign key is dropped in a later migration
         });
 
         Schema::table('tx_sp3m', function (Blueprint $table) {
