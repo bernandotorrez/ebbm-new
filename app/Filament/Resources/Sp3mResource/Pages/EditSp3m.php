@@ -30,8 +30,23 @@ class EditSp3m extends EditRecord
     {
         // Clean numeric fields
         $data['qty'] = (int) preg_replace('/[^\d]/', '', $data['qty']);
-        $data['harga_satuan'] = (int) preg_replace('/[^\d]/', '', $data['harga_satuan']);
-        $data['jumlah_harga'] = (int) preg_replace('/[^\d]/', '', $data['jumlah_harga']);
+        $data['nomor_sp3m'] = strtoupper($data['nomor_sp3m']);
+        
+        // Calculate harga_satuan from HargaBekal (get latest harga for the bekal_id)
+        $bekalId = $data['bekal_id'] ?? null;
+        
+        if ($bekalId) {
+            $hargaBekal = HargaBekal::where('bekal_id', $bekalId)
+                ->orderBy('created_at', 'desc')
+                ->first();
+            
+            $data['harga_satuan'] = $hargaBekal ? (int) $hargaBekal->harga : 0;
+        } else {
+            $data['harga_satuan'] = 0;
+        }
+        
+        // Calculate jumlah_harga = qty * harga_satuan
+        $data['jumlah_harga'] = $data['qty'] * $data['harga_satuan'];
         
         // Calculate sisa_qty based on whether SP3M has DO or not
         $oldQty = $this->record->qty;
@@ -56,11 +71,7 @@ class EditSp3m extends EditRecord
     protected function beforeSave(): void
     {
         // Get input values
-        $id = $this->data['sp3m_id'] ?? null;
-        $kantorSarId = $this->data['kantor_sar_id'] ?? null;
-        $alpalId = $this->data['alpal_id'] ?? null;
-        $bekalId = $this->data['bekal_id'] ?? null;
-        $tahunAnggaran = $this->data['tahun_anggaran'] ?? null;
+        $id = $this->record->sp3m_id;
         
         // Validate Qty update based on DO existence
         $newQty = (int) preg_replace('/[^\d]/', '', $this->data['qty'] ?? 0);
@@ -86,19 +97,8 @@ class EditSp3m extends EditRecord
                 $this->halt();
             }
         }
-        // Jika belum memiliki DO, qty bisa diubah berapapun dan sisa_qty akan sama dengan qty
 
-        // If harga_satuan is missing (readonly/derived), derive from latest HargaBekal for the bekal
-        $hargaSatuan = $this->data['harga_satuan'] ?? null;
-        if ((empty($hargaSatuan) || $hargaSatuan === 0) && $bekalId) {
-            $harga = HargaBekal::where('bekal_id', $bekalId)
-                ->orderBy('created_at', 'desc')
-                ->value('harga');
-
-            $this->data['harga_satuan'] = $harga !== null ? (int) $harga : $this->data['harga_satuan'] ?? null;
-        }
-
-        $nomorSp3m    = strtoupper($this->data['nomor_sp3m']);
+        $nomorSp3m = strtoupper($this->data['nomor_sp3m']);
 
         $duplicateSp3kNumber = Sp3m::where('nomor_sp3m', $nomorSp3m)
             ->where('sp3m_id', '!=', $id)
@@ -115,45 +115,6 @@ class EditSp3m extends EditRecord
 
             $this->halt();
         }
-
-        // Get triwulan
-        $tw = $this->data['tw'] ?? null;
-        
-        // Check if the same record exists (including triwulan)
-        // $exists = Sp3m::where('kantor_sar_id', $kantorSarId)
-        //     ->where('alpal_id', $alpalId)
-        //     ->where('bekal_id', $bekalId)
-        //     ->where('tahun_anggaran', $tahunAnggaran)
-        //     ->where('tw', $tw)
-        //     ->where('sp3m_id', '!=', $id)
-        //     ->exists();
-
-        // if ($exists) {
-        //     // Show Filament error notification
-        //     $dataKantorSar = KantorSar::find($kantorSarId);
-        //     $dataAlpal = Alpal::find($alpalId);
-        //     $dataBekal = Bekal::find($bekalId);
-            
-        //     $triwulanLabel = match($tw) {
-        //         '1' => 'Triwulan I',
-        //         '2' => 'Triwulan II',
-        //         '3' => 'Triwulan III',
-        //         '4' => 'Triwulan IV',
-        //         default => 'Triwulan '.$tw
-        //     };
-
-        //     $message = 'Data SP3M dengan kombinasi Kantor SAR "'.ucwords($dataKantorSar->kantor_sar).'", Alpal "'.ucwords($dataAlpal->alpal).'", Bekal "'.ucwords($dataBekal->bekal).'", Tahun Anggaran "'.$tahunAnggaran.'" dan '.$triwulanLabel.' sudah ada';
-
-        //     Notification::make()
-        //         ->title('Kesalahan!')
-        //         ->body($message)
-        //         ->danger()
-        //         ->duration(7000)
-        //         ->send();
-
-        //     // Prevent form submission
-        //     $this->halt();
-        // }
     }
 
     protected function getHeaderActions(): array

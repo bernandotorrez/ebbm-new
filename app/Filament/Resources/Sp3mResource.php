@@ -50,67 +50,7 @@ class Sp3mResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('alpal_id')
-                    ->relationship(name: 'alpal', titleAttribute: 'alpal')
-                    ->label('Alut')
-                    ->searchable()
-                    ->preload()
-                    ->reactive()
-                    ->afterStateUpdated(function (callable $get, callable $set) {
-                        $alpalId = $get('alpal_id');
-
-                        if ($alpalId) {
-                            $alpal = Alpal::find($alpalId);
-                            $set('kantor_sar_id', $alpal ? $alpal->kantor_sar_id : null);
-                        } else {
-                            $set('kantor_sar_id', null);
-                        }
-                    })
-                    ->validationMessages([
-                        'required' => 'Pilih Alut',
-                    ])
-                    ->required(),
-                Forms\Components\Select::make('kantor_sar_id')
-                    ->relationship(name: 'kantorSar', titleAttribute: 'kantor_sar')
-                    ->label('Kantor SAR')
-                    ->options(static::getKantorSarOptions())
-                    ->disabled()
-                    ->dehydrated() // Tetap kirim nilai meskipun disabled
-                    ->searchable()
-                    ->preload()
-                    ->validationMessages([
-                        'required' => 'Pilih Kantor SAR',
-                    ])
-                    ->required(),
-                Forms\Components\Select::make('bekal_id')
-                    ->relationship(name: 'bekal', titleAttribute: 'bekal')
-                    ->label('Bekal')
-                    ->searchable()
-                    ->preload()
-                    ->reactive()
-                    ->afterStateUpdated(function (callable $get, callable $set) {
-                        $bekalId = $get('bekal_id');
-
-                        if ($bekalId) {
-                            // Try get the latest harga for this bekal
-                            $harga = HargaBekal::where('bekal_id', $bekalId)
-                                ->orderBy('created_at', 'desc')
-                                ->value('harga');
-
-                            // set formatted string so the readonly input shows thousand separators immediately
-                            $set('harga_satuan', $harga !== null ? number_format((int) $harga, 0, ',', '.') : null);
-                        } else {
-                            $set('harga_satuan', 0);
-                        }
-                    })
-                    ->validationMessages([
-                        'required' => 'Pilih Bekal',
-                    ])
-                    ->required(),
-                Forms\Components\TextInput::make('nomor_sp3m')
-                    ->label('Nomor SP3M')
-                    ->required()
-                    ->maxLength(200),
+                // 1. Tahun Anggaran (TA)
                 Forms\Components\Select::make('tahun_anggaran')
                     ->label('Tahun Anggaran')
                     ->required()
@@ -126,7 +66,10 @@ class Sp3mResource extends Resource
                     ->validationMessages([
                         'required' => 'Pilih Tahun Anggaran',
                     ])
-                    ->preload(),
+                    ->preload()
+                    ->live(),
+                
+                // 2. TW
                 Forms\Components\Select::make('tw')
                     ->label('Triwulan')
                     ->required()
@@ -136,16 +79,72 @@ class Sp3mResource extends Resource
                         '3' => 'Triwulan III',
                         '4' => 'Triwulan IV',
                     ])
-                    ->searchable(),
+                    ->searchable()
+                    ->live(),
+                
+                // 3. Nomor SP3M
+                Forms\Components\TextInput::make('nomor_sp3m')
+                    ->label('Nomor SP3M')
+                    ->placeholder('Nomor SP3M')
+                    ->required()
+                    ->maxLength(255)
+                    ->validationMessages([
+                        'required' => 'Nomor SP3M harus diisi',
+                    ]),
+                
+                // 4. Tanggal
+                Forms\Components\DatePicker::make('tanggal_sp3m')
+                    ->label('Tanggal SP3M')
+                    ->placeholder('Tanggal SP3M')
+                    ->required()
+                    ->native(false)
+                    ->displayFormat('d/m/Y')
+                    ->closeOnDateSelection(true)
+                    ->validationMessages([
+                        'required' => 'Tanggal SP3M harus diisi',
+                    ]),
+                
+                // 5. Alut
+                Forms\Components\Select::make('alpal_id')
+                    ->label('Alut')
+                    ->required()
+                    ->relationship('alpal', 'alpal')
+                    ->searchable()
+                    ->preload()
+                    ->validationMessages([
+                        'required' => 'Pilih Alut',
+                    ])
+                    ->live(),
+                
+                // 6. Kantor SAR
+                Forms\Components\Select::make('kantor_sar_id')
+                    ->label('Kantor SAR')
+                    ->required()
+                    ->options(static::getKantorSarOptions())
+                    ->searchable()
+                    ->preload()
+                    ->validationMessages([
+                        'required' => 'Pilih Kantor SAR',
+                    ])
+                    ->live(),
+                
+                // 7. Jenis Bahan Bakar
+                Forms\Components\Select::make('bekal_id')
+                    ->label('Jenis Bahan Bakar')
+                    ->required()
+                    ->relationship('bekal', 'bekal')
+                    ->searchable()
+                    ->preload()
+                    ->validationMessages([
+                        'required' => 'Pilih Jenis Bahan Bakar',
+                    ])
+                    ->live(),
+                
+                // 8. Qty
                 Forms\Components\TextInput::make('qty')
                     ->required()
                     ->label('Qty')
                     ->inputMode('numeric')
-                    ->afterStateUpdated(function (callable $get, callable $set) {
-                        $qty = (int) str_replace(['.', ',', ' '], '', $get('qty'));
-                        $harga = (int) str_replace(['.', ',', ' '], '', $get('harga_satuan'));
-                        $set('jumlah_harga', number_format($qty * $harga, 0, ',', '.'));
-                    })
                     ->extraInputAttributes([
                         'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
                     ])
@@ -153,37 +152,31 @@ class Sp3mResource extends Resource
                     ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
                     ->minValue(0)
                     ->maxLength(10)
+                    ->validationMessages([
+                        'required' => 'Qty harus diisi',
+                    ])
+                    ->afterStateUpdated(function (callable $get, callable $set, $state, $context) {
+                        // Only update sisa_qty in create form
+                        if ($context === 'create') {
+                            $cleanQty = (int) str_replace(['.', ',', ' '], '', $state ?? '0');
+                            $set('sisa_qty', $cleanQty ? number_format($cleanQty, 0, ',', '.') : null);
+                        }
+                    })
                     ->live(debounce: 500),
-                Forms\Components\TextInput::make('harga_satuan')
-                    ->required()
-                    ->label('Harga Satuan')
-                    ->prefix('Rp')
+                
+                // 9. Sisa SP3M (readonly, calculated)
+                Forms\Components\TextInput::make('sisa_qty')
+                    ->label('Sisa SP3M')
                     ->inputMode('numeric')
                     ->readonly()
-                    ->afterStateUpdated(function (callable $get, callable $set) {
-                        $qty = (int) str_replace(['.', ',', ' '], '', $get('qty'));
-                        $harga = (int) str_replace(['.', ',', ' '], '', $get('harga_satuan'));
-                        $set('jumlah_harga', number_format($qty * $harga, 0, ',', '.'));
-                    })
-                    ->extraInputAttributes([
-                        'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
-                    ])
                     ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
                     ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
-                    ->live(),
-                Forms\Components\TextInput::make('jumlah_harga')
-                    ->required()
-                    ->label('Jumlah Harga')
-                    ->prefix('Rp')
-                    ->readonly()
-                    ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
-                    ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
-                    ->extraInputAttributes([
-                        'inputmode' => 'numeric',
-                    ]),
+                    ->helperText('Sisa SP3M akan sama dengan Qty saat pertama kali dibuat'),
+                
+                // 10. Lampiran
                 Forms\Components\FileUpload::make('file_upload_sp3m')
                     ->required()
-                    ->label('File Upload SP3M')
+                    ->label('Lampiran')
                     ->disk('public')
                     ->directory('sp3m')
                     ->visibility('public')
@@ -237,6 +230,10 @@ class Sp3mResource extends Resource
                 Tables\Columns\TextColumn::make('nomor_sp3m')
                     ->label('Nomor SP3M')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('tanggal_sp3m')
+                    ->label('Tanggal SP3M')
+                    ->date('d-m-Y')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('tahun_anggaran')
                     ->label('Tahun Anggaran')
                     ->searchable(),

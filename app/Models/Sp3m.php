@@ -22,6 +22,7 @@ class Sp3m extends Model
         'kantor_sar_id',
         'bekal_id',
         'nomor_sp3m',
+        'tanggal_sp3m',
         'tahun_anggaran',
         'tw',
         'qty',
@@ -33,6 +34,10 @@ class Sp3m extends Model
         'created_by',
         'updated_by',
         'deleted_by',
+    ];
+
+    protected $casts = [
+        'tanggal_sp3m' => 'date',
     ];
 
     public function kantorSar()
