@@ -242,7 +242,10 @@ class DeliveryOrderResource extends Resource
                     ->schema([
                         Forms\Components\DatePicker::make('tanggal_do')
                             ->label('Tanggal')
-                            ->required(),
+                            ->required()
+                            ->native(false)
+                            ->displayFormat('d/m/Y')
+                            ->closeOnDateSelection(false),
                         
                         Forms\Components\Select::make('tbbm_id')
                             ->relationship(name: 'tbbm', titleAttribute: 'depot')

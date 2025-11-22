@@ -46,13 +46,13 @@ class EditAlpal extends EditRecord
         // Get input values
         $id = $this->data['alpal_id'] ?? null;
         $kantorSarId = $this->data['kantor_sar_id'] ?? null;
-        $tbbmId = $this->data['tbbm_id'] ?? null;
+        // $tbbmId = $this->data['tbbm_id'] ?? null;
         $posSandarId = $this->data['pos_sandar_id'] ?? null;
         $alpal = $this->data['alpal'] ?? null;
 
         // Check if the same record exists
         $exists = Alpal::where('kantor_sar_id', $kantorSarId)
-            ->where('tbbm_id', $tbbmId)
+            // ->where('tbbm_id', $tbbmId)
             ->where('pos_sandar_id', $posSandarId)
             ->where('alpal', strtoupper($alpal))
             ->where('alpal_id', '!=', $id)
@@ -61,10 +61,11 @@ class EditAlpal extends EditRecord
         if ($exists) {
             // Show Filament error notification
             $dataKantorSar = KantorSar::find($kantorSarId);
-            $dataTbbm = Tbbm::find($tbbmId);
+            // $dataTbbm = Tbbm::find($tbbmId);
             $dataPosSandar = PosSandar::find($posSandarId);
 
-            $message = 'Nama Kapal/No.Reg Pesawat "'.strtoupper($alpal).'" untuk Kantor SAR "'.ucwords($dataKantorSar->kantor_sar).'", TBBM "'.ucwords($dataTbbm->depot).'" dan Pos Sandar "'.ucwords($dataPosSandar->pos_sandar).'" sudah ada';
+            // $message = 'Nama Kapal/No.Reg Pesawat "'.strtoupper($alpal).'" untuk Kantor SAR "'.ucwords($dataKantorSar->kantor_sar).'", TBBM "'.ucwords($dataTbbm->depot).'" dan Pos Sandar "'.ucwords($dataPosSandar->pos_sandar).'" sudah ada';
+            $message = 'Nama Kapal/No.Reg Pesawat "'.strtoupper($alpal).'" untuk Kantor SAR "'.ucwords($dataKantorSar->kantor_sar).'", dan Pos Sandar "'.ucwords($dataPosSandar->pos_sandar).'" sudah ada';
 
             Notification::make()
                 ->title('Kesalahan!')

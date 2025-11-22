@@ -25,7 +25,7 @@ class KemasanResource extends Resource
 
     protected static ?string $navigationLabel = 'Kemasan';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 11; // 11. Kemasan
 
     protected static ?string $slug = 'kemasan';
 

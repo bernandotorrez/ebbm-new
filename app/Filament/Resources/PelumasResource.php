@@ -28,7 +28,7 @@ class PelumasResource extends Resource
 
     protected static ?string $navigationLabel = 'Pelumas';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 12; // 12. Pelumas
 
     protected static ?string $slug = 'pelumas';
 

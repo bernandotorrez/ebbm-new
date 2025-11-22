@@ -26,11 +26,11 @@ class AlpalResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-paper-airplane';
 
-    protected static ?string $navigationGroup = 'Transaksi';
+    protected static ?string $navigationGroup = 'Master';
 
     protected static ?string $navigationLabel = 'Alut';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 9; // 9. Alut
 
     protected static ?string $slug = 'alut';
 
@@ -48,34 +48,16 @@ class AlpalResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('kantor_sar_id')
-                    ->relationship(name: 'kantorSar', titleAttribute: 'kantor_sar')
-                    ->label('Kantor SAR')
-                    ->options(static::getKantorSarOptions())
-                    ->searchable()
-                    ->preload()
-                    ->required(),
-                Forms\Components\Select::make('tbbm_id')
-                    ->relationship(
-                        name: 'tbbm',
-                        titleAttribute: 'depot',
-                        modifyQueryUsing: fn ($query) => $query->with('kota')
-                    )
-                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->depot} - {$record->kota?->kota}")
-                    ->label('TBBM/DDPU')
-                    ->searchable()
-                    ->preload()
-                    ->required(),
-                Forms\Components\Select::make('pos_sandar_id')
-                    ->relationship(name: 'posSandar', titleAttribute: 'pos_sandar')
-                    ->label('Pos Sandar')
-                    ->searchable()
-                    ->preload()
-                    ->required(),
                 Forms\Components\TextInput::make('alpal')
                     ->required()
-                    ->label('Nama Kapal/No.Reg Pesawat')
+                    ->label('Nama Alut')
                     ->maxLength(100),
+                Forms\Components\Select::make('golongan_bbm_id')
+                    ->relationship(name: 'golonganBbm', titleAttribute: 'golongan')
+                    ->label('Jenis Alut')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
                 Forms\Components\TextInput::make('ukuran')
                     ->required()
                     ->label('Ukuran (m)')
@@ -88,7 +70,7 @@ class AlpalResource extends Resource
                     ->minValue(0),
                 Forms\Components\TextInput::make('kapasitas')
                     ->required()
-                    ->label('Kapasitas (ltr)')
+                    ->label('Kapasitas (Ltr)')
                     ->maxLength(8)
                     ->extraInputAttributes([
                         'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
@@ -98,7 +80,7 @@ class AlpalResource extends Resource
                     ->minValue(0),
                 Forms\Components\TextInput::make('rob')
                     ->required()
-                    ->label('ROB (ltr)')
+                    ->label('ROB (Ltr)')
                     ->maxLength(8)
                     ->extraInputAttributes([
                         'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
@@ -106,6 +88,19 @@ class AlpalResource extends Resource
                     ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
                     ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
                     ->minValue(0),
+                Forms\Components\Select::make('kantor_sar_id')
+                    ->relationship(name: 'kantorSar', titleAttribute: 'kantor_sar')
+                    ->label('Kantor SAR')
+                    ->options(static::getKantorSarOptions())
+                    ->searchable()
+                    ->preload()
+                    ->required(),
+                Forms\Components\Select::make('pos_sandar_id')
+                    ->relationship(name: 'posSandar', titleAttribute: 'pos_sandar')
+                    ->label('Pos Sandar')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
             ]);
     }
 
@@ -133,20 +128,13 @@ class AlpalResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('kantorSar.kantor_sar')
-                    ->numeric()
-                    ->label('Kantor SAR')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('tbbm.depot')
-                    ->formatStateUsing(fn ($record) => "{$record->tbbm->depot} - {$record->tbbm->kota?->kota}")
-                    ->label('TBBM/DDPU')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('posSandar.pos_sandar')
-                    ->numeric()
-                    ->label('Pos Sandar')
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('alpal')
-                    ->label('Nama Kapal/No.Reg Pesawat')
+                    ->label('Nama Alut')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('golonganBbm.golongan')
+                    ->label('Jenis Alut')
+                    ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('ukuran')
                     ->label('Ukuran (m)')
@@ -154,15 +142,23 @@ class AlpalResource extends Resource
                     ->formatStateUsing(fn ($state) => number_format($state, 0, ',', '.'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('kapasitas')
-                    ->label('Kapasitas (ltr)')
+                    ->label('Kapasitas (Ltr)')
                     ->numeric()
                     ->formatStateUsing(fn ($state) => number_format($state, 0, ',', '.'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('rob')
-                    ->label('ROB (ltr)')
+                    ->label('ROB (Ltr)')
                     ->numeric()
                     ->formatStateUsing(fn ($state) => number_format($state, 0, ',', '.'))
                     ->sortable(),
+                Tables\Columns\TextColumn::make('kantorSar.kantor_sar')
+                    ->label('Kantor SAR')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('posSandar.pos_sandar')
+                    ->label('Pos Sandar')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()
                     ->label('Dihapus Pada')
@@ -184,11 +180,15 @@ class AlpalResource extends Resource
                     ->label('Kantor Sar')
                     ->options(static::getKantorSarOptions())
                     ->preload(),
-                SelectFilter::make('tbbm_id')
-                    ->label('TBBM/DDPU')
-                    ->relationship('tbbm', 'depot', modifyQueryUsing: fn ($query) => $query->with('kota'))
-                    ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->depot} - {$record->kota?->kota}")
+                SelectFilter::make('golongan_bbm_id')
+                    ->label('Jenis Alut')
+                    ->relationship('golonganBbm', 'golongan')
                     ->preload(),
+                // SelectFilter::make('tbbm_id')
+                //     ->label('TBBM/DDPU')
+                //     ->relationship('tbbm', 'depot', modifyQueryUsing: fn ($query) => $query->with('kota'))
+                //     ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->depot} - {$record->kota?->kota}")
+                //     ->preload(),
                 SelectFilter::make('pos_sandar_id')
                     ->label('Pos Sandar')
                     ->relationship('posSandar', 'pos_sandar') // Relasi ke Golongan BBM

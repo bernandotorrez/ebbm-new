@@ -24,7 +24,7 @@ class WilayahResource extends Resource
 
     protected static ?string $navigationLabel = 'Wilayah';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4; // 4. Wilayah
 
     protected static ?string $slug = 'wilayah';
 
@@ -46,10 +46,10 @@ class WilayahResource extends Resource
                     ->label('Wilayah Ke')
                     ->required()
                     ->minLength(1)
-                    ->maxLength(3)
+                    ->maxLength(1)
                     ->inputMode('numeric')  // Change to numeric for better UX
                     ->rule('integer')
-                    ->rule('between:1,999')
+                    ->rule('between:1,9')
                     ->extraInputAttributes([
                         'onkeypress' => 'return event.charCode >= 48 && event.charCode <= 57', // Only allow numbers 0-9
                         'onkeyup' => 'this.value = this.value.replace(/[^0-9]/g, "")', // Remove non-numeric characters on keyup

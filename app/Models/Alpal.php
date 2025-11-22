@@ -19,7 +19,7 @@ class Alpal extends Model
     protected $fillable = [
         'alpal_id',
         'kantor_sar_id',
-        'tbbm_id',
+        'golongan_bbm_id',
         'pos_sandar_id',
         'alpal',
         'ukuran',
@@ -33,6 +33,11 @@ class Alpal extends Model
     public function kantorSar()
     {
         return $this->belongsTo(KantorSar::class, 'kantor_sar_id', 'kantor_sar_id');
+    }
+
+    public function golonganBbm()
+    {
+        return $this->belongsTo(GolonganBbm::class, 'golongan_bbm_id', 'golongan_bbm_id');
     }
 
     public function posSandar()

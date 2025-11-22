@@ -11,7 +11,7 @@ return new class extends Migration
     public function up(): void
     {
         DB::statement("
-            CREATE OR REPLACE VIEW view_delivery_order_with_calculations AS
+            CREATE OR REPLACE VIEW view_laporan_detail_tagihan AS
             SELECT 
                 txdo.tanggal_do AS tanggal_isi,
                 txsp3m.nomor_sp3m,
@@ -21,6 +21,9 @@ return new class extends Migration
                 txdo.jumlah_harga,
                 mks.kantor_sar,
                 ta.alpal,
+                mks.kantor_sar_id,
+                txdo.do_id,
+                txsp3m.sp3m_id,
 
                 -- PPN 11%
                 CAST((txdo.jumlah_harga * 0.11) AS DECIMAL(20,2)) AS ppn_11,
@@ -121,6 +124,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("DROP VIEW IF EXISTS view_delivery_order_with_calculations");
+        DB::statement("DROP VIEW IF EXISTS view_laporan_detail_tagihan");
     }
 };

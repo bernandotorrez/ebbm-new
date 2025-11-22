@@ -6,13 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class ViewLaporanDetailTagihan extends Model
 {
-    protected $table = 'view_delivery_order_with_calculations';
+    protected $table = 'view_laporan_detail_tagihan';
     
     protected $primaryKey = 'do_id';
     
     public $timestamps = false;
     
     protected $casts = [
+        'do_id' => 'integer',
+        'sp3m_id' => 'integer',
+        'kantor_sar_id' => 'integer',
         'tanggal_isi' => 'date',
         'qty' => 'integer',
         'harga_per_liter' => 'decimal:2',
