@@ -13,6 +13,9 @@ class ViewLaporanDetailTagihan extends Model
     public $timestamps = false;
     
     protected $casts = [
+        'do_id' => 'integer',
+        'sp3m_id' => 'integer',
+        'kantor_sar_id' => 'integer',
         'tanggal_isi' => 'date',
         'qty' => 'integer',
         'harga_per_liter' => 'decimal:2',

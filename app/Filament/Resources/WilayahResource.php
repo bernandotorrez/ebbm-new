@@ -46,10 +46,10 @@ class WilayahResource extends Resource
                     ->label('Wilayah Ke')
                     ->required()
                     ->minLength(1)
-                    ->maxLength(4)
+                    ->maxLength(1)
                     ->inputMode('numeric')  // Change to numeric for better UX
                     ->rule('integer')
-                    ->rule('between:1,9999')
+                    ->rule('between:1,9')
                     ->extraInputAttributes([
                         'onkeypress' => 'return event.charCode >= 48 && event.charCode <= 57', // Only allow numbers 0-9
                         'onkeyup' => 'this.value = this.value.replace(/[^0-9]/g, "")', // Remove non-numeric characters on keyup

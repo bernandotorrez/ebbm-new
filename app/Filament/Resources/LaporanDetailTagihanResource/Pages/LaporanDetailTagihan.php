@@ -144,15 +144,13 @@ class LaporanDetailTagihan extends Page implements HasForms, HasTable
         $query = ViewLaporanDetailTagihan::query();
 
         if ($this->showTable && $this->tanggal_awal && $this->tanggal_akhir) {
-            // Gunakan whereDate untuk memastikan filter tanggal bekerja dengan benar
+            // Filter berdasarkan tanggal
             $query->where('tanggal_isi', '>=', $this->tanggal_awal)
                   ->where('tanggal_isi', '<=', $this->tanggal_akhir);
 
+            // Filter berdasarkan kantor SAR
             if ($this->kantor_sar_id && $this->kantor_sar_id !== 'semua') {
-                $kantorSar = KantorSar::find($this->kantor_sar_id);
-                if ($kantorSar) {
-                    $query->where('kantor_sar', $kantorSar->kantor_sar);
-                }
+                $query->where('kantor_sar_id', $this->kantor_sar_id);
             }
         } else {
             // Return empty query if not showing table

@@ -21,6 +21,9 @@ return new class extends Migration
                 txdo.jumlah_harga,
                 mks.kantor_sar,
                 ta.alpal,
+                mks.kantor_sar_id,
+                txdo.do_id,
+                txsp3m.sp3m_id,
 
                 -- PPN 11%
                 CAST((txdo.jumlah_harga * 0.11) AS DECIMAL(20,2)) AS ppn_11,
