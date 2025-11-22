@@ -26,7 +26,7 @@ class TbbmResource extends Resource
 
     protected static ?string $navigationLabel = 'TBBM/DDPU';
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 7; // 7. TBBM/DPPU
 
     protected static ?string $slug = 'tbbm';
 

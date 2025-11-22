@@ -25,7 +25,7 @@ class SatuanResource extends Resource
 
     protected static ?string $navigationLabel = 'Satuan';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 2; // 2. Satuan
 
     protected static ?string $slug = 'satuan';
 

@@ -33,7 +33,7 @@ class RekapDo extends Page implements HasForms
     
     /**
      * Check if the current user can access this page
-     * Only ADMIN and KANPUS can access Laporan
+     * Only KANPUS can access Laporan
      */
     public static function canAccess(): bool
     {
@@ -45,11 +45,16 @@ class RekapDo extends Page implements HasForms
         
         $levelValue = $user->level instanceof LevelUser ? $user->level->value : $user->level;
         
-        // Only ADMIN and KANPUS can access Laporan
-        return in_array($levelValue, [
-            LevelUser::ADMIN->value,
-            LevelUser::KANPUS->value,
-        ]);
+        // Only KANPUS can access Laporan
+        return $levelValue === LevelUser::KANPUS->value;
+    }
+    
+    /**
+     * Hide from navigation for non-Kanpus users
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canAccess();
     }
 
     public ?string $kantor_sar_id = null;

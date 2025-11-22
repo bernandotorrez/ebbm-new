@@ -59,4 +59,23 @@ trait RoleBasedResourceAccess
     {
         return static::canAccess();
     }
+    
+    /**
+     * Check if this resource should be registered in navigation
+     * Hide Transaksi and Laporan menu from Admin users
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        $user = Auth::user();
+        
+        // Jika user adalah Admin, sembunyikan menu Transaksi dan Laporan
+        if ($user && $user->level->value === LevelUser::ADMIN->value) {
+            if (isset(static::$navigationGroup) && 
+                in_array(static::$navigationGroup, ['Transaksi', 'Laporan'])) {
+                return false;
+            }
+        }
+        
+        return static::canAccess();
+    }
 }

@@ -26,11 +26,11 @@ class AlpalResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-paper-airplane';
 
-    protected static ?string $navigationGroup = 'Transaksi';
+    protected static ?string $navigationGroup = 'Master';
 
     protected static ?string $navigationLabel = 'Alut';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 9; // 9. Alut
 
     protected static ?string $slug = 'alut';
 

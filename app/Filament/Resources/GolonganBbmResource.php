@@ -25,7 +25,7 @@ class GolonganBbmResource extends Resource
 
     protected static ?string $navigationLabel = 'Jenis Alut';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 1; // 1. Jenis Alut
 
     protected static ?string $slug = 'jenis-alut';
 

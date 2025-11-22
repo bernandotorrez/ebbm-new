@@ -25,7 +25,7 @@ class PosSandarResource extends Resource
 
     protected static ?string $navigationLabel = 'Pos Sandar';
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 8; // 8. Pos Sandar
 
     protected static ?string $slug = 'pos_sandar';
 

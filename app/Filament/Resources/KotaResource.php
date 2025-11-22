@@ -25,7 +25,7 @@ class KotaResource extends Resource
 
     protected static ?string $navigationLabel = 'Kota';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 6; // 6. Kota
 
     protected static ?string $slug = 'kota';
 

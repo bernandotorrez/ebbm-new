@@ -24,7 +24,7 @@ class PackResource extends Resource
 
     protected static ?string $navigationLabel = 'Pack';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 10; // 10. Pack
 
     protected static ?string $slug = 'pack';
 

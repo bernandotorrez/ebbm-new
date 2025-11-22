@@ -26,7 +26,7 @@ class BekalResource extends Resource
 
     protected static ?string $navigationLabel = 'Jenis Bahan Bakar';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 3; // 3. Jenis Bahan Bakar
 
     protected static ?string $slug = 'jenis-bahan-bakar';
 
