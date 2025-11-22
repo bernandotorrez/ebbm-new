@@ -110,7 +110,7 @@
                                         <div class="text-md font-medium text-gray-600 dark:text-amber-500 mb-2">Pakai (Ltr)</div>
                                         <div class="text-2xl font-bold text-orange-700 dark:text-white">{{ number_format($data['pemakaian']['qty'], 0, ',', '.') }}</div>
                                     </div>
-                                    <div class="p-4 bg-green-50 dark:bg-gray-900 rounded-lg border border-green-200 dark:border-gray-700">
+                                    <div class="p-4 bg-amber-50 dark:bg-gray-900 rounded-lg border-2 border-amber-500 dark:border-amber-600">
                                         <div class="text-md font-medium text-gray-600 dark:text-amber-500 mb-2">Pengisian (Ltr)</div>
                                         <div class="text-2xl font-bold text-green-700 dark:text-green-400">{{ number_format($data['pemakaian']['pengisian'] ?? 0, 0, ',', '.') }}</div>
                                     </div>
@@ -151,7 +151,7 @@
                                             <div class="font-bold text-gray-900 dark:text-white">{{ $data['sp3m']['bekal'] }}</div>
                                         </div>
                                     </div>
-                                    <div class="p-4 bg-blue-50 dark:bg-gray-900 rounded-lg border border-blue-200 dark:border-gray-700">
+                                    <div class="p-4 bg-amber-50 dark:bg-gray-900 rounded-lg border-2 border-amber-500 dark:border-amber-600">
                                         <div class="text-md font-medium text-gray-600 dark:text-amber-500 mb-2">Qty (Ltr)</div>
                                         <div class="text-2xl font-bold text-blue-700 dark:text-white">{{ number_format($data['sp3m']['qty'], 0, ',', '.') }}</div>
                                     </div>
@@ -207,7 +207,7 @@
                                         <div class="text-md font-medium text-gray-600 dark:text-amber-500 mb-2">Pakai (Ltr)</div>
                                         <div class="text-2xl font-bold text-orange-700 dark:text-white">{{ number_format($data['pemakaian']['qty'], 0, ',', '.') }}</div>
                                     </div>
-                                    <div class="p-4 bg-green-50 dark:bg-gray-900 rounded-lg border border-green-200 dark:border-gray-700">
+                                    <div class="p-4 bg-amber-50 dark:bg-gray-900 rounded-lg border-2 border-amber-500 dark:border-amber-600">
                                         <div class="text-md font-medium text-gray-600 dark:text-amber-500 mb-2">Pengisian (Ltr)</div>
                                         <div class="text-2xl font-bold text-green-700 dark:text-green-400">{{ number_format($data['pemakaian']['pengisian'] ?? 0, 0, ',', '.') }}</div>
                                     </div>
@@ -297,7 +297,7 @@
                                         <div class="text-2xl font-bold text-blue-700 dark:text-white">{{ number_format($data['sp3m']['qty'], 0, ',', '.') }}</div>
                                     </div>
                                     @if(auth()->user()->level->value === 'admin' || auth()->user()->level->value === 'kanpus')
-                                    <div class="p-4 bg-blue-50 dark:bg-gray-900 rounded-lg border border-blue-200 dark:border-gray-700">
+                                    <div class="p-3 bg-amber-50 dark:bg-gray-900 rounded-lg border-2 border-amber-500 dark:border-amber-600">
                                         <div class="text-md font-medium text-gray-600 dark:text-amber-500 mb-2">Jml Harga (Rp)</div>
                                         <div class="text-lg font-bold text-blue-700 dark:text-white">{{ number_format($data['sp3m']['jumlah_harga'], 0, ',', '.') }}</div>
                                     </div>
@@ -375,7 +375,7 @@
                                         <div class="text-md font-medium text-gray-600 dark:text-amber-500 mb-2">Pakai (Ltr)</div>
                                         <div class="text-2xl font-bold text-orange-700 dark:text-white">{{ number_format($data['pemakaian']['qty'], 0, ',', '.') }}</div>
                                     </div>
-                                    <div class="p-4 bg-green-50 dark:bg-gray-900 rounded-lg border border-green-200 dark:border-gray-700">
+                                    <div class="p-3 bg-amber-50 dark:bg-gray-900 rounded-lg border-2 border-amber-500 dark:border-amber-600">
                                         <div class="text-md font-medium text-gray-600 dark:text-amber-500 mb-2">Pengisian (Ltr)</div>
                                         <div class="text-2xl font-bold text-green-700 dark:text-green-400">{{ number_format($data['pemakaian']['pengisian'], 0, ',', '.') }}</div>
                                     </div>

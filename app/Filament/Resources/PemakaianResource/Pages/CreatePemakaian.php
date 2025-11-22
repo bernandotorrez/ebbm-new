@@ -12,6 +12,24 @@ class CreatePemakaian extends CreateRecord
 {
     protected static string $resource = PemakaianResource::class;
 
+    public function mount(): void
+    {
+        parent::mount();
+        
+        $user = auth()->user();
+        
+        // Cek apakah user adalah Admin atau Kanpus
+        if ($user && in_array($user->level->value, [\App\Enums\LevelUser::ADMIN->value, \App\Enums\LevelUser::KANPUS->value])) {
+            Notification::make()
+                ->title('Akses Ditolak')
+                ->body('Admin dan Kanpus tidak memiliki akses untuk membuat Pemakaian.')
+                ->danger()
+                ->send();
+            
+            $this->redirect(PemakaianResource::getUrl('index'));
+        }
+    }
+
     protected function getRedirectUrl(): string
     {
         // Redirect to the list page after creation
