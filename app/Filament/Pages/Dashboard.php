@@ -98,9 +98,15 @@ class Dashboard extends Page
             ];
         }
 
-        $sp3mData = Sp3m::whereIn('bekal_id', $bekalIds)
-            ->where('tahun_anggaran', $this->selectedYear)
-            ->selectRaw('
+        $query = Sp3m::whereIn('bekal_id', $bekalIds)
+            ->where('tahun_anggaran', $this->selectedYear);
+
+        // Filter by kantor_sar_id for Kansar and ABK
+        if (in_array(auth()->user()->level->value, ['kansar', 'abk'])) {
+            $query->where('kantor_sar_id', auth()->user()->kantor_sar_id);
+        }
+
+        $sp3mData = $query->selectRaw('
                 SUM(qty) as total_qty,
                 SUM(jumlah_harga) as total_harga,
                 SUM(sisa_qty) as total_sisa_qty
@@ -131,11 +137,17 @@ class Dashboard extends Page
             ];
         }
 
-        $pengambilanData = DeliveryOrder::whereHas('sp3m', function ($query) use ($bekalIds) {
+        $query = DeliveryOrder::whereHas('sp3m', function ($query) use ($bekalIds) {
                 $query->whereIn('bekal_id', $bekalIds);
+                
+                // Filter by kantor_sar_id for Kansar and ABK
+                if (in_array(auth()->user()->level->value, ['kansar', 'abk'])) {
+                    $query->where('kantor_sar_id', auth()->user()->kantor_sar_id);
+                }
             })
-            ->where('tahun_anggaran', $this->selectedYear)
-            ->selectRaw('
+            ->where('tahun_anggaran', $this->selectedYear);
+
+        $pengambilanData = $query->selectRaw('
                 SUM(qty) as total_qty,
                 SUM(jumlah_harga) as total_harga
             ')
@@ -163,15 +175,35 @@ class Dashboard extends Page
             return [
                 'bekal' => '-',
                 'qty' => 0,
+                'pengisian' => 0,
             ];
         }
 
-        $pemakaianData = Pemakaian::whereIn('bekal_id', $bekalIds)
-            ->whereYear('tanggal_pakai', $this->selectedYear)
-            ->selectRaw('
+        $queryPemakaian = Pemakaian::whereIn('bekal_id', $bekalIds)
+            ->whereYear('tanggal_pakai', $this->selectedYear);
+
+        // Filter by kantor_sar_id for Kansar and ABK
+        if (in_array(auth()->user()->level->value, ['kansar', 'abk'])) {
+            $queryPemakaian->where('kantor_sar_id', auth()->user()->kantor_sar_id);
+        }
+
+        $pemakaianData = $queryPemakaian->selectRaw('
                 SUM(qty) as total_qty
             ')
             ->first();
+
+        // Calculate pengisian from DeliveryOrder
+        $queryPengisian = DeliveryOrder::whereHas('sp3m', function ($query) use ($bekalIds) {
+                $query->whereIn('bekal_id', $bekalIds);
+                
+                // Filter by kantor_sar_id for Kansar and ABK
+                if (in_array(auth()->user()->level->value, ['kansar', 'abk'])) {
+                    $query->where('kantor_sar_id', auth()->user()->kantor_sar_id);
+                }
+            })
+            ->where('tahun_anggaran', $this->selectedYear);
+
+        $pengisianData = $queryPengisian->sum('qty');
 
         // Get bekal name
         $bekalName = Bekal::whereIn('bekal_id', $bekalIds)->first()->bekal ?? '-';
@@ -179,6 +211,7 @@ class Dashboard extends Page
         return [
             'bekal' => $bekalName,
             'qty' => $pemakaianData->total_qty ?? 0,
+            'pengisian' => $pengisianData ?? 0,
         ];
     }
 
