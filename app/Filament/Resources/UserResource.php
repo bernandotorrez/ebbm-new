@@ -67,7 +67,7 @@ class UserResource extends Resource
                     ->maxLength(255),
                 Forms\Components\TextInput::make('password')
                     ->password()
-                    ->autocomplete(false)
+                    ->autocomplete('new-password')
                     ->required(fn (string $operation): bool => $operation === 'create')
                     ->maxLength(255)
                     ->helperText(fn (string $operation): ?string => 

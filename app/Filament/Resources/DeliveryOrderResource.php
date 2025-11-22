@@ -506,6 +506,18 @@ class DeliveryOrderResource extends Resource
         ];
     }
 
+    public static function canCreate(): bool
+    {
+        $user = Auth::user();
+        
+        // Admin dan Kanpus tidak bisa create
+        if ($user && in_array($user->level->value, [LevelUser::ADMIN->value, LevelUser::KANPUS->value])) {
+            return false;
+        }
+        
+        return true;
+    }
+
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();

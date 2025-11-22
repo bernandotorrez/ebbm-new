@@ -169,4 +169,16 @@ class PemakaianResource extends Resource
             'edit' => Pages\EditPemakaian::route('/{record}/edit'),
         ];
     }
+
+    public static function canCreate(): bool
+    {
+        $user = auth()->user();
+        
+        // Admin dan Kanpus tidak bisa create
+        if ($user && in_array($user->level->value, [\App\Enums\LevelUser::ADMIN->value, \App\Enums\LevelUser::KANPUS->value])) {
+            return false;
+        }
+        
+        return true;
+    }
 }
