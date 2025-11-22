@@ -44,25 +44,33 @@ class TbbmResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\TextInput::make('plant')
+                    ->label('Plant')
+                    ->required()
+                    ->maxLength(5),
+                Forms\Components\TextInput::make('depot')
+                    ->label('Depot')
+                    ->required()
+                    ->maxLength(50),
                 Forms\Components\Select::make('kota_id')
+                    ->label('Kota')
                     ->relationship(name: 'kota', titleAttribute: 'kota')
                     ->searchable()
                     ->preload()
                     ->required(),
-                Forms\Components\TextInput::make('plant')
-                    ->required()
-                    ->maxLength(5),
-                Forms\Components\TextInput::make('depot')
-                    ->required()
-                    ->maxLength(50),
                 Forms\Components\TextInput::make('pbbkb')
+                    ->label('PBBKB (%)')
                     ->required()
-                    ->numeric()
-                    ->minValue(0),
-                Forms\Components\TextInput::make('ship_to')
-                    ->required()
-                    ->mask('999999')
-                    ->maxLength(6),
+                    ->maxLength(3)
+                    ->rule('numeric')
+                    ->rule('min:0')
+                    ->rule('max:999')
+                    ->suffix('%')
+                    ->extraInputAttributes([
+                        'onkeypress' => 'return event.charCode >= 48 && event.charCode <= 57',
+                        'onkeyup' => 'this.value = this.value.replace(/[^0-9]/g, "")',
+                        'type' => 'text'
+                    ]),
             ]);
     }
 
@@ -70,19 +78,23 @@ class TbbmResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('plant')
+                    ->label('Plant')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('depot')
+                    ->label('Depot')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('kota.kota')
                     ->label('Kota')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('plant')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('depot')
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('pbbkb')
+                    ->label('PBBKB (%)')
                     ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('ship_to')
-                    ->searchable(),
+                    ->sortable()
+                    ->suffix('%'),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()
                     ->sortable()

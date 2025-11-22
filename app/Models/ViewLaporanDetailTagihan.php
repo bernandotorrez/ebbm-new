@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ViewLaporanDetailTagihan extends Model
 {
-    protected $table = 'view_delivery_order_with_calculations';
+    protected $table = 'view_laporan_detail_tagihan';
     
     protected $primaryKey = 'do_id';
     

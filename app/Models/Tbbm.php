@@ -22,7 +22,6 @@ class Tbbm extends Model
         'plant',
         'depot',
         'pbbkb',
-        'ship_to',
         'created_by',
         'updated_by',
         'deleted_by',
