@@ -21,7 +21,7 @@ class EditTxBast extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        $data['updated_by'] = Auth::id();
+        $data['updated_by'] = Auth::user()->user_id;
         
         // Process details
         if (isset($data['details'])) {
@@ -50,7 +50,7 @@ class EditTxBast extends EditRecord
                     $detail['jumlah_harga_terutang'] = (float) $detail['jumlah_harga_mulai'] - $detail['jumlah_harga_diterima'];
                 }
                 
-                $detail['updated_by'] = Auth::id();
+                $detail['updated_by'] = Auth::user()->user_id;
             }
         }
         

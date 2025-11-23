@@ -14,7 +14,7 @@ class CreateTxBast extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data['created_by'] = Auth::id();
+        $data['created_by'] = Auth::user()->user_id;
         
         // Process details
         if (isset($data['details'])) {
@@ -36,7 +36,7 @@ class CreateTxBast extends CreateRecord
                 $detail['jumlah_harga_diterima'] = (float) $detail['jumlah_harga_diterima'] + $detail['jumlah_harga_masuk'];
                 $detail['jumlah_harga_terutang'] = (float) $detail['jumlah_harga_mulai'] - $detail['jumlah_harga_diterima'];
                 
-                $detail['created_by'] = Auth::id();
+                $detail['created_by'] = Auth::user()->user_id;
             }
         }
         
