@@ -59,9 +59,9 @@ class UserResource extends Resource
                     ->required()
                     ->live()
                     ->afterStateUpdated(function (callable $set, $state) {
-                        // Reset kantor_sar_id dan tx_alpal_id saat level berubah
+                        // Reset kantor_sar_id dan alpal_id saat level berubah
                         $set('kantor_sar_id', null);
-                        $set('tx_alpal_id', null);
+                        $set('alpal_id', null);
                     }),
                 
                 // Conditional field: Kantor SAR untuk non-ABK, Alut untuk ABK
@@ -73,7 +73,7 @@ class UserResource extends Resource
                     ->required()
                     ->visible(fn (callable $get) => $get('level') !== LevelUser::ABK->value),
                 
-                Forms\Components\Select::make('tx_alpal_id')
+                Forms\Components\Select::make('alpal_id')
                     ->relationship(name: 'alpal', titleAttribute: 'alpal')
                     ->label('Alut')
                     ->searchable()
@@ -167,7 +167,7 @@ class UserResource extends Resource
                     ->label('Kantor SAR')
                     ->relationship('kantorSar', 'kantor_sar')
                     ->preload(),
-                SelectFilter::make('tx_alpal_id')
+                SelectFilter::make('alpal_id')
                     ->label('Alut')
                     ->relationship('alpal', 'alpal')
                     ->preload(),
