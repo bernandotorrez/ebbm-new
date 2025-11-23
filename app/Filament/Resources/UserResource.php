@@ -76,9 +76,14 @@ class UserResource extends Resource
                     ->dehydrateStateUsing(fn ($state) => filled($state) ? bcrypt($state) : null)
                     ->dehydrated(fn ($state) => filled($state)),
                 Forms\Components\Select::make('level')
-                    ->options(LevelUser::values())
+                    ->options(function () {
+                        $levels = LevelUser::values();
+                        // Remove Admin from options
+                        unset($levels[LevelUser::ADMIN->value]);
+                        return $levels;
+                    })
                     ->label('Level')
-                    ->default(LevelUser::ABK->value)  // Use enum value instead of string
+                    ->default(LevelUser::ABK->value)
                     ->required()
             ]);
     }
