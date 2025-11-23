@@ -61,16 +61,24 @@ class TbbmResource extends Resource
                 Forms\Components\TextInput::make('pbbkb')
                     ->label('PBBKB (%)')
                     ->required()
-                    ->maxLength(3)
-                    ->rule('numeric')
-                    ->rule('min:0')
-                    ->rule('max:999')
+                    ->maxLength(6)
                     ->suffix('%')
                     ->extraInputAttributes([
-                        'onkeypress' => 'return event.charCode >= 48 && event.charCode <= 57',
-                        'onkeyup' => 'this.value = this.value.replace(/[^0-9]/g, "")',
-                        'type' => 'text'
-                    ]),
+                        'type' => 'text',
+                        'maxlength' => '6',
+                        'oninput' => 'this.value = this.value.replace(/[^0-9,]/g, "").replace(/(,.*),/g, "$1")',
+                    ])
+                    ->formatStateUsing(function ($state) {
+                        if ($state === null) return null;
+                        // Format dengan koma sebagai pemisah desimal (format Indonesia)
+                        $formatted = rtrim(rtrim(number_format($state, 2, ',', ''), '0'), ',');
+                        return $formatted;
+                    })
+                    ->dehydrateStateUsing(function ($state) {
+                        // Convert koma ke titik untuk database
+                        return (float) str_replace(',', '.', $state);
+                    })
+                    ->rules(['regex:/^[0-9]+([,][0-9]{1,2})?$/', 'min:0', 'max:999']),
             ]);
     }
 
@@ -92,9 +100,13 @@ class TbbmResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('pbbkb')
                     ->label('PBBKB (%)')
-                    ->numeric()
                     ->sortable()
-                    ->suffix('%'),
+                    ->formatStateUsing(function ($state) {
+                        if ($state === null) return null;
+                        // Format dengan koma sebagai pemisah desimal (format Indonesia)
+                        $formatted = rtrim(rtrim(number_format($state, 2, ',', ''), '0'), ',');
+                        return $formatted . '%';
+                    }),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()
                     ->sortable()

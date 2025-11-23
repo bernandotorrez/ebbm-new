@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('tx_alpal', function (Blueprint $table) {
             $table->unsignedBigInteger('golongan_bbm_id')->after('kantor_sar_id');
-            $table->foreign('golongan_bbm_id')->references('golongan_bbm_id')->on('ms_golongan_bbm')->onDelete('restrict');
+            $table->foreign('golongan_bbm_id')->references('golongan_bbm_id')->on('ms_golongan_bbm')->noActionOnDelete()->noActionOnUpdate();
         });
     }
 

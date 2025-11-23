@@ -47,24 +47,55 @@ class UserResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('level')
+                    ->options(function () {
+                        $levels = LevelUser::values();
+                        // Remove Admin from options
+                        unset($levels[LevelUser::ADMIN->value]);
+                        return $levels;
+                    })
+                    ->label('Level')
+                    ->placeholder('Pilih Level')
+                    ->required()
+                    ->live()
+                    ->afterStateUpdated(function (callable $set, $state) {
+                        // Reset kantor_sar_id dan tx_alpal_id saat level berubah
+                        $set('kantor_sar_id', null);
+                        $set('tx_alpal_id', null);
+                    }),
+                
+                // Conditional field: Kantor SAR untuk non-ABK, Alut untuk ABK
                 Forms\Components\Select::make('kantor_sar_id')
                     ->relationship(name: 'kantorSar', titleAttribute: 'kantor_sar')
                     ->label('Kantor SAR')
                     ->searchable()
                     ->preload()
-                    ->required(),
+                    ->required()
+                    ->visible(fn (callable $get) => $get('level') !== LevelUser::ABK->value),
+                
+                Forms\Components\Select::make('tx_alpal_id')
+                    ->relationship(name: 'alpal', titleAttribute: 'alpal')
+                    ->label('Alut')
+                    ->searchable()
+                    ->preload()
+                    ->required()
+                    ->visible(fn (callable $get) => $get('level') === LevelUser::ABK->value),
+                
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
+                
                 Forms\Components\TextInput::make('username')
                     ->required()
                     ->maxLength(200)
                     ->unique(ignoreRecord: true),
+                
                 Forms\Components\TextInput::make('email')
                     ->email()
                     ->autocomplete(false)
                     ->required()
                     ->maxLength(255),
+                
                 Forms\Components\TextInput::make('password')
                     ->password()
                     ->autocomplete('new-password')
@@ -75,16 +106,6 @@ class UserResource extends Resource
                     )
                     ->dehydrateStateUsing(fn ($state) => filled($state) ? bcrypt($state) : null)
                     ->dehydrated(fn ($state) => filled($state)),
-                Forms\Components\Select::make('level')
-                    ->options(function () {
-                        $levels = LevelUser::values();
-                        // Remove Admin from options
-                        unset($levels[LevelUser::ADMIN->value]);
-                        return $levels;
-                    })
-                    ->label('Level')
-                    ->default(LevelUser::ABK->value)
-                    ->required()
             ]);
     }
 
@@ -92,16 +113,6 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('kantorSar.kantor_sar')
-                    ->numeric()
-                    ->label('Kantor SAR')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('username')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('email')
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('level')
                     ->badge()
                     ->formatStateUsing(fn ($state) => match($state) {
@@ -118,24 +129,48 @@ class UserResource extends Resource
                         LevelUser::ABK => 'success',
                         default => 'gray',
                     }),
+                
+                Tables\Columns\TextColumn::make('kantorSar.kantor_sar')
+                    ->label('Kantor SAR')
+                    ->sortable()
+                    ->visible(fn ($record) => $record && $record->level !== LevelUser::ABK),
+                
+                Tables\Columns\TextColumn::make('alpal.alpal')
+                    ->label('Alut')
+                    ->sortable()
+                    ->visible(fn ($record) => $record && $record->level === LevelUser::ABK),
+                
+                Tables\Columns\TextColumn::make('name')
+                    ->searchable(),
+                
+                Tables\Columns\TextColumn::make('username')
+                    ->searchable(),
+                
+                Tables\Columns\TextColumn::make('email')
+                    ->searchable(),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('kantor_sar_id')
-                    ->label('Kantor Sar')
-                    ->relationship('kantorSar', 'kantor_sar') // Relasi ke Golongan BBM
-                    ->preload(),
                 SelectFilter::make('level')
                     ->options(LevelUser::values())
                     ->label('Level'),
+                SelectFilter::make('kantor_sar_id')
+                    ->label('Kantor SAR')
+                    ->relationship('kantorSar', 'kantor_sar')
+                    ->preload(),
+                SelectFilter::make('tx_alpal_id')
+                    ->label('Alut')
+                    ->relationship('alpal', 'alpal')
+                    ->preload(),
                 // Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
@@ -143,9 +178,9 @@ class UserResource extends Resource
                     ->label('Ubah'),
                 Tables\Actions\DeleteAction::make()
                     ->label('Hapus')
-                    ->visible(fn (User $record): bool => $record->level !== LevelUser::ADMIN)
+                    ->visible(fn (User $record): bool => $record && $record->level !== LevelUser::ADMIN)
                     ->before(function (User $record) {
-                        if ($record->level === LevelUser::ADMIN) {
+                        if ($record && $record->level === LevelUser::ADMIN) {
                             Notification::make()
                                 ->title('Tidak Dapat Menghapus!')
                                 ->body('User dengan level Admin tidak dapat dihapus.')
@@ -165,7 +200,7 @@ class UserResource extends Resource
                         ->before(function ($records) {
                             // Check if any record is Admin
                             $hasAdmin = $records->contains(function ($record) {
-                                return $record->level === LevelUser::ADMIN;
+                                return $record && $record->level === LevelUser::ADMIN;
                             });
                             
                             if ($hasAdmin) {
