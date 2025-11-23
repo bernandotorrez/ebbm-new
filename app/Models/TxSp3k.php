@@ -49,4 +49,9 @@ class TxSp3k extends Model
     {
         return $this->hasMany(DxSp3k::class, 'sp3k_id', 'sp3k_id')->orderBy('sort');
     }
+
+    public function basts()
+    {
+        return $this->hasMany(TxBast::class, 'sp3k_id', 'sp3k_id')->orderBy('sequence');
+    }
 }
