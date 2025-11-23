@@ -29,6 +29,7 @@ class User extends Authenticatable implements FilamentUser
     protected $fillable = [
         'user_id',
         'kantor_sar_id',
+        'tx_alpal_id',
         'name',
         'username',
         'email',
@@ -69,6 +70,11 @@ class User extends Authenticatable implements FilamentUser
     public function kantorSar()
     {
         return $this->belongsTo(KantorSar::class, 'kantor_sar_id', 'kantor_sar_id');
+    }
+
+    public function alpal()
+    {
+        return $this->belongsTo(Alpal::class, 'tx_alpal_id', 'alpal_id');
     }
 
     public function canAccessPanel(Panel $panel): bool

@@ -26,7 +26,6 @@ class RoleMenuHelper
                 'pelumas',
                 'pos-sandar',
                 'tbbm',  // TBBM/DPPU
-                'harga-bekal',
                 // Transaksi
                 'alut',
                 // Admin
