@@ -43,17 +43,18 @@ class RoleMenuHelper
                 'delivery-order',
                 'pemakaian',
                 'sp3k',
-                // 'bast',  // TODO: Belum ada
+                // 'bast',  // TODO: Menu BAST belum ada, akan ditambahkan nanti
             ],
             
             // Kansar: can access specific menus (TIDAK ADA PAGU & HARGA BEKAL)
+            // SP3M, Pemakaian, SP3K adalah READ ONLY (tidak bisa add, edit, delete)
             LevelUser::KANSAR->value => [
                 // Transaksi only
-                'sp3m',
+                'sp3m',          // Read Only
                 'delivery-order',
-                'pemakaian',
-                'sp3k',
-                // 'bast',  // TODO: Belum ada
+                'pemakaian',     // Read Only
+                'sp3k',          // Read Only
+                // 'bast',       // TODO: Menu BAST belum ada, akan ditambahkan nanti
             ],
             
             // Abk: can access limited menus
