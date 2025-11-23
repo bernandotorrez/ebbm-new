@@ -32,6 +32,14 @@ class EditSp3m extends EditRecord
         $data['qty'] = (int) preg_replace('/[^\d]/', '', $data['qty']);
         $data['nomor_sp3m'] = strtoupper($data['nomor_sp3m']);
         
+        // Get kantor_sar_id from Alut if not set
+        if (empty($data['kantor_sar_id']) && !empty($data['alpal_id'])) {
+            $alpal = Alpal::find($data['alpal_id']);
+            if ($alpal && $alpal->kantor_sar_id) {
+                $data['kantor_sar_id'] = $alpal->kantor_sar_id;
+            }
+        }
+        
         // Calculate harga_satuan from HargaBekal (get latest harga for the bekal_id)
         $bekalId = $data['bekal_id'] ?? null;
         

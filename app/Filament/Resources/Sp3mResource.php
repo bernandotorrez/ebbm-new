@@ -108,25 +108,54 @@ class Sp3mResource extends Resource
                 Forms\Components\Select::make('alpal_id')
                     ->label('Alut')
                     ->required()
-                    ->relationship('alpal', 'alpal')
+                    ->relationship('alpal', 'alpal', function ($query) {
+                        $user = Auth::user();
+                        // Filter Alut berdasarkan kantor_sar_id user yang login
+                        if ($user && $user->level->value !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
+                            $query->where('kantor_sar_id', $user->kantor_sar_id);
+                        }
+                        return $query;
+                    })
                     ->searchable()
                     ->preload()
                     ->validationMessages([
                         'required' => 'Pilih Alut',
                     ])
-                    ->live(),
+                    ->live()
+                    ->afterStateHydrated(function (callable $set, $state) {
+                        // Set kantor_sar_info saat form di-load (untuk edit)
+                        if ($state) {
+                            $alpal = Alpal::find($state);
+                            if ($alpal && $alpal->kantor_sar_id) {
+                                $kantorSar = KantorSar::find($alpal->kantor_sar_id);
+                                $set('kantor_sar_info', $kantorSar ? $kantorSar->kantor_sar : '');
+                            }
+                        }
+                    })
+                    ->afterStateUpdated(function (callable $set, $state) {
+                        if ($state) {
+                            $alpal = Alpal::find($state);
+                            if ($alpal && $alpal->kantor_sar_id) {
+                                $kantorSar = KantorSar::find($alpal->kantor_sar_id);
+                                $set('kantor_sar_info', $kantorSar ? $kantorSar->kantor_sar : '');
+                                $set('kantor_sar_id', $alpal->kantor_sar_id);
+                            }
+                        } else {
+                            $set('kantor_sar_info', '');
+                            $set('kantor_sar_id', null);
+                        }
+                    }),
                 
-                // 6. Kantor SAR
-                Forms\Components\Select::make('kantor_sar_id')
+                // 6. Kantor SAR (readonly, auto-filled from Alut)
+                Forms\Components\TextInput::make('kantor_sar_info')
                     ->label('Kantor SAR')
-                    ->required()
-                    ->options(static::getKantorSarOptions())
-                    ->searchable()
-                    ->preload()
-                    ->validationMessages([
-                        'required' => 'Pilih Kantor SAR',
-                    ])
-                    ->live(),
+                    ->disabled()
+                    ->dehydrated(false)
+                    ->extraAttributes([
+                        'class' => 'dark:bg-gray-800 dark:text-gray-400 bg-gray-100 text-gray-600',
+                    ]),
+                
+                Forms\Components\Hidden::make('kantor_sar_id'),
                 
                 // 7. Jenis Bahan Bakar
                 Forms\Components\Select::make('bekal_id')
@@ -155,23 +184,27 @@ class Sp3mResource extends Resource
                     ->validationMessages([
                         'required' => 'Qty harus diisi',
                     ])
+                    ->live(debounce: 500)
                     ->afterStateUpdated(function (callable $get, callable $set, $state, $context) {
                         // Only update sisa_qty in create form
                         if ($context === 'create') {
                             $cleanQty = (int) str_replace(['.', ',', ' '], '', $state ?? '0');
                             $set('sisa_qty', $cleanQty ? number_format($cleanQty, 0, ',', '.') : null);
                         }
-                    })
-                    ->live(debounce: 500),
+                    }),
                 
                 // 9. Sisa SP3M (readonly, calculated)
                 Forms\Components\TextInput::make('sisa_qty')
                     ->label('Sisa SP3M')
                     ->inputMode('numeric')
-                    ->readonly()
+                    ->disabled()
+                    ->dehydrated()
                     ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
                     ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
-                    ->helperText('Sisa SP3M akan sama dengan Qty saat pertama kali dibuat'),
+                    ->helperText('Sisa SP3M akan sama dengan Qty saat pertama kali dibuat')
+                    ->extraAttributes([
+                        'class' => 'dark:bg-gray-800 dark:text-gray-400 bg-gray-100 text-gray-600',
+                    ]),
                 
                 // 10. Lampiran
                 Forms\Components\FileUpload::make('file_upload_sp3m')
