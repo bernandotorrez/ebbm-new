@@ -63,8 +63,12 @@ class RolePermissionHelper
             return false;
         }
 
-        // Admin has access to all resources
+        // Admin has access to all resources except HargaBekal
         if ($levelValue === LevelUser::ADMIN->value) {
+            // Block HargaBekal for Admin
+            if ($resourceName === 'HargaBekal') {
+                return false;
+            }
             return true;
         }
 
@@ -99,7 +103,6 @@ class RolePermissionHelper
                 'Pelumas',
                 'PosSandar',  // Pos Sandar
                 'Tbbm',  // TBBM/DPPU
-                'HargaBekal',  // Harga Bekal
                 // Transaksi
                 'Alpal',  // Alut
                 // Admin
