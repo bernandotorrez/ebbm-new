@@ -31,7 +31,7 @@ class Sp3kResource extends Resource
 
     protected static ?string $navigationLabel = 'SP3K';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
     protected static ?string $slug = 'sp3k';
 

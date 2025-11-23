@@ -33,6 +33,11 @@ trait RoleBasedResourceAccess
      */
     public static function canCreate(): bool
     {
+        // Check if this resource is read-only for Kansar
+        if (static::isReadOnlyForKansar()) {
+            return false;
+        }
+        
         return static::canAccess();
     }
     
@@ -41,6 +46,11 @@ trait RoleBasedResourceAccess
      */
     public static function canEdit($record = null): bool
     {
+        // Check if this resource is read-only for Kansar
+        if (static::isReadOnlyForKansar()) {
+            return false;
+        }
+        
         return static::canAccess();
     }
     
@@ -49,7 +59,33 @@ trait RoleBasedResourceAccess
      */
     public static function canDelete($record = null): bool
     {
+        // Check if this resource is read-only for Kansar
+        if (static::isReadOnlyForKansar()) {
+            return false;
+        }
+        
         return static::canAccess();
+    }
+    
+    /**
+     * Check if this resource is read-only for Kansar users
+     */
+    protected static function isReadOnlyForKansar(): bool
+    {
+        $user = Auth::user();
+        
+        // If user is not Kansar, return false (not read-only)
+        if (!$user || $user->level->value !== LevelUser::KANSAR->value) {
+            return false;
+        }
+        
+        // Get the resource name
+        $resourceName = class_basename(static::class);
+        
+        // Define read-only resources for Kansar
+        $readOnlyResources = ['Sp3mResource', 'PemakaianResource', 'Sp3kResource'];
+        
+        return in_array($resourceName, $readOnlyResources);
     }
     
     /**

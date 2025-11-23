@@ -24,7 +24,7 @@ class PemakaianResource extends Resource
 
     protected static ?string $navigationLabel = 'Pemakaian';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 3;
 
     public static function getModelLabel(): string
     {
@@ -168,17 +168,5 @@ class PemakaianResource extends Resource
             'create' => Pages\CreatePemakaian::route('/create'),
             'edit' => Pages\EditPemakaian::route('/{record}/edit'),
         ];
-    }
-
-    public static function canCreate(): bool
-    {
-        $user = auth()->user();
-        
-        // Admin dan Kanpus tidak bisa create
-        if ($user && in_array($user->level->value, [\App\Enums\LevelUser::ADMIN->value, \App\Enums\LevelUser::KANPUS->value])) {
-            return false;
-        }
-        
-        return true;
     }
 }

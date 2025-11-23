@@ -36,7 +36,7 @@ class RolePermissionHelper
                 'DeliveryOrder' => true,
                 'Pemakaian' => true,
                 'Sp3k' => true,
-                // 'Bast' => true,  // TODO: Belum ada, akan ditambahkan nanti
+                // 'Bast' => true,  // TODO: Resource BAST belum ada, akan ditambahkan nanti
                 // Laporan
                 // 'DaftarSp3m' => true,  // TODO: Akan menggunakan Sp3m resource
                 // 'RekapDo' => true,  // TODO: Belum ada, akan ditambahkan nanti
@@ -44,11 +44,12 @@ class RolePermissionHelper
             ],
             LevelUser::KANSAR->value => [
                 // Transaksi
-                'Sp3m' => true,
+                // SP3M, Pemakaian, SP3K adalah READ ONLY (tidak bisa add, edit, delete)
+                'Sp3m' => true,          // Read Only
                 'DeliveryOrder' => true,
-                'Pemakaian' => true,
-                'Sp3k' => true,
-                // 'Bast' => true,  // TODO: Belum ada, akan ditambahkan nanti
+                'Pemakaian' => true,     // Read Only
+                'Sp3k' => true,          // Read Only
+                // 'Bast' => true,       // TODO: Resource BAST belum ada, akan ditambahkan nanti
             ],
             LevelUser::ABK->value => [
                 // Transaksi
@@ -113,7 +114,7 @@ class RolePermissionHelper
                 'DeliveryOrder',
                 'Pemakaian',
                 'Sp3k',
-                // 'Bast',  // TODO: Belum ada
+                // 'Bast',  // TODO: Resource BAST belum ada, akan ditambahkan nanti
                 // Laporan
                 // 'DaftarSp3m',  // TODO: Menggunakan Sp3m resource
                 // 'RekapDo',  // TODO: Belum ada
@@ -121,11 +122,12 @@ class RolePermissionHelper
             ],
             LevelUser::KANSAR->value => [
                 // Transaksi
-                'Sp3m',
+                // SP3M, Pemakaian, SP3K adalah READ ONLY (tidak bisa add, edit, delete)
+                'Sp3m',          // Read Only
                 'DeliveryOrder',
-                'Pemakaian',
-                'Sp3k',
-                // 'Bast',  // TODO: Belum ada
+                'Pemakaian',     // Read Only
+                'Sp3k',          // Read Only
+                // 'Bast',       // TODO: Resource BAST belum ada, akan ditambahkan nanti
             ],
             LevelUser::ABK->value => [
                 // Transaksi
