@@ -110,8 +110,11 @@ class Sp3mResource extends Resource
                     ->required()
                     ->relationship('alpal', 'alpal', function ($query) {
                         $user = Auth::user();
-                        // Filter Alut berdasarkan kantor_sar_id user yang login
-                        if ($user && $user->level->value !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
+                        // Filter Alut berdasarkan kantor_sar_id user yang login (kecuali Admin dan Kanpus)
+                        if ($user && 
+                            $user->level->value !== LevelUser::ADMIN->value && 
+                            $user->level->value !== LevelUser::KANPUS->value && 
+                            $user->kantor_sar_id) {
                             $query->where('kantor_sar_id', $user->kantor_sar_id);
                         }
                         return $query;
@@ -360,8 +363,11 @@ class Sp3mResource extends Resource
 
         $user = Auth::user();
 
-        // Apply user-level filtering for non-admin users
-        if ($user && $user->level->value !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
+        // Apply user-level filtering for non-admin and non-kanpus users
+        if ($user && 
+            $user->level->value !== LevelUser::ADMIN->value && 
+            $user->level->value !== LevelUser::KANPUS->value && 
+            $user->kantor_sar_id) {
             $query->where('kantor_sar_id', $user->kantor_sar_id);
         }
 
