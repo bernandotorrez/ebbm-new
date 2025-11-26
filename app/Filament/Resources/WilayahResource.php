@@ -45,18 +45,12 @@ class WilayahResource extends Resource
                 Forms\Components\TextInput::make('wilayah_ke')
                     ->label('Wilayah Ke')
                     ->required()
-                    ->minLength(1)
-                    ->maxLength(1)
-                    ->inputMode('numeric')  // Change to numeric for better UX
-                    ->rule('integer')
-                    ->rule('between:1,9')
                     ->extraInputAttributes([
-                        'onkeypress' => 'return event.charCode >= 48 && event.charCode <= 57', // Only allow numbers 0-9
-                        'onkeyup' => 'this.value = this.value.replace(/[^0-9]/g, "")', // Remove non-numeric characters on keyup
-                        'onpaste' => 'return false', // Prevent paste
-                        'autocomplete' => 'off',
-                        'type' => 'text'  // Explicitly set to text type
-                    ]),
+                        'type' => 'text',
+                        'maxlength' => '1',
+                        'oninput' => 'this.value = this.value.replace(/[^1-9]/g, "")',
+                    ])
+                    ->rules(['required', 'regex:/^[1-9]$/']),
             ]);
     }
 
