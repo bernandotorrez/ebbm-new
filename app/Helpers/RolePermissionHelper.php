@@ -36,7 +36,7 @@ class RolePermissionHelper
                 'DeliveryOrder' => true,
                 'Pemakaian' => true,
                 'Sp3k' => true,
-                // 'Bast' => true,  // TODO: Resource BAST belum ada, akan ditambahkan nanti
+                'TxBast' => true,
                 // Laporan
                 // 'DaftarSp3m' => true,  // TODO: Akan menggunakan Sp3m resource
                 // 'RekapDo' => true,  // TODO: Belum ada, akan ditambahkan nanti
@@ -49,7 +49,7 @@ class RolePermissionHelper
                 'DeliveryOrder' => true,
                 'Pemakaian' => true,     // Read Only
                 'Sp3k' => true,          // Read Only
-                // 'Bast' => true,       // TODO: Resource BAST belum ada, akan ditambahkan nanti
+                'TxBast' => true,
             ],
             LevelUser::ABK->value => [
                 // Transaksi
@@ -117,7 +117,7 @@ class RolePermissionHelper
                 'DeliveryOrder',
                 'Pemakaian',
                 'Sp3k',
-                // 'Bast',  // TODO: Resource BAST belum ada, akan ditambahkan nanti
+                'TxBast',
                 // Laporan
                 // 'DaftarSp3m',  // TODO: Menggunakan Sp3m resource
                 // 'RekapDo',  // TODO: Belum ada
@@ -130,7 +130,7 @@ class RolePermissionHelper
                 'DeliveryOrder',
                 'Pemakaian',     // Read Only
                 'Sp3k',          // Read Only
-                // 'Bast',       // TODO: Resource BAST belum ada, akan ditambahkan nanti
+                'TxBast',
             ],
             LevelUser::ABK->value => [
                 // Transaksi

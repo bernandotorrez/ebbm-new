@@ -42,7 +42,7 @@ class RoleMenuHelper
                 'delivery-order',
                 'pemakaian',
                 'sp3k',
-                // 'bast',  // TODO: Menu BAST belum ada, akan ditambahkan nanti
+                'bast',
             ],
             
             // Kansar: can access specific menus (TIDAK ADA PAGU & HARGA BEKAL)
@@ -53,7 +53,7 @@ class RoleMenuHelper
                 'delivery-order',
                 'pemakaian',     // Read Only
                 'sp3k',          // Read Only
-                // 'bast',       // TODO: Menu BAST belum ada, akan ditambahkan nanti
+                'bast',
             ],
             
             // Abk: can access limited menus
