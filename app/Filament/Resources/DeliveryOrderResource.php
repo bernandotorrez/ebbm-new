@@ -321,8 +321,10 @@ class DeliveryOrderResource extends Resource
             ->modifyQueryUsing(function (Builder $query) use ($user) {
                 $query->with(['sp3m', 'tbbm']);
                 
-                // Apply user-level filtering for non-admin users
-                if ($user && $user->level->value !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
+                // Apply user-level filtering for Kansar and ABK only
+                if ($user 
+                    && !in_array($user->level->value, [LevelUser::ADMIN->value, LevelUser::KANPUS->value])
+                    && $user->kantor_sar_id) {
                     $query->whereHas('sp3m', function ($q) use ($user) {
                         $q->where('kantor_sar_id', $user->kantor_sar_id);
                     });
@@ -488,13 +490,7 @@ class DeliveryOrderResource extends Resource
 
     public static function canViewAny(): bool
     {
-        $user = Auth::user();
-        
-        // Kanpus tidak bisa melihat menu dan data sama sekali
-        if ($user && $user->level->value === LevelUser::KANPUS->value) {
-            return false;
-        }
-        
+        // Semua level bisa melihat menu dan data
         return true;
     }
 
@@ -516,12 +512,18 @@ class DeliveryOrderResource extends Resource
             
         $user = Auth::user();
         
-        // Kanpus tidak bisa melihat data sama sekali
-        if ($user && $user->level->value === LevelUser::KANPUS->value) {
-            $query->whereRaw('1 = 0'); // Return empty result
+        // Jika user tidak ada, return query kosong
+        if (!$user) {
+            return $query->whereRaw('1 = 0');
         }
-        // Apply user-level filtering for non-admin users through SP3M relationship
-        elseif ($user && $user->level->value !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
+        
+        // Admin dan Kanpus: bisa lihat semua data tanpa filter
+        if (in_array($user->level->value, [LevelUser::ADMIN->value, LevelUser::KANPUS->value])) {
+            return $query;
+        }
+        
+        // Kansar dan ABK: filter berdasarkan kantor_sar_id
+        if ($user->kantor_sar_id) {
             $query->whereHas('sp3m', function ($q) use ($user) {
                 $q->where('kantor_sar_id', $user->kantor_sar_id);
             });
