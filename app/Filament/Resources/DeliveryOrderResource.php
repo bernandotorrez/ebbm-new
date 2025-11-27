@@ -486,6 +486,18 @@ class DeliveryOrderResource extends Resource
         ];
     }
 
+    public static function canViewAny(): bool
+    {
+        $user = Auth::user();
+        
+        // Kanpus tidak bisa melihat menu dan data sama sekali
+        if ($user && $user->level->value === LevelUser::KANPUS->value) {
+            return false;
+        }
+        
+        return true;
+    }
+
     public static function canCreate(): bool
     {
         $user = Auth::user();
@@ -504,8 +516,12 @@ class DeliveryOrderResource extends Resource
             
         $user = Auth::user();
         
+        // Kanpus tidak bisa melihat data sama sekali
+        if ($user && $user->level->value === LevelUser::KANPUS->value) {
+            $query->whereRaw('1 = 0'); // Return empty result
+        }
         // Apply user-level filtering for non-admin users through SP3M relationship
-        if ($user && $user->level->value !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
+        elseif ($user && $user->level->value !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
             $query->whereHas('sp3m', function ($q) use ($user) {
                 $q->where('kantor_sar_id', $user->kantor_sar_id);
             });
