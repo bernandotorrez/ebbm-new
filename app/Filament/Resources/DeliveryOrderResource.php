@@ -369,26 +369,20 @@ class DeliveryOrderResource extends Resource
                 Tables\Columns\TextColumn::make('harga_per_liter')
                     ->label('Harga per Liter')
                     ->getStateUsing(function ($record) {
-                        if ($record->harga_bekal_id === null) {
+                        $harga = $record->harga; // Using accessor
+                        if ($harga == 0) {
                             return 'Belum Update';
                         }
-                        // Get harga from hargaBekal relation
-                        $hargaBekal = \App\Models\HargaBekal::find($record->harga_bekal_id);
-                        if ($hargaBekal) {
-                            return 'Rp ' . number_format($hargaBekal->harga, 0, ',', '.');
-                        }
-                        return 'Belum Update';
+                        return 'Rp ' . number_format($harga, 0, ',', '.');
                     })
                     ->sortable(false),
-                Tables\Columns\TextColumn::make('jumlah_harga')
+                Tables\Columns\TextColumn::make('jumlah_harga_display')
                     ->label('Jumlah Harga')
-                    ->formatStateUsing(function ($state, $record) {
-                        if ($record->harga_bekal_id === null) {
-                            return 'Rp 0';
-                        }
-                        return 'Rp ' . number_format($state, 0, ',', '.');
+                    ->getStateUsing(function ($record) {
+                        $jumlahHarga = $record->jumlah_harga; // Using accessor
+                        return 'Rp ' . number_format($jumlahHarga, 0, ',', '.');
                     })
-                    ->sortable(),
+                    ->sortable(false),
                 Tables\Columns\TextColumn::make('ppn')
                     ->label('PPN')
                     ->numeric()

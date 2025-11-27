@@ -29,12 +29,14 @@ return new class extends Migration
             $table->foreign('sp3k_id')
                 ->references('sp3k_id')
                 ->on('tx_sp3k')
-                ->onDelete('restrict');
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
 
             $table->foreign('pelumas_id')
                 ->references('pelumas_id')
                 ->on('ms_pelumas')
-                ->onDelete('restrict');
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
 
             $table->index('sp3k_id', 'idx_sp3k_id');
             $table->index('pelumas_id', 'idx_pelumas_id');

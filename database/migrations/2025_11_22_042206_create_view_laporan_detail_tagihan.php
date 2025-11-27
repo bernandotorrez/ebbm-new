@@ -17,8 +17,8 @@ return new class extends Migration
                 txsp3m.nomor_sp3m,
                 txdo.nomor_do,
                 txdo.qty,
-                mhb.harga AS harga_per_liter,
-                txdo.jumlah_harga,
+                COALESCE(mhb.harga, 0) AS harga_per_liter,
+                CAST(txdo.qty * COALESCE(mhb.harga, 0) AS DECIMAL(20,2)) AS jumlah_harga,
                 mks.kantor_sar,
                 ta.alpal,
                 mks.kantor_sar_id,
@@ -26,16 +26,16 @@ return new class extends Migration
                 txsp3m.sp3m_id,
 
                 -- PPN 11%
-                CAST((txdo.jumlah_harga * 0.11) AS DECIMAL(20,2)) AS ppn_11,
+                CAST(((txdo.qty * COALESCE(mhb.harga, 0)) * 0.11) AS DECIMAL(20,2)) AS ppn_11,
 
                 -- PPKB
-                CAST((txdo.jumlah_harga * (mt.pbbkb / 100)) AS DECIMAL(20,2)) AS ppkb,
+                CAST(((txdo.qty * COALESCE(mhb.harga, 0)) * (mt.pbbkb / 100)) AS DECIMAL(20,2)) AS ppkb,
 
                 -- Total sebelum pembulatan
                 CAST(
-                    txdo.jumlah_harga 
-                    + (txdo.jumlah_harga * 0.11)
-                    + (txdo.jumlah_harga * (mt.pbbkb / 100))
+                    (txdo.qty * COALESCE(mhb.harga, 0))
+                    + ((txdo.qty * COALESCE(mhb.harga, 0)) * 0.11)
+                    + ((txdo.qty * COALESCE(mhb.harga, 0)) * (mt.pbbkb / 100))
                     AS DECIMAL(20,2)
                 ) AS total_ppn_ppkb,
 
@@ -43,24 +43,23 @@ return new class extends Migration
                 (
                     FLOOR(
                         (
-                            txdo.jumlah_harga 
-                            + txdo.jumlah_harga * 0.11
-                            + txdo.jumlah_harga * (mt.pbbkb / 100)
+                            (txdo.qty * COALESCE(mhb.harga, 0))
+                            + (txdo.qty * COALESCE(mhb.harga, 0)) * 0.11
+                            + (txdo.qty * COALESCE(mhb.harga, 0)) * (mt.pbbkb / 100)
                         ) / 100
                     ) * 100
                     +
                     CASE 
                         WHEN (
-                            (txdo.jumlah_harga 
-                            + txdo.jumlah_harga * 0.11
-                            + txdo.jumlah_harga * (mt.pbbkb / 100)
-                            )
+                            ((txdo.qty * COALESCE(mhb.harga, 0))
+                            + (txdo.qty * COALESCE(mhb.harga, 0)) * 0.11
+                            + (txdo.qty * COALESCE(mhb.harga, 0)) * (mt.pbbkb / 100))
                             -
                             FLOOR(
                                 (
-                                    txdo.jumlah_harga 
-                                    + txdo.jumlah_harga * 0.11
-                                    + txdo.jumlah_harga * (mt.pbbkb / 100)
+                                    (txdo.qty * COALESCE(mhb.harga, 0))
+                                    + (txdo.qty * COALESCE(mhb.harga, 0)) * 0.11
+                                    + (txdo.qty * COALESCE(mhb.harga, 0)) * (mt.pbbkb / 100)
                                 ) / 100
                             ) * 100
                         ) >= 500 
@@ -69,30 +68,29 @@ return new class extends Migration
                     END
                 ) AS total_setelah_pembulatan,
 
-                -- Nilai pembulatan (selisih) — FIXED + CAST DECIMAL
+                -- Nilai pembulatan (selisih)
                 CAST(
                     (
                         (
                             FLOOR(
                                 (
-                                    txdo.jumlah_harga 
-                                    + txdo.jumlah_harga * 0.11
-                                    + txdo.jumlah_harga * (mt.pbbkb / 100)
+                                    (txdo.qty * COALESCE(mhb.harga, 0))
+                                    + (txdo.qty * COALESCE(mhb.harga, 0)) * 0.11
+                                    + (txdo.qty * COALESCE(mhb.harga, 0)) * (mt.pbbkb / 100)
                                 ) / 100
                             ) * 100
                             +
                             CASE 
                                 WHEN (
-                                    (txdo.jumlah_harga 
-                                    + txdo.jumlah_harga * 0.11
-                                    + txdo.jumlah_harga * (mt.pbbkb / 100)
-                                    )
+                                    ((txdo.qty * COALESCE(mhb.harga, 0))
+                                    + (txdo.qty * COALESCE(mhb.harga, 0)) * 0.11
+                                    + (txdo.qty * COALESCE(mhb.harga, 0)) * (mt.pbbkb / 100))
                                     -
                                     FLOOR(
                                         (
-                                            txdo.jumlah_harga 
-                                            + txdo.jumlah_harga * 0.11
-                                            + txdo.jumlah_harga * (mt.pbbkb / 100)
+                                            (txdo.qty * COALESCE(mhb.harga, 0))
+                                            + (txdo.qty * COALESCE(mhb.harga, 0)) * 0.11
+                                            + (txdo.qty * COALESCE(mhb.harga, 0)) * (mt.pbbkb / 100)
                                         ) / 100
                                     ) * 100
                                 ) >= 500 
@@ -102,9 +100,9 @@ return new class extends Migration
                         )
                         -
                         (
-                            txdo.jumlah_harga 
-                            + txdo.jumlah_harga * 0.11
-                            + txdo.jumlah_harga * (mt.pbbkb / 100)
+                            (txdo.qty * COALESCE(mhb.harga, 0))
+                            + (txdo.qty * COALESCE(mhb.harga, 0)) * 0.11
+                            + (txdo.qty * COALESCE(mhb.harga, 0)) * (mt.pbbkb / 100)
                         )
                     ) AS DECIMAL(20,2)
                 ) AS jumlah_pembulatan
@@ -112,9 +110,9 @@ return new class extends Migration
             FROM tx_do txdo
             INNER JOIN tx_sp3m txsp3m ON txdo.sp3m_id = txsp3m.sp3m_id
             INNER JOIN ms_kantor_sar mks ON mks.kantor_sar_id = txsp3m.kantor_sar_id
-            INNER JOIN ms_harga_bekal mhb ON mhb.harga_bekal_id = txdo.harga_bekal_id
+            LEFT JOIN ms_harga_bekal mhb ON mhb.kota_id = txdo.kota_id AND mhb.bekal_id = txdo.bekal_id
             INNER JOIN tx_alpal ta ON ta.alpal_id = txsp3m.alpal_id
-            INNER JOIN ms_tbbm mt ON mt.tbbm_id = ta.tbbm_id
+            INNER JOIN ms_tbbm mt ON mt.tbbm_id = txdo.tbbm_id
             WHERE txdo.deleted_at IS NULL;
         ");
     }

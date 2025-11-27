@@ -16,6 +16,9 @@ return new class extends Migration
             $table->string('pos_sandar', 50);
             $table->softDeletes();
             $table->timestamps();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->unsignedBigInteger('deleted_by')->nullable();
 
             $table->index('pos_sandar', 'idx_pos_sandar_ms_pos_sandar');
         });

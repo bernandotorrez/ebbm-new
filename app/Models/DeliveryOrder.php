@@ -20,13 +20,12 @@ class DeliveryOrder extends Model
         'do_id',
         'sp3m_id',
         'tbbm_id',
-        'harga_bekal_id',
+        'bekal_id',
+        'kota_id',
         'tanggal_do',
         'tahun_anggaran',
         'nomor_do',
         'qty',
-        'harga_satuan',
-        'jumlah_harga',
         'file_upload_do',
         'file_upload_laporan',
         'created_by',
@@ -44,9 +43,31 @@ class DeliveryOrder extends Model
         return $this->belongsTo(Tbbm::class, 'tbbm_id', 'tbbm_id');
     }
 
-    public function hargaBekal()
+    public function bekal()
     {
-        return $this->belongsTo(HargaBekal::class, 'harga_bekal_id', 'harga_bekal_id');
+        return $this->belongsTo(Bekal::class, 'bekal_id', 'bekal_id');
+    }
+
+    public function kota()
+    {
+        return $this->belongsTo(Kota::class, 'kota_id', 'kota_id');
+    }
+
+    // Helper method to get harga from ms_harga_bekal
+    public function getHargaAttribute()
+    {
+        $hargaBekal = HargaBekal::where('kota_id', $this->kota_id)
+            ->where('bekal_id', $this->bekal_id)
+            ->orderBy('created_at', 'desc')
+            ->first();
+        
+        return $hargaBekal ? $hargaBekal->harga : 0;
+    }
+
+    // Helper method to get jumlah_harga
+    public function getJumlahHargaAttribute()
+    {
+        return $this->qty * $this->harga;
     }
 
     protected static function boot()

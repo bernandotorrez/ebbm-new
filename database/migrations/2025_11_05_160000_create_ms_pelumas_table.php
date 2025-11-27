@@ -21,10 +21,13 @@ return new class extends Migration
             $table->decimal('harga', 20, 2)->default(0);
             $table->softDeletes();
             $table->timestamps();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->unsignedBigInteger('deleted_by')->nullable();
             
             // Add foreign key constraints
-            $table->foreign('pack_id')->references('pack_id')->on('ms_pack');
-            $table->foreign('kemasan_id')->references('kemasan_id')->on('ms_kemasan');
+            $table->foreign('pack_id')->references('pack_id')->on('ms_pack')->noActionOnDelete()->noActionOnUpdate();
+            $table->foreign('kemasan_id')->references('kemasan_id')->on('ms_kemasan')->noActionOnDelete()->noActionOnUpdate();
             
             // Add indexes
             $table->index('pack_id', 'idx_pack_id');

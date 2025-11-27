@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('ms_user', function (Blueprint $table) {
-            $table->unsignedBigInteger('tx_alpal_id')->nullable()->after('kantor_sar_id');
-            
+            $table->foreign('kantor_sar_id')
+                ->references('kantor_sar_id')
+                ->on('ms_kantor_sar')
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
+                
             $table->foreign('tx_alpal_id')
                 ->references('alpal_id')
                 ->on('tx_alpal')
@@ -28,8 +32,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('ms_user', function (Blueprint $table) {
+            $table->dropForeign(['kantor_sar_id']);
             $table->dropForeign(['tx_alpal_id']);
-            $table->dropColumn('tx_alpal_id');
         });
     }
 };

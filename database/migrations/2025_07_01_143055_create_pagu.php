@@ -20,6 +20,11 @@ return new class extends Migration
             $table->date('tanggal');
             $table->softDeletes();
             $table->timestamps();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->unsignedBigInteger('deleted_by')->nullable();
+            
+            $table->foreign('golongan_bbm_id')->references('golongan_bbm_id')->on('ms_golongan_bbm')->noActionOnDelete()->noActionOnUpdate();
         });
     }
 
