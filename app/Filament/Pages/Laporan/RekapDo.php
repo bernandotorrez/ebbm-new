@@ -218,10 +218,15 @@ class RekapDo extends Page implements HasForms
         
         $query = $this->getFilteredQueryForData($kantorSarId, $tahun);
         
-        $data = $query->selectRaw('
-                MONTH(tanggal_do) as month,
-                SUM(qty) as total_bbm,
-                SUM(jumlah_harga) as total_pembayaran
+        $data = $query
+            ->leftJoin('ms_harga_bekal', function($join) {
+                $join->on('tx_do.kota_id', '=', 'ms_harga_bekal.kota_id')
+                     ->on('tx_do.bekal_id', '=', 'ms_harga_bekal.bekal_id');
+            })
+            ->selectRaw('
+                MONTH(tx_do.tanggal_do) as month,
+                SUM(tx_do.qty) as total_bbm,
+                SUM(tx_do.qty * COALESCE(ms_harga_bekal.harga, 0)) as total_pembayaran
             ')
             ->groupBy('month')
             ->orderBy('month')
