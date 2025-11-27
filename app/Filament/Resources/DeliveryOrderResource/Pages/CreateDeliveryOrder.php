@@ -40,26 +40,25 @@ class CreateDeliveryOrder extends CreateRecord
         // Clean numeric fields
         $data['qty'] = (int) preg_replace('/[^\d]/', '', $data['qty']);
         
-        // Get kota_id and bekal_id from SP3M
+        // Get bekal_id from SP3M
         $sp3mId = $data['sp3m_id'] ?? null;
         if ($sp3mId) {
-            $sp3m = Sp3m::with(['alpal.tbbm'])->find($sp3mId);
-            
+            $sp3m = Sp3m::find($sp3mId);
             if ($sp3m) {
-                // Set bekal_id from SP3M
                 $data['bekal_id'] = $sp3m->bekal_id;
-                
-                // Set kota_id from TBBM
-                if ($sp3m->alpal && $sp3m->alpal->tbbm) {
-                    $data['kota_id'] = $sp3m->alpal->tbbm->kota_id;
-                } else {
-                    // Fallback: get first kota_id (should not happen in normal flow)
-                    $data['kota_id'] = \App\Models\Kota::first()->kota_id ?? 1;
-                }
             }
         }
         
-        // Remove unused fields
+        // Get kota_id from TBBM
+        $tbbmId = $data['tbbm_id'] ?? null;
+        if ($tbbmId) {
+            $tbbm = Tbbm::find($tbbmId);
+            if ($tbbm) {
+                $data['kota_id'] = $tbbm->kota_id;
+            }
+        }
+        
+        // Remove unused fields if any
         unset($data['ppn']);
         unset($data['pbbkb']);
         unset($data['harga_satuan']);
@@ -94,7 +93,7 @@ class CreateDeliveryOrder extends CreateRecord
         $qty = (int) preg_replace('/[^\d]/', '', $this->data['qty'] ?? 0);
 
         // Validasi sisa_qty di SP3M
-        $sp3m = Sp3m::with(['alpal.tbbm', 'bekal', 'kantorSar'])->find($sp3mId);
+        $sp3m = Sp3m::with(['alpal', 'bekal', 'kantorSar'])->find($sp3mId);
         
         if (!$sp3m) {
             Notification::make()

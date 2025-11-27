@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('bekal_id')->index('idx_bekal_id_tx_do');
             $table->unsignedBigInteger('kota_id')->index('idx_kota_id_tx_do');
             $table->string('nomor_do', 200)->index('idx_nomor_do_tx_do');
-            $table->char('tahun_anggaran', 4);
+            $table->char('tahun_anggaran', 4)->index('idx_tahun_anggaran');
             $table->date('tanggal_do');
             $table->decimal('qty', 20, 2)->unsigned()->default(0);
             $table->text('file_upload_do');
