@@ -319,7 +319,15 @@ class DeliveryOrderResource extends Resource
         
         return $table
             ->modifyQueryUsing(function (Builder $query) use ($user) {
-                $query->with(['sp3m', 'tbbm']);
+                // Eager load relationships to prevent N+1 queries
+                $query->with([
+                    'sp3m.alpal',
+                    'sp3m.kantorSar',
+                    'sp3m.bekal',
+                    'tbbm.kota',
+                    'bekal',
+                    'kota'
+                ]);
                 
                 // Apply user-level filtering for Kansar and ABK only
                 if ($user 
