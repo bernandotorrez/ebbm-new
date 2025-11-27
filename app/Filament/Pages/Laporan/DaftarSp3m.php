@@ -64,8 +64,11 @@ class DaftarSp3m extends Page implements HasForms
     {
         $user = Auth::user();
         
-        // For non-admin users, automatically set their kantor_sar_id
-        if ($user && $user->level->value !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
+        // For Kansar and ABK, automatically set their kantor_sar_id
+        // Admin and Kanpus can see all Kantor SAR
+        if ($user 
+            && !in_array($user->level->value, [LevelUser::ADMIN->value, LevelUser::KANPUS->value])
+            && $user->kantor_sar_id) {
             $this->kantor_sar_id = (string) $user->kantor_sar_id;
         }
         
@@ -97,12 +100,18 @@ class DaftarSp3m extends Page implements HasForms
                             }),
                         DatePicker::make('tanggal_start')
                             ->label('Tanggal Mulai')
+                            ->native(false)
+                            ->displayFormat('d/m/Y')
+                            ->closeOnDateSelection(true)
                             ->live()
                             ->afterStateUpdated(function ($state) {
                                 $this->tanggal_start = $state;
                             }),
                         DatePicker::make('tanggal_end')
                             ->label('Tanggal Selesai')
+                            ->native(false)
+                            ->displayFormat('d/m/Y')
+                            ->closeOnDateSelection(true)
                             ->live()
                             ->afterStateUpdated(function ($state) {
                                 $this->tanggal_end = $state;
@@ -116,7 +125,8 @@ class DaftarSp3m extends Page implements HasForms
     protected function isAdmin(): bool
     {
         $user = Auth::user();
-        return $user && $user->level->value === LevelUser::ADMIN->value;
+        // Admin and Kanpus can select any Kantor SAR
+        return $user && in_array($user->level->value, [LevelUser::ADMIN->value, LevelUser::KANPUS->value]);
     }
     
     public function form(Form $form): Form
@@ -143,12 +153,12 @@ class DaftarSp3m extends Page implements HasForms
     {
         $user = Auth::user();
         
-        // If user is admin, show all Kantor SAR
-        if ($user && $user->level->value === LevelUser::ADMIN->value) {
+        // If user is Admin or Kanpus, show all Kantor SAR
+        if ($user && in_array($user->level->value, [LevelUser::ADMIN->value, LevelUser::KANPUS->value])) {
             return KantorSar::pluck('kantor_sar', 'kantor_sar_id')->toArray();
         }
         
-        // For non-admin users, only show their assigned Kantor SAR
+        // For Kansar and ABK, only show their assigned Kantor SAR
         if ($user && $user->kantor_sar_id) {
             return KantorSar::where('kantor_sar_id', $user->kantor_sar_id)
                 ->pluck('kantor_sar', 'kantor_sar_id')
@@ -165,11 +175,13 @@ class DaftarSp3m extends Page implements HasForms
         $query = \App\Models\Sp3m::query();
 
         // Apply user-level filtering first
-        if ($user && $user->level->value !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
-            // Non-admin users can only see data from their assigned Kantor SAR
+        if ($user 
+            && !in_array($user->level->value, [LevelUser::ADMIN->value, LevelUser::KANPUS->value])
+            && $user->kantor_sar_id) {
+            // Kansar and ABK can only see data from their assigned Kantor SAR
             $query->where('kantor_sar_id', $user->kantor_sar_id);
         } elseif ($this->kantor_sar_id) {
-            // Admin users can filter by selected Kantor SAR
+            // Admin and Kanpus can filter by selected Kantor SAR
             $query->where('kantor_sar_id', $this->kantor_sar_id);
         }
 
@@ -189,8 +201,11 @@ class DaftarSp3m extends Page implements HasForms
         $user = Auth::user();
         $kantorSarId = $this->kantor_sar_id;
         
-        // For non-admin users, force their assigned kantor_sar_id
-        if ($user && $user->level->value !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
+        // For Kansar and ABK, force their assigned kantor_sar_id
+        // Admin and Kanpus can export any Kantor SAR
+        if ($user 
+            && !in_array($user->level->value, [LevelUser::ADMIN->value, LevelUser::KANPUS->value])
+            && $user->kantor_sar_id) {
             $kantorSarId = $user->kantor_sar_id;
         }
         

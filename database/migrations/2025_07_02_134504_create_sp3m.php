@@ -17,6 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('kantor_sar_id')->index('idx_kantor_sar_id_tx_sp3m');
             $table->unsignedBigInteger('bekal_id')->index('idx_bekal_id_tx_sp3m');
             $table->string('nomor_sp3m', 200)->index('idx_nomor_sp3m');
+            $table->date('tanggal_sp3m')->nullable();
             $table->char('tahun_anggaran', 4)->index('idx_tahun_anggaran');
             $table->char('tw', 1)->index('idx_tw');
             $table->unsignedInteger('qty');
@@ -27,6 +28,13 @@ return new class extends Migration
             $table->text('file_upload_kelengkapan_sp3m')->nullable();
             $table->softDeletes();
             $table->timestamps();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->unsignedBigInteger('deleted_by')->nullable();
+            
+            $table->foreign('kantor_sar_id')->references('kantor_sar_id')->on('ms_kantor_sar')->noActionOnDelete()->noActionOnUpdate();
+            $table->foreign('alpal_id')->references('alpal_id')->on('tx_alpal')->noActionOnDelete()->noActionOnUpdate();
+            $table->foreign('bekal_id')->references('bekal_id')->on('ms_bekal')->noActionOnDelete()->noActionOnUpdate();
         });
     }
 

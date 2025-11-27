@@ -18,9 +18,12 @@ return new class extends Migration
             $table->decimal('harga', 20, 2);
             $table->timestamps();
             $table->softDeletes();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->unsignedBigInteger('deleted_by')->nullable();
             
-            $table->foreign('kota_id')->references('kota_id')->on('ms_kota')->onDelete('cascade');
-            $table->foreign('bekal_id')->references('bekal_id')->on('ms_bekal')->onDelete('cascade');
+            $table->foreign('kota_id')->references('kota_id')->on('ms_kota')->noActionOnDelete()->noActionOnUpdate();
+            $table->foreign('bekal_id')->references('bekal_id')->on('ms_bekal')->noActionOnDelete()->noActionOnUpdate();
         });
     }
 

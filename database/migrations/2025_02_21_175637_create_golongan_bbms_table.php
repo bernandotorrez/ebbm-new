@@ -16,6 +16,9 @@ return new class extends Migration
             $table->string('golongan', 50);
             $table->softDeletes();
             $table->timestamps();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->unsignedBigInteger('deleted_by')->nullable();
 
             $table->index('golongan', 'idx_golongan_ms_golongan_bbm');
         });

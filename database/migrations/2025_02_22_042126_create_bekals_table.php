@@ -18,6 +18,12 @@ return new class extends Migration
             $table->string('bekal', 50)->index('idx_bekal_ms_bekal');
             $table->softDeletes();
             $table->timestamps();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->unsignedBigInteger('deleted_by')->nullable();
+            
+            $table->foreign('golongan_bbm_id')->references('golongan_bbm_id')->on('ms_golongan_bbm')->noActionOnDelete()->noActionOnUpdate();
+            $table->foreign('satuan_id')->references('satuan_id')->on('ms_satuan')->noActionOnDelete()->noActionOnUpdate();
         });
     }
 

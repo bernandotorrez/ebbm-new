@@ -235,6 +235,7 @@ class UserResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery();
+        return parent::getEloquentQuery()
+            ->where('level', '!=', LevelUser::ADMIN->value);
     }
 }

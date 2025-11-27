@@ -31,7 +31,8 @@ return new class extends Migration
             $table->foreign('kantor_sar_id')
                 ->references('kantor_sar_id')
                 ->on('ms_kantor_sar')
-                ->onDelete('restrict');
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
         });
     }
 

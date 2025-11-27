@@ -17,9 +17,13 @@ return new class extends Migration
             $table->string('plant', 5);
             $table->string('depot', 50);
             $table->decimal('pbbkb', 5, 2, true); // unsigned decimal
-            $table->char('ship_to', 6);
             $table->softDeletes();
             $table->timestamps();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->unsignedBigInteger('deleted_by')->nullable();
+            
+            $table->foreign('kota_id')->references('kota_id')->on('ms_kota')->noActionOnDelete()->noActionOnUpdate();
         });
     }
 

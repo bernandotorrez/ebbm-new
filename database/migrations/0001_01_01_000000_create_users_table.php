@@ -16,6 +16,7 @@ return new class extends Migration
         Schema::create('ms_user', function (Blueprint $table) {
             $table->bigIncrements('user_id');
             $table->unsignedBigInteger('kantor_sar_id')->nullable();
+            $table->unsignedBigInteger('tx_alpal_id')->nullable();
             $table->string('name', 100);
             $table->string('username', 50)->unique();
             $table->string('email', 100)->unique();
@@ -25,6 +26,11 @@ return new class extends Migration
             $table->enum('level', ['admin', 'kanpus', 'kansar', 'abk'])->default('abk');
             $table->softDeletes();
             $table->timestamps();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->unsignedBigInteger('deleted_by')->nullable();
+            
+            // Note: Foreign keys will be added after ms_kantor_sar and tx_alpal tables are created
         });
 
         // Insert default admin user

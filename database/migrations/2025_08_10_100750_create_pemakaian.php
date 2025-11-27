@@ -21,6 +21,13 @@ return new class extends Migration
             $table->text('keterangan');
             $table->softDeletes();
             $table->timestamps();
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->unsignedBigInteger('deleted_by')->nullable();
+            
+            $table->foreign('kantor_sar_id')->references('kantor_sar_id')->on('ms_kantor_sar')->noActionOnDelete()->noActionOnUpdate();
+            $table->foreign('alpal_id')->references('alpal_id')->on('tx_alpal')->noActionOnDelete()->noActionOnUpdate();
+            $table->foreign('bekal_id')->references('bekal_id')->on('ms_bekal')->noActionOnDelete()->noActionOnUpdate();
         });
     }
 

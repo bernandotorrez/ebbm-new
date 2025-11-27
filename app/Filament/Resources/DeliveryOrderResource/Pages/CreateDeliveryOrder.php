@@ -40,41 +40,28 @@ class CreateDeliveryOrder extends CreateRecord
         // Clean numeric fields
         $data['qty'] = (int) preg_replace('/[^\d]/', '', $data['qty']);
         
-        // Get kota_id from SP3M -> Alpal -> TBBM
+        // Get bekal_id from SP3M
         $sp3mId = $data['sp3m_id'] ?? null;
         if ($sp3mId) {
-            $sp3m = Sp3m::with(['alpal.tbbm'])->find($sp3mId);
-            
-            if ($sp3m && $sp3m->alpal && $sp3m->alpal->tbbm) {
-                $kotaId = $sp3m->alpal->tbbm->kota_id;
-                $bekalId = $sp3m->bekal_id;
-                
-                // Get harga from ms_harga_bekal based on kota_id and bekal_id
-                $hargaBekal = HargaBekal::where('kota_id', $kotaId)
-                    ->where('bekal_id', $bekalId)
-                    ->orderBy('created_at', 'desc')
-                    ->first();
-                
-                if ($hargaBekal) {
-                    $data['harga_bekal_id'] = $hargaBekal->harga_bekal_id;
-                    $harga = $hargaBekal->harga;
-                    
-                    // Calculate jumlah_harga = qty * harga
-                    $data['jumlah_harga'] = (int) ($data['qty'] * $harga);
-                } else {
-                    // Fallback jika tidak ada harga bekal
-                    $data['harga_bekal_id'] = null;
-                    $data['jumlah_harga'] = 0;
-                }
-            } else {
-                $data['harga_bekal_id'] = null;
-                $data['jumlah_harga'] = 0;
+            $sp3m = Sp3m::find($sp3mId);
+            if ($sp3m) {
+                $data['bekal_id'] = $sp3m->bekal_id;
             }
         }
         
-        // Remove PPN and PBBKB (tidak digunakan lagi)
+        // Get kota_id from TBBM
+        $tbbmId = $data['tbbm_id'] ?? null;
+        if ($tbbmId) {
+            $tbbm = Tbbm::find($tbbmId);
+            if ($tbbm) {
+                $data['kota_id'] = $tbbm->kota_id;
+            }
+        }
+        
+        // Remove unused fields if any
         unset($data['ppn']);
         unset($data['pbbkb']);
+        unset($data['harga_satuan']);
 
         return $data;
     }
@@ -106,7 +93,7 @@ class CreateDeliveryOrder extends CreateRecord
         $qty = (int) preg_replace('/[^\d]/', '', $this->data['qty'] ?? 0);
 
         // Validasi sisa_qty di SP3M
-        $sp3m = Sp3m::with(['alpal.tbbm', 'bekal', 'kantorSar'])->find($sp3mId);
+        $sp3m = Sp3m::with(['alpal', 'bekal', 'kantorSar'])->find($sp3mId);
         
         if (!$sp3m) {
             Notification::make()
@@ -114,38 +101,6 @@ class CreateDeliveryOrder extends CreateRecord
                 ->body('SP3M tidak ditemukan.')
                 ->danger()
                 ->duration(5000)
-                ->send();
-            $this->halt();
-        }
-
-        // Validasi harga_bekal_id
-        if ($sp3m->alpal && $sp3m->alpal->tbbm) {
-            $kotaId = $sp3m->alpal->tbbm->kota_id;
-            $bekalId = $sp3m->bekal_id;
-            
-            $hargaBekal = \App\Models\HargaBekal::where('kota_id', $kotaId)
-                ->where('bekal_id', $bekalId)
-                ->orderBy('created_at', 'desc')
-                ->first();
-            
-            if (!$hargaBekal) {
-                $kotaName = $sp3m->alpal->tbbm->kota->kota ?? 'Unknown';
-                $bekalName = $sp3m->bekal->bekal ?? 'Unknown';
-                
-                Notification::make()
-                    ->title('Gagal Membuat Delivery Order!')
-                    ->body("Harga bekal tidak ditemukan untuk Kota: {$kotaName} dan Jenis Bahan Bakar: {$bekalName}. Silakan hubungi administrator untuk menambahkan data harga bekal.")
-                    ->danger()
-                    ->duration(10000)
-                    ->send();
-                $this->halt();
-            }
-        } else {
-            Notification::make()
-                ->title('Gagal Membuat Delivery Order!')
-                ->body('Data Alpal atau TBBM tidak lengkap pada SP3M yang dipilih.')
-                ->danger()
-                ->duration(7000)
                 ->send();
             $this->halt();
         }

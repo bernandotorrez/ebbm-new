@@ -147,9 +147,14 @@ class Dashboard extends Page
             })
             ->where('tahun_anggaran', $this->selectedYear);
 
-        $pengambilanData = $query->selectRaw('
-                SUM(qty) as total_qty,
-                SUM(jumlah_harga) as total_harga
+        $pengambilanData = $query
+            ->leftJoin('ms_harga_bekal', function($join) {
+                $join->on('tx_do.kota_id', '=', 'ms_harga_bekal.kota_id')
+                     ->on('tx_do.bekal_id', '=', 'ms_harga_bekal.bekal_id');
+            })
+            ->selectRaw('
+                SUM(tx_do.qty) as total_qty,
+                SUM(tx_do.qty * COALESCE(ms_harga_bekal.harga, 0)) as total_harga
             ')
             ->first();
 
