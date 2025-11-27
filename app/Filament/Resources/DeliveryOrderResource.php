@@ -245,7 +245,7 @@ class DeliveryOrderResource extends Resource
                             ->required()
                             ->native(false)
                             ->displayFormat('d/m/Y')
-                            ->closeOnDateSelection(false),
+                            ->closeOnDateSelection(true),
                         
                         Forms\Components\Select::make('tbbm_id')
                             ->relationship(name: 'tbbm', titleAttribute: 'depot')
@@ -366,15 +366,28 @@ class DeliveryOrderResource extends Resource
                     ->numeric()
                     ->formatStateUsing(fn ($state) => number_format($state, 0, ',', '.'))
                     ->sortable(),
-                // Tables\Columns\TextColumn::make('harga_satuan')
-                //     ->label('Harga Satuan')
-                //     ->numeric()
-                //     ->formatStateUsing(fn ($state) => 'Rp ' . number_format($state, 0, ',', '.'))
-                //     ->sortable(),
+                Tables\Columns\TextColumn::make('harga_per_liter')
+                    ->label('Harga per Liter')
+                    ->getStateUsing(function ($record) {
+                        if ($record->harga_bekal_id === null) {
+                            return 'Belum Update';
+                        }
+                        // Get harga from hargaBekal relation
+                        $hargaBekal = \App\Models\HargaBekal::find($record->harga_bekal_id);
+                        if ($hargaBekal) {
+                            return 'Rp ' . number_format($hargaBekal->harga, 0, ',', '.');
+                        }
+                        return 'Belum Update';
+                    })
+                    ->sortable(false),
                 Tables\Columns\TextColumn::make('jumlah_harga')
                     ->label('Jumlah Harga')
-                    ->numeric()
-                    ->formatStateUsing(fn ($state) => 'Rp ' . number_format($state, 0, ',', '.'))
+                    ->formatStateUsing(function ($state, $record) {
+                        if ($record->harga_bekal_id === null) {
+                            return 'Rp 0';
+                        }
+                        return 'Rp ' . number_format($state, 0, ',', '.');
+                    })
                     ->sortable(),
                 Tables\Columns\TextColumn::make('ppn')
                     ->label('PPN')
@@ -448,20 +461,6 @@ class DeliveryOrderResource extends Resource
                             ->first();
                         
                         return $latestDo && $latestDo->do_id === $record->do_id;
-                    })
-                    ->before(function (DeliveryOrder $record) {
-                        // Kembalikan sisa_qty ke SP3M saat delete
-                        $sp3m = Sp3m::with('alpal')->find($record->sp3m_id);
-                        if ($sp3m) {
-                            $sp3m->sisa_qty += $record->qty;
-                            $sp3m->save();
-                            
-                            // Kurangi rob di alpal
-                            if ($sp3m->alpal) {
-                                $sp3m->alpal->rob -= $record->qty;
-                                $sp3m->alpal->save();
-                            }
-                        }
                     }),
             ])
             ->bulkActions([
@@ -470,23 +469,7 @@ class DeliveryOrderResource extends Resource
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
                         ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang')
-                        ->before(function ($records) {
-                            // Kembalikan sisa_qty untuk setiap DO yang dihapus
-                            foreach ($records as $record) {
-                                $sp3m = Sp3m::with('alpal')->find($record->sp3m_id);
-                                if ($sp3m) {
-                                    $sp3m->sisa_qty += $record->qty;
-                                    $sp3m->save();
-                                    
-                                    // Kurangi rob di alpal
-                                    if ($sp3m->alpal) {
-                                        $sp3m->alpal->rob -= $record->qty;
-                                        $sp3m->alpal->save();
-                                    }
-                                }
-                            }
-                        }),
+                        ->modalButton('Ya, Hapus Sekarang'),
                 ])
                 ->label('Hapus'),
             ])

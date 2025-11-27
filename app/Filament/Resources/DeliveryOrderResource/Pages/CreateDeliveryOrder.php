@@ -118,38 +118,6 @@ class CreateDeliveryOrder extends CreateRecord
             $this->halt();
         }
 
-        // Validasi harga_bekal_id
-        if ($sp3m->alpal && $sp3m->alpal->tbbm) {
-            $kotaId = $sp3m->alpal->tbbm->kota_id;
-            $bekalId = $sp3m->bekal_id;
-            
-            $hargaBekal = \App\Models\HargaBekal::where('kota_id', $kotaId)
-                ->where('bekal_id', $bekalId)
-                ->orderBy('created_at', 'desc')
-                ->first();
-            
-            if (!$hargaBekal) {
-                $kotaName = $sp3m->alpal->tbbm->kota->kota ?? 'Unknown';
-                $bekalName = $sp3m->bekal->bekal ?? 'Unknown';
-                
-                Notification::make()
-                    ->title('Gagal Membuat Delivery Order!')
-                    ->body("Harga bekal tidak ditemukan untuk Kota: {$kotaName} dan Jenis Bahan Bakar: {$bekalName}. Silakan hubungi administrator untuk menambahkan data harga bekal.")
-                    ->danger()
-                    ->duration(10000)
-                    ->send();
-                $this->halt();
-            }
-        } else {
-            Notification::make()
-                ->title('Gagal Membuat Delivery Order!')
-                ->body('Data Alpal atau TBBM tidak lengkap pada SP3M yang dipilih.')
-                ->danger()
-                ->duration(7000)
-                ->send();
-            $this->halt();
-        }
-
         // Cek apakah sisa_qty mencukupi
         if ($sp3m->sisa_qty < $qty) {
             $qtyFormatted = number_format($qty, 0, ',', '.');
