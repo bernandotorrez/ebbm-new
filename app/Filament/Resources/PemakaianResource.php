@@ -55,7 +55,7 @@ class PemakaianResource extends Resource
                             ->closeOnDateSelection(true)
                             ->maxDate(now()),
 
-                        // 2. Alut - diambil dari user login (tx_alpal_id)
+                        // 2. Alut - diambil dari user login (tx_alpal_id), hanya 1 option
                         Forms\Components\Select::make('alpal_id')
                             ->relationship(
                                 name: 'alpal',
@@ -80,6 +80,8 @@ class PemakaianResource extends Resource
                                 $user = Auth::user();
                                 return $user?->tx_alpal_id;
                             })
+                            ->disabled()
+                            ->dehydrated()
                             ->afterStateHydrated(function (callable $set, $state) {
                                 if ($state) {
                                     $alpal = Alpal::with('kantorSar')->find($state);
@@ -118,12 +120,28 @@ class PemakaianResource extends Resource
 
                         // 4. Kantor SAR - otomatis terisi dari alpal (readonly, tapi data tetap dikirim)
                         Forms\Components\Hidden::make('kantor_sar_id')
-                            ->required(),
+                            ->required()
+                            ->default(function () {
+                                $user = Auth::user();
+                                if ($user && $user->tx_alpal_id) {
+                                    $alpal = Alpal::find($user->tx_alpal_id);
+                                    return $alpal?->kantor_sar_id;
+                                }
+                                return null;
+                            }),
                         
                         Forms\Components\TextInput::make('kantor_sar_display')
                             ->label('Kantor SAR')
                             ->disabled()
                             ->dehydrated(false)
+                            ->default(function () {
+                                $user = Auth::user();
+                                if ($user && $user->tx_alpal_id) {
+                                    $alpal = Alpal::with('kantorSar')->find($user->tx_alpal_id);
+                                    return $alpal?->kantorSar?->kantor_sar ?? '';
+                                }
+                                return '';
+                            })
                             ->extraAttributes([
                                 'style' => 'font-weight: 500;'
                             ]),
@@ -204,6 +222,14 @@ class PemakaianResource extends Resource
                             ->label('ROB Saat Ini')
                             ->disabled()
                             ->dehydrated(false)
+                            ->default(function () {
+                                $user = Auth::user();
+                                if ($user && $user->tx_alpal_id) {
+                                    $alpal = Alpal::find($user->tx_alpal_id);
+                                    return $alpal ? number_format($alpal->rob, 0, ',', '.') : '';
+                                }
+                                return '';
+                            })
                             ->extraAttributes([
                                 'style' => 'font-weight: 600; color: #059669;'
                             ]),
@@ -212,6 +238,14 @@ class PemakaianResource extends Resource
                             ->label('Kapasitas')
                             ->disabled()
                             ->dehydrated(false)
+                            ->default(function () {
+                                $user = Auth::user();
+                                if ($user && $user->tx_alpal_id) {
+                                    $alpal = Alpal::find($user->tx_alpal_id);
+                                    return $alpal ? number_format($alpal->kapasitas, 0, ',', '.') : '';
+                                }
+                                return '';
+                            })
                             ->extraAttributes([
                                 'style' => 'font-weight: 600; color: #3b82f6;'
                             ]),
