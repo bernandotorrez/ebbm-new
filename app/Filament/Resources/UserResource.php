@@ -79,7 +79,17 @@ class UserResource extends Resource
                     ->searchable()
                     ->preload()
                     ->required()
-                    ->visible(fn (callable $get) => $get('level') === LevelUser::ABK->value),
+                    ->visible(fn (callable $get) => $get('level') === LevelUser::ABK->value)
+                    ->live()
+                    ->afterStateUpdated(function (callable $set, $state) {
+                        // Saat alut dipilih, set kantor_sar_id dari alpal
+                        if ($state) {
+                            $alpal = \App\Models\Alpal::find($state);
+                            if ($alpal) {
+                                $set('kantor_sar_id', $alpal->kantor_sar_id);
+                            }
+                        }
+                    }),
                 
                 Forms\Components\TextInput::make('name')
                     ->required()
