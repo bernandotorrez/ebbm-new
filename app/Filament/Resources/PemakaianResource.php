@@ -46,69 +46,26 @@ class PemakaianResource extends Resource
                 Forms\Components\Section::make('Detail Pemakaian')
                     ->description('Masukkan informasi pemakaian barang')
                     ->schema([
-                        Forms\Components\Select::make('kantor_sar_id')
-                            ->relationship(
-                                name: 'kantorSar',
-                                titleAttribute: 'kantor_sar',
-                                modifyQueryUsing: function (Builder $query) {
-                                    $user = Auth::user();
-                                    
-                                    // Filter untuk KANSAR dan ABK
-                                    if ($user && $user->kantor_sar_id && 
-                                        in_array($user->level->value, [LevelUser::KANSAR->value, LevelUser::ABK->value])) {
-                                        $query->where('kantor_sar_id', $user->kantor_sar_id);
-                                    }
-                                    
-                                    return $query;
-                                }
-                            )
+                        // 1. Tanggal
+                        Forms\Components\DatePicker::make('tanggal_pakai')
+                            ->label('Tanggal')
                             ->required()
-                            ->searchable()
-                            ->preload()
-                            ->label('Kantor SAR')
-                            ->live()
-                            ->default(function () {
-                                $user = Auth::user();
-                                
-                                // Set default untuk KANSAR dan ABK
-                                if ($user && $user->kantor_sar_id && 
-                                    in_array($user->level->value, [LevelUser::KANSAR->value, LevelUser::ABK->value])) {
-                                    return $user->kantor_sar_id;
-                                }
-                                
-                                return null;
-                            })
-                            ->disabled(function () {
-                                $user = Auth::user();
-                                
-                                // Disable untuk KANSAR dan ABK
-                                return $user && $user->kantor_sar_id && 
-                                    in_array($user->level->value, [LevelUser::KANSAR->value, LevelUser::ABK->value]);
-                            })
-                            ->dehydrated()
-                            ->afterStateUpdated(function (callable $set) {
-                                // Reset alpal_id saat kantor_sar_id berubah
-                                $set('alpal_id', null);
-                                $set('rob_info', '');
-                                $set('kapasitas_info', '');
-                            }),
+                            ->native(false)
+                            ->displayFormat('d/m/Y')
+                            ->closeOnDateSelection(true)
+                            ->maxDate(now()),
 
+                        // 2. Alut - diambil dari user login (tx_alpal_id)
                         Forms\Components\Select::make('alpal_id')
                             ->relationship(
                                 name: 'alpal',
                                 titleAttribute: 'alpal',
-                                modifyQueryUsing: function (Builder $query, callable $get) {
+                                modifyQueryUsing: function (Builder $query) {
                                     $user = Auth::user();
-                                    $kantorSarId = $get('kantor_sar_id');
                                     
-                                    // Filter berdasarkan kantor_sar_id yang dipilih di form
-                                    if ($kantorSarId) {
-                                        $query->where('kantor_sar_id', $kantorSarId);
-                                    }
-                                    // Atau filter untuk KANSAR dan ABK jika belum ada kantor_sar_id
-                                    elseif ($user && $user->kantor_sar_id && 
-                                        in_array($user->level->value, [LevelUser::KANSAR->value, LevelUser::ABK->value])) {
-                                        $query->where('kantor_sar_id', $user->kantor_sar_id);
+                                    // Filter hanya alpal yang dimiliki user (dari tx_alpal_id)
+                                    if ($user && $user->tx_alpal_id) {
+                                        $query->where('alpal_id', $user->tx_alpal_id);
                                     }
                                     
                                     return $query;
@@ -119,10 +76,16 @@ class PemakaianResource extends Resource
                             ->preload()
                             ->label('Alut')
                             ->live()
+                            ->default(function () {
+                                $user = Auth::user();
+                                return $user?->tx_alpal_id;
+                            })
                             ->afterStateHydrated(function (callable $set, $state) {
                                 if ($state) {
-                                    $alpal = Alpal::find($state);
+                                    $alpal = Alpal::with('kantorSar')->find($state);
                                     if ($alpal) {
+                                        $set('kantor_sar_id', $alpal->kantor_sar_id);
+                                        $set('kantor_sar_display', $alpal->kantorSar?->kantor_sar ?? '');
                                         $set('rob_info', number_format($alpal->rob, 0, ',', '.'));
                                         $set('kapasitas_info', number_format($alpal->kapasitas, 0, ',', '.'));
                                     }
@@ -130,48 +93,45 @@ class PemakaianResource extends Resource
                             })
                             ->afterStateUpdated(function (callable $get, callable $set, $state) {
                                 if ($state) {
-                                    $alpal = Alpal::find($state);
+                                    $alpal = Alpal::with('kantorSar')->find($state);
                                     if ($alpal) {
+                                        // Set kantor_sar_id otomatis dari alpal (di belakang layar)
+                                        $set('kantor_sar_id', $alpal->kantor_sar_id);
+                                        $set('kantor_sar_display', $alpal->kantorSar?->kantor_sar ?? '');
                                         $set('rob_info', number_format($alpal->rob, 0, ',', '.'));
                                         $set('kapasitas_info', number_format($alpal->kapasitas, 0, ',', '.'));
                                     }
                                 } else {
+                                    $set('kantor_sar_id', null);
+                                    $set('kantor_sar_display', '');
                                     $set('rob_info', '');
                                     $set('kapasitas_info', '');
                                 }
                             }),
 
-                        Forms\Components\TextInput::make('rob_info')
-                            ->label('ROB Saat Ini')
+                        // 3. Kegiatan (Keterangan)
+                        Forms\Components\Textarea::make('keterangan')
+                            ->label('Kegiatan')
+                            ->required()
+                            ->maxLength(1000)
+                            ->rows(3),
+
+                        // 4. Kantor SAR - otomatis terisi dari alpal (readonly, tapi data tetap dikirim)
+                        Forms\Components\Hidden::make('kantor_sar_id')
+                            ->required(),
+                        
+                        Forms\Components\TextInput::make('kantor_sar_display')
+                            ->label('Kantor SAR')
                             ->disabled()
                             ->dehydrated(false)
                             ->extraAttributes([
-                                'style' => 'font-weight: 600; color: #059669;'
+                                'style' => 'font-weight: 500;'
                             ]),
 
-                        Forms\Components\Select::make('bekal_id')
-                            ->relationship('bekal', 'bekal')
-                            ->required()
-                            ->searchable()
-                            ->preload()
-                            ->label('Bekal'),
-
-                        Forms\Components\TextInput::make('kapasitas_info')
-                            ->label('Kapasitas')
-                            ->disabled()
-                            ->dehydrated(false)
-                            ->extraAttributes([
-                                'style' => 'font-weight: 600; color: #3b82f6;'
-                            ]),
-
-                        Forms\Components\DatePicker::make('tanggal_pakai')
-                            ->required()
-                            ->maxDate(now())
-                            ->label('Tanggal Pakai'),
-
+                        // 5. Qty
                         Forms\Components\TextInput::make('qty')
                             ->required()
-                            ->label('Quantity')
+                            ->label('Qty')
                             ->inputMode('numeric')
                             ->live(debounce: 500)
                             ->afterStateUpdated(function (callable $get, callable $set, $state, $livewire) {
@@ -231,11 +191,30 @@ class PemakaianResource extends Resource
                                 },
                             ]),
 
-                        Forms\Components\Textarea::make('keterangan')
+                        // 6. Jenis Bahan Bakar (Bekal)
+                        Forms\Components\Select::make('bekal_id')
+                            ->relationship('bekal', 'bekal')
                             ->required()
-                            ->maxLength(1000)
-                            ->rows(3)
-                            ->label('Keterangan'),
+                            ->searchable()
+                            ->preload()
+                            ->label('Jenis Bahan Bakar'),
+
+                        // Info tambahan
+                        Forms\Components\TextInput::make('rob_info')
+                            ->label('ROB Saat Ini')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->extraAttributes([
+                                'style' => 'font-weight: 600; color: #059669;'
+                            ]),
+
+                        Forms\Components\TextInput::make('kapasitas_info')
+                            ->label('Kapasitas')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->extraAttributes([
+                                'style' => 'font-weight: 600; color: #3b82f6;'
+                            ]),
                     ])
                     ->columns(2)
             ]);
