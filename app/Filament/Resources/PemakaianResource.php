@@ -55,7 +55,7 @@ class PemakaianResource extends Resource
                             ->closeOnDateSelection(true)
                             ->maxDate(now()),
 
-                        // 2. Alut - diambil dari user login (tx_alpal_id), hanya 1 option
+                        // 2. Alut - diambil dari user login (alpal_id), hanya 1 option
                         Forms\Components\Select::make('alpal_id')
                             ->relationship(
                                 name: 'alpal',
@@ -63,9 +63,9 @@ class PemakaianResource extends Resource
                                 modifyQueryUsing: function (Builder $query) {
                                     $user = Auth::user();
                                     
-                                    // Filter hanya alpal yang dimiliki user (dari tx_alpal_id)
-                                    if ($user && $user->tx_alpal_id) {
-                                        $query->where('alpal_id', $user->tx_alpal_id);
+                                    // Filter hanya alpal yang dimiliki user (dari alpal_id)
+                                    if ($user && $user->alpal_id) {
+                                        $query->where('alpal_id', $user->alpal_id);
                                     }
                                     
                                     return $query;
@@ -78,7 +78,7 @@ class PemakaianResource extends Resource
                             ->live()
                             ->default(function () {
                                 $user = Auth::user();
-                                return $user?->tx_alpal_id;
+                                return $user?->alpal_id;
                             })
                             ->disabled()
                             ->dehydrated()
@@ -123,8 +123,8 @@ class PemakaianResource extends Resource
                             ->required()
                             ->default(function () {
                                 $user = Auth::user();
-                                if ($user && $user->tx_alpal_id) {
-                                    $alpal = Alpal::find($user->tx_alpal_id);
+                                if ($user && $user->alpal_id) {
+                                    $alpal = Alpal::find($user->alpal_id);
                                     return $alpal?->kantor_sar_id;
                                 }
                                 return null;
@@ -136,8 +136,8 @@ class PemakaianResource extends Resource
                             ->dehydrated(false)
                             ->default(function () {
                                 $user = Auth::user();
-                                if ($user && $user->tx_alpal_id) {
-                                    $alpal = Alpal::with('kantorSar')->find($user->tx_alpal_id);
+                                if ($user && $user->alpal_id) {
+                                    $alpal = Alpal::with('kantorSar')->find($user->alpal_id);
                                     return $alpal?->kantorSar?->kantor_sar ?? '';
                                 }
                                 return '';
@@ -224,8 +224,8 @@ class PemakaianResource extends Resource
                             ->dehydrated(false)
                             ->default(function () {
                                 $user = Auth::user();
-                                if ($user && $user->tx_alpal_id) {
-                                    $alpal = Alpal::find($user->tx_alpal_id);
+                                if ($user && $user->alpal_id) {
+                                    $alpal = Alpal::find($user->alpal_id);
                                     return $alpal ? number_format($alpal->rob, 0, ',', '.') : '';
                                 }
                                 return '';
@@ -240,8 +240,8 @@ class PemakaianResource extends Resource
                             ->dehydrated(false)
                             ->default(function () {
                                 $user = Auth::user();
-                                if ($user && $user->tx_alpal_id) {
-                                    $alpal = Alpal::find($user->tx_alpal_id);
+                                if ($user && $user->alpal_id) {
+                                    $alpal = Alpal::find($user->alpal_id);
                                     return $alpal ? number_format($alpal->kapasitas, 0, ',', '.') : '';
                                 }
                                 return '';
