@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('tx_bast', function (Blueprint $table) {
             $table->bigIncrements('bast_id');
             $table->unsignedBigInteger('sp3k_id')->index('idx_sp3k_id');
-            $table->unsignedBigInteger('kantor_sar_id')->index('idx_kantor_sar_id');
-            $table->char('tahun_anggaran', 4)->index('idx_tahun_anggaran');
             $table->date('tanggal_bast');
-            $table->unsignedSmallInteger('sequence')->default(1)->comment('Urutan BAST untuk SP3K yang sama');
+            $table->unsignedTinyInteger('bast_ke')->comment('BAST ke berapa?');
+            $table->enum('sudah_diterima_semua', ['0', '1'])->default('0')
+                ->comment('Kalau 0 berarti masih terutang/outstanding, kalau 1 berarti sudah selesai BAST nya');
             $table->dateTime('deleted_at')->nullable();
             $table->dateTime('created_at')->nullable();
             $table->dateTime('updated_at')->nullable();
@@ -28,12 +28,8 @@ return new class extends Migration
             $table->foreign('sp3k_id')
                 ->references('sp3k_id')
                 ->on('tx_sp3k')
-                ->onDelete('restrict');
-
-            $table->foreign('kantor_sar_id')
-                ->references('kantor_sar_id')
-                ->on('ms_kantor_sar')
-                ->onDelete('restrict');
+                ->noActionOnDelete()
+                ->noActionOnUpdate();
         });
     }
 
