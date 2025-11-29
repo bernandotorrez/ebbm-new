@@ -19,6 +19,8 @@ return new class extends Migration
             $table->date('tanggal_sp3k');
             $table->char('tw', 1)->index('idx_tw');
             $table->unsignedInteger('jumlah_qty');
+            $table->enum('bast_sudah_diterima_semua', ['0', '1'])->default('0')
+                ->comment('Kalau 0 berarti masih terutang/outstanding, kalau 1 berarti sudah selesai BAST nya');
             $table->decimal('jumlah_harga', 20, 2)->unsigned();
             $table->unsignedInteger('jumlah_liter');
             $table->dateTime('deleted_at')->nullable();

@@ -23,6 +23,7 @@ class TxSp3k extends Model
         'nomor_sp3k',
         'tahun_anggaran',
         'tanggal_sp3k',
+        'bast_sudah_diterima_semua',
         'tw',
         'jumlah_qty',
         'jumlah_harga',
