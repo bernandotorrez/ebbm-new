@@ -16,8 +16,6 @@ return new class extends Migration
             $table->unsignedBigInteger('sp3k_id')->index('idx_sp3k_id');
             $table->date('tanggal_bast');
             $table->unsignedTinyInteger('bast_ke')->comment('BAST ke berapa?');
-            $table->enum('sudah_diterima_semua', ['0', '1'])->default('0')
-                ->comment('Kalau 0 berarti masih terutang/outstanding, kalau 1 berarti sudah selesai BAST nya');
             $table->dateTime('deleted_at')->nullable();
             $table->dateTime('created_at')->nullable();
             $table->dateTime('updated_at')->nullable();

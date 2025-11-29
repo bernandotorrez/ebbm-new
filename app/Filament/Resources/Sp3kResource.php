@@ -81,7 +81,10 @@ class Sp3kResource extends Resource
                     ->preload(),
                 Forms\Components\DatePicker::make('tanggal_sp3k')
                     ->label('Tanggal SP3K')
-                    ->required(),
+                    ->required()
+                    ->native(false)
+                    ->displayFormat('d/m/Y')
+                    ->closeOnDateSelection(true),
                 Forms\Components\Select::make('tw')
                     ->label('Triwulan')
                     ->required()
@@ -164,12 +167,12 @@ class Sp3kResource extends Resource
     {
         $user = Auth::user();
 
-        // If user is admin, show all Kantor SAR
-        if ($user && $user->level->value === LevelUser::ADMIN->value) {
+        // Admin dan Kanpus bisa melihat semua Kantor SAR
+        if ($user && in_array($user->level->value, [LevelUser::ADMIN->value, LevelUser::KANPUS->value])) {
             return KantorSar::pluck('kantor_sar', 'kantor_sar_id')->toArray();
         }
 
-        // For non-admin users, only show their assigned Kantor SAR
+        // Untuk Kansar dan ABK, hanya tampilkan Kantor SAR mereka
         if ($user && $user->kantor_sar_id) {
             return KantorSar::where('kantor_sar_id', $user->kantor_sar_id)
                 ->pluck('kantor_sar', 'kantor_sar_id')
@@ -281,7 +284,10 @@ class Sp3kResource extends Resource
             ->with(['details.pelumas']); // 👈 penting
 
         $user = Auth::user();
-        if ($user && $user->level->value !== \App\Enums\LevelUser::ADMIN->value && $user->kantor_sar_id) {
+        // Hanya filter untuk Kansar dan ABK, Admin dan Kanpus bisa lihat semua
+        if ($user && 
+            !in_array($user->level->value, [LevelUser::ADMIN->value, LevelUser::KANPUS->value]) && 
+            $user->kantor_sar_id) {
             $query->where('kantor_sar_id', $user->kantor_sar_id);
         }
 

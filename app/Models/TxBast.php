@@ -22,7 +22,6 @@ class TxBast extends Model
         'sp3k_id',
         'tanggal_bast',
         'bast_ke',
-        'sudah_diterima_semua',
         'created_by',
         'updated_by',
         'deleted_by',
@@ -58,11 +57,6 @@ class TxBast extends Model
                     ->first();
                 
                 $model->bast_ke = $lastBast ? $lastBast->bast_ke + 1 : 1;
-            }
-            
-            // Default sudah_diterima_semua to '0'
-            if (!isset($model->sudah_diterima_semua)) {
-                $model->sudah_diterima_semua = '0';
             }
         });
     }

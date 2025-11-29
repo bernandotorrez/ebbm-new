@@ -20,7 +20,7 @@ return new class extends Migration
             $table->unsignedSmallInteger('qty_diterima')
                 ->comment('Total Quantity yang sudah diterima sampai BAST saat ini');
             $table->unsignedSmallInteger('qty_masuk')
-                ->comment('Quantity yang masuk/di input dari BAST');
+                ->comment('Quantity yang masuk/di input dari BAST')->nullable()->default(0);
             $table->unsignedSmallInteger('qty_terutang')
                 ->comment('Sisa Quantity Terutang berapa (qty_mulai - qty_diterima)');
             $table->decimal('jumlah_harga_mulai', 20, 2)->unsigned()
@@ -28,7 +28,7 @@ return new class extends Migration
             $table->decimal('jumlah_harga_diterima', 20, 2)->unsigned()
                 ->comment('Total Harga yang sudah diterima sampai BAST saat ini');
             $table->decimal('jumlah_harga_masuk', 20, 2)->unsigned()
-                ->comment('Harga yang masuk/di input dari BAST');
+                ->comment('Harga yang masuk/di input dari BAST')->nullable()->default(0);
             $table->decimal('jumlah_harga_terutang', 20, 2)->unsigned()
                 ->comment('Sisa Harga terutang berapa');
             $table->dateTime('deleted_at')->nullable();
