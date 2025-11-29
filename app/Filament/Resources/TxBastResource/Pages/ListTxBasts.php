@@ -12,6 +12,13 @@ class ListTxBasts extends ListRecords
 
     protected function getHeaderActions(): array
     {
+        $user = auth()->user();
+        
+        // Hide tombol Create untuk Kanpus
+        if ($user && $user->level->value === \App\Enums\LevelUser::KANPUS->value) {
+            return [];
+        }
+        
         return [
             Actions\CreateAction::make(),
         ];

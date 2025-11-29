@@ -285,14 +285,31 @@ class TxBastResource extends Resource
                     ->label('Lihat'),
                 Tables\Actions\EditAction::make()
                     ->label('Ubah')
-                    ->visible(fn ($record) => $record->sudah_diterima_semua === '0'),
+                    ->visible(function ($record) {
+                        $user = Auth::user();
+                        // Hide untuk Kanpus
+                        if ($user && $user->level->value === LevelUser::KANPUS->value) {
+                            return false;
+                        }
+                        return $record->sudah_diterima_semua === '0';
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->label('Hapus Terpilih'),
+                        ->label('Hapus Terpilih')
+                        ->visible(function () {
+                            $user = Auth::user();
+                            // Hide untuk Kanpus
+                            return $user && $user->level->value !== LevelUser::KANPUS->value;
+                        }),
                 ])
-                ->label('Hapus'),
+                ->label('Hapus')
+                ->visible(function () {
+                    $user = Auth::user();
+                    // Hide untuk Kanpus
+                    return $user && $user->level->value !== LevelUser::KANPUS->value;
+                }),
             ]);
     }
 
