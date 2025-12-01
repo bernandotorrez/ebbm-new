@@ -182,10 +182,12 @@ class Sp3mResource extends Resource
                     ])
                     ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
                     ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
-                    ->minValue(0)
+                    ->minValue(1)
                     ->maxLength(10)
+                    ->rules(['min:1'])
                     ->validationMessages([
                         'required' => 'Qty harus diisi',
+                        'min' => 'Qty minimal 1',
                     ])
                     ->live(debounce: 500)
                     ->afterStateUpdated(function (callable $get, callable $set, $state, $context) {

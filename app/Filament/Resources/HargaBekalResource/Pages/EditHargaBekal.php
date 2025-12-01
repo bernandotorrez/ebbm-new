@@ -30,24 +30,50 @@ class EditHargaBekal extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        // Convert tanggal_update to date only (remove time)
+        if (isset($data['tanggal_update'])) {
+            $data['tanggal_update'] = \Carbon\Carbon::parse($data['tanggal_update'])->format('Y-m-d');
+        }
+        
+        return $data;
+    }
+
     protected function beforeSave(): void
     {
         // Get input values
-        $id = $this->data['harga_bekal_id'] ?? null;
+        $id = $this->record->harga_bekal_id;
         $kotaId = $this->data['kota_id'] ?? null;
         $bekalId = $this->data['bekal_id'] ?? null;
+        $tanggalUpdate = $this->data['tanggal_update'] ?? null;
 
-        // Check if the same record exists (excluding current record)
+        // Validasi input tidak boleh null
+        if (!$kotaId || !$bekalId || !$tanggalUpdate) {
+            Notification::make()
+                ->title('Error!')
+                ->body('Kota, Bekal, dan Tanggal Update harus diisi')
+                ->danger()
+                ->send();
+            $this->halt();
+        }
+
+        // Convert to date only for comparison
+        $tanggalUpdateDate = \Carbon\Carbon::parse($tanggalUpdate)->format('Y-m-d');
+
+        // Check if the same record exists (Kota + Bekal + Tanggal Update, excluding current record)
         $exists = HargaBekal::where('kota_id', $kotaId)
             ->where('bekal_id', $bekalId)
+            ->whereDate('tanggal_update', $tanggalUpdateDate)
             ->where('harga_bekal_id', '!=', $id)
+            ->whereNull('deleted_at')
             ->exists();
 
         if ($exists) {
             // Show Filament error notification
             Notification::make()
                 ->title('Error!')
-                ->body('Harga BBM untuk kota dan bekal yang sama sudah ada')
+                ->body('Harga BBM untuk kombinasi Kota, Bekal, dan Tanggal Update yang sama sudah ada')
                 ->danger()
                 ->send();
 
