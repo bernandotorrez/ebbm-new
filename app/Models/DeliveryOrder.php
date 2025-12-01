@@ -62,19 +62,14 @@ class DeliveryOrder extends Model
     // Helper method to get harga from ms_harga_bekal
     public function getHargaAttribute()
     {
-        // Jika ada harga_bekal_id, gunakan itu
+        // Hanya gunakan harga_bekal_id, tidak ada fallback
         if ($this->harga_bekal_id) {
             $hargaBekal = HargaBekal::find($this->harga_bekal_id);
             return $hargaBekal ? $hargaBekal->harga : 0;
         }
         
-        // Fallback ke cara lama jika harga_bekal_id tidak ada
-        $hargaBekal = HargaBekal::where('kota_id', $this->kota_id)
-            ->where('bekal_id', $this->bekal_id)
-            ->orderBy('tanggal_update', 'desc')
-            ->first();
-        
-        return $hargaBekal ? $hargaBekal->harga : 0;
+        // Jika tidak ada harga_bekal_id, return 0
+        return 0;
     }
 
     // Helper method to get jumlah_harga

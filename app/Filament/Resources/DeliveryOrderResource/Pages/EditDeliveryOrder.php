@@ -228,9 +228,6 @@ class EditDeliveryOrder extends EditRecord
     
     protected function getKansarForm(Form $form): Form
     {
-        $record = $this->record;
-        $record->load(['sp3m.alpal', 'sp3m.kantorSar', 'sp3m.bekal', 'tbbm']);
-        
         return $form
             ->schema([
                 Forms\Components\Grid::make(2)
@@ -240,13 +237,22 @@ class EditDeliveryOrder extends EditRecord
                             ->label('Nomor SP3M')
                             ->disabled()
                             ->dehydrated(false)
-                            ->default($record->sp3m->nomor_sp3m ?? '-'),
+                            ->afterStateHydrated(function ($component, $record) {
+                                if ($record) {
+                                    $record->load('sp3m');
+                                    $component->state($record->sp3m->nomor_sp3m ?? '-');
+                                }
+                            }),
                         
-                        // Alut - Editable (via select SP3M alpal)
+                        // Alut - Editable (via select SP3M alpal) - hanya tampilkan nama alpal
                         Forms\Components\Select::make('sp3m_id')
                             ->label('Alut')
-                            ->relationship(name: 'sp3m', titleAttribute: 'nomor_sp3m')
-                            ->options(function () use ($record) {
+                            ->required()
+                            ->options(function ($record) {
+                                if (!$record) return [];
+                                
+                                $record->load('sp3m.bekal', 'sp3m.kantorSar');
+                                
                                 // Get SP3M with same bekal_id and kantor_sar_id
                                 return Sp3m::where('bekal_id', $record->sp3m->bekal_id)
                                     ->where('kantor_sar_id', $record->sp3m->kantor_sar_id)
@@ -255,19 +261,19 @@ class EditDeliveryOrder extends EditRecord
                                     ->get()
                                     ->mapWithKeys(function ($sp3m) {
                                         $alut = $sp3m->alpal->alpal ?? '-';
-                                        return [$sp3m->sp3m_id => "{$sp3m->nomor_sp3m} - {$alut}"];
+                                        return [$sp3m->sp3m_id => $alut]; // Hanya tampilkan nama alpal
                                     })
                                     ->toArray();
                             })
                             ->searchable()
                             ->preload()
-                            ->required()
                             ->live()
                             ->afterStateUpdated(function (callable $set, $state) {
                                 if ($state) {
-                                    $sp3m = Sp3m::with(['alpal'])->find($state);
+                                    $sp3m = Sp3m::with(['alpal', 'bekal'])->find($state);
                                     if ($sp3m) {
                                         $set('sisa_qty_info', number_format($sp3m->sisa_qty, 0, ',', '.'));
+                                        $set('jenis_bahan_bakar_info', $sp3m->bekal->bekal ?? '-');
                                     }
                                 }
                             }),
@@ -276,18 +282,27 @@ class EditDeliveryOrder extends EditRecord
                 Forms\Components\Grid::make(2)
                     ->schema([
                         // Tahun Anggaran - Readonly
-                        Forms\Components\TextInput::make('tahun_anggaran')
+                        Forms\Components\TextInput::make('tahun_anggaran_display')
                             ->label('Tahun Anggaran (TA)')
                             ->disabled()
-                            ->dehydrated(true)
-                            ->default($record->tahun_anggaran),
+                            ->dehydrated(false)
+                            ->afterStateHydrated(function ($component, $record) {
+                                if ($record) {
+                                    $component->state($record->tahun_anggaran ?? '-');
+                                }
+                            }),
                         
                         // Kantor SAR - Readonly
                         Forms\Components\TextInput::make('kantor_sar_display')
                             ->label('Kantor SAR')
                             ->disabled()
                             ->dehydrated(false)
-                            ->default($record->sp3m->kantorSar->kantor_sar ?? '-'),
+                            ->afterStateHydrated(function ($component, $record) {
+                                if ($record) {
+                                    $record->load('sp3m.kantorSar');
+                                    $component->state($record->sp3m->kantorSar->kantor_sar ?? '-');
+                                }
+                            }),
                     ]),
                 
                 Forms\Components\Grid::make(2)
@@ -297,17 +312,27 @@ class EditDeliveryOrder extends EditRecord
                             ->label('Sisa Qty SP3M')
                             ->disabled()
                             ->dehydrated(false)
-                            ->default(number_format($record->sp3m->sisa_qty, 0, ',', '.'))
+                            ->afterStateHydrated(function ($component, $record) {
+                                if ($record) {
+                                    $record->load('sp3m');
+                                    $component->state(number_format($record->sp3m->sisa_qty, 0, ',', '.'));
+                                }
+                            })
                             ->extraAttributes([
                                 'style' => 'font-weight: 600; color: #d97706;'
                             ]),
                         
                         // Jenis Bahan Bakar - Readonly
-                        Forms\Components\TextInput::make('jenis_bahan_bakar_display')
+                        Forms\Components\TextInput::make('jenis_bahan_bakar_info')
                             ->label('Jenis Bahan Bakar')
                             ->disabled()
                             ->dehydrated(false)
-                            ->default($record->sp3m->bekal->bekal ?? '-'),
+                            ->afterStateHydrated(function ($component, $record) {
+                                if ($record) {
+                                    $record->load('sp3m.bekal');
+                                    $component->state($record->sp3m->bekal->bekal ?? '-');
+                                }
+                            }),
                     ]),
                 
                 Forms\Components\Grid::make(2)
