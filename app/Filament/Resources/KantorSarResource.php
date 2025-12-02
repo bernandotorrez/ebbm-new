@@ -25,7 +25,7 @@ class KantorSarResource extends Resource
 
     protected static ?string $navigationLabel = 'Kantor SAR';
 
-    protected static ?int $navigationSort = 5; // 5. Kantor SAR
+    protected static ?int $navigationSort = 6; // 6. Kantor SAR
 
     protected static ?string $slug = 'kantor-sar';
 

@@ -134,7 +134,7 @@ class Dashboard extends Page
             ->first();
 
         $bekalName = $sp3mData->bekal_name ?? '-';
-
+        
         return [
             'bekal' => $bekalName,
             'qty' => $sp3mData->total_qty ?? 0,
