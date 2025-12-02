@@ -58,26 +58,51 @@ class DashboardStatsWidget extends Widget
         // Get bekal IDs for this golongan
         $bekalIds = Bekal::where('golongan_bbm_id', $golonganBbmId)->pluck('bekal_id');
 
-        // Get TW data from SP3M
-        $tw1 = Sp3m::whereIn('bekal_id', $bekalIds)
-            ->where('tahun_anggaran', $this->selectedYear)
-            ->where('tw', 1)
-            ->sum('jumlah_harga');
+        // Get TW data from tx_do dengan join ke ms_harga_bekal dan tx_sp3m
+        // Hitung: tx_do.qty * ms_harga_bekal.harga, dikelompokkan per TW dari SP3M
+        $tw1 = \DB::table('tx_do')
+            ->join('tx_sp3m', 'tx_do.sp3m_id', '=', 'tx_sp3m.sp3m_id')
+            ->leftJoin('ms_harga_bekal', function($join) {
+                $join->on('tx_do.harga_bekal_id', '=', 'ms_harga_bekal.harga_bekal_id');
+            })
+            ->whereIn('tx_sp3m.bekal_id', $bekalIds)
+            ->where('tx_do.tahun_anggaran', $this->selectedYear)
+            ->where('tx_sp3m.tw', 1)
+            ->whereNull('tx_do.deleted_at')
+            ->sum(\DB::raw('tx_do.qty * COALESCE(ms_harga_bekal.harga, 0)'));
 
-        $tw2 = Sp3m::whereIn('bekal_id', $bekalIds)
-            ->where('tahun_anggaran', $this->selectedYear)
-            ->where('tw', 2)
-            ->sum('jumlah_harga');
+        $tw2 = \DB::table('tx_do')
+            ->join('tx_sp3m', 'tx_do.sp3m_id', '=', 'tx_sp3m.sp3m_id')
+            ->leftJoin('ms_harga_bekal', function($join) {
+                $join->on('tx_do.harga_bekal_id', '=', 'ms_harga_bekal.harga_bekal_id');
+            })
+            ->whereIn('tx_sp3m.bekal_id', $bekalIds)
+            ->where('tx_do.tahun_anggaran', $this->selectedYear)
+            ->where('tx_sp3m.tw', 2)
+            ->whereNull('tx_do.deleted_at')
+            ->sum(\DB::raw('tx_do.qty * COALESCE(ms_harga_bekal.harga, 0)'));
 
-        $tw3 = Sp3m::whereIn('bekal_id', $bekalIds)
-            ->where('tahun_anggaran', $this->selectedYear)
-            ->where('tw', 3)
-            ->sum('jumlah_harga');
+        $tw3 = \DB::table('tx_do')
+            ->join('tx_sp3m', 'tx_do.sp3m_id', '=', 'tx_sp3m.sp3m_id')
+            ->leftJoin('ms_harga_bekal', function($join) {
+                $join->on('tx_do.harga_bekal_id', '=', 'ms_harga_bekal.harga_bekal_id');
+            })
+            ->whereIn('tx_sp3m.bekal_id', $bekalIds)
+            ->where('tx_do.tahun_anggaran', $this->selectedYear)
+            ->where('tx_sp3m.tw', 3)
+            ->whereNull('tx_do.deleted_at')
+            ->sum(\DB::raw('tx_do.qty * COALESCE(ms_harga_bekal.harga, 0)'));
 
-        $tw4 = Sp3m::whereIn('bekal_id', $bekalIds)
-            ->where('tahun_anggaran', $this->selectedYear)
-            ->where('tw', 4)
-            ->sum('jumlah_harga');
+        $tw4 = \DB::table('tx_do')
+            ->join('tx_sp3m', 'tx_do.sp3m_id', '=', 'tx_sp3m.sp3m_id')
+            ->leftJoin('ms_harga_bekal', function($join) {
+                $join->on('tx_do.harga_bekal_id', '=', 'ms_harga_bekal.harga_bekal_id');
+            })
+            ->whereIn('tx_sp3m.bekal_id', $bekalIds)
+            ->where('tx_do.tahun_anggaran', $this->selectedYear)
+            ->where('tx_sp3m.tw', 4)
+            ->whereNull('tx_do.deleted_at')
+            ->sum(\DB::raw('tx_do.qty * COALESCE(ms_harga_bekal.harga, 0)'));
 
         return [
             'total' => $totalPagu ?? 0,
@@ -134,15 +159,34 @@ class DashboardStatsWidget extends Widget
             $query->where('kantor_sar_id', $user->kantor_sar_id);
         }
 
-        $sp3mData = $query->selectRaw('SUM(qty) as total_qty, SUM(jumlah_harga) as total_harga, SUM(sisa_qty) as total_sisa_qty')
+        $sp3mData = $query->selectRaw('SUM(qty) as total_qty, SUM(sisa_qty) as total_sisa_qty')
             ->first();
+
+        // Hitung jumlah_harga dari tx_do (bukan dari sp3m)
+        $doQuery = \DB::table('tx_do')
+            ->join('tx_sp3m', 'tx_do.sp3m_id', '=', 'tx_sp3m.sp3m_id')
+            ->leftJoin('ms_harga_bekal', function($join) {
+                $join->on('tx_do.harga_bekal_id', '=', 'ms_harga_bekal.harga_bekal_id');
+            })
+            ->whereIn('tx_sp3m.bekal_id', $bekalIds)
+            ->where('tx_do.tahun_anggaran', $this->selectedYear)
+            ->whereNull('tx_do.deleted_at');
+
+        // Apply same filters as SP3M query
+        if ($user && $user->level->value === \App\Enums\LevelUser::ABK->value && $user->alpal_id) {
+            $doQuery->where('tx_sp3m.alpal_id', $user->alpal_id);
+        } elseif ($user && $user->level->value === \App\Enums\LevelUser::KANSAR->value && $user->kantor_sar_id) {
+            $doQuery->where('tx_sp3m.kantor_sar_id', $user->kantor_sar_id);
+        }
+
+        $jumlahHarga = $doQuery->sum(\DB::raw('tx_do.qty * COALESCE(ms_harga_bekal.harga, 0)'));
 
         $bekalName = Bekal::whereIn('bekal_id', $bekalIds)->first()->bekal ?? '-';
 
         return [
             'bekal' => $bekalName,
             'qty' => $sp3mData->total_qty ?? 0,
-            'jumlah_harga' => $sp3mData->total_harga ?? 0,
+            'jumlah_harga' => $jumlahHarga ?? 0,
             'sisa_qty' => $sp3mData->total_sisa_qty ?? 0,
         ];
     }
@@ -193,8 +237,7 @@ class DashboardStatsWidget extends Widget
 
         $pengambilanData = $query
             ->leftJoin('ms_harga_bekal', function($join) {
-                $join->on('tx_do.kota_id', '=', 'ms_harga_bekal.kota_id')
-                     ->on('tx_do.bekal_id', '=', 'ms_harga_bekal.bekal_id');
+                $join->on('tx_do.harga_bekal_id', '=', 'ms_harga_bekal.harga_bekal_id');
             })
             ->selectRaw('SUM(tx_do.qty) as total_qty, SUM(tx_do.qty * COALESCE(ms_harga_bekal.harga, 0)) as total_harga')
             ->first();

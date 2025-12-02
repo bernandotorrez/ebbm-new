@@ -224,8 +224,7 @@ class RekapDo extends Page implements HasForms
         
         $data = $query
             ->leftJoin('ms_harga_bekal', function($join) {
-                $join->on('tx_do.kota_id', '=', 'ms_harga_bekal.kota_id')
-                     ->on('tx_do.bekal_id', '=', 'ms_harga_bekal.bekal_id');
+                $join->on('tx_do.harga_bekal_id', '=', 'ms_harga_bekal.harga_bekal_id');
             })
             ->selectRaw('
                 MONTH(tx_do.tanggal_do) as month,

@@ -518,7 +518,9 @@ class DeliveryOrderResource extends Resource
                                         return [];
                                     }
                                     
-                                    $hargaBekals = HargaBekal::where('kota_id', $kotaId)
+                                    $hargaBekals = HargaBekal::with('bekal')
+                                        ->where('bekal_id', $bekalId)
+                                        ->where('kota_id', $kotaId)
                                         ->orderBy('tanggal_update', 'desc')
                                         ->limit(5)
                                         ->get();
@@ -528,9 +530,10 @@ class DeliveryOrderResource extends Resource
                                     }
                                     
                                     return $hargaBekals->mapWithKeys(function ($item) {
-                                        $tanggal = $item->tanggal_update ? \Carbon\Carbon::parse($item->tanggal_update)->format('d/m/Y') : '-';
+                                        $jenisBekal = $item->bekal->bekal ?? '-';
                                         $harga = 'Rp ' . number_format($item->harga, 0, ',', '.');
-                                        return [$item->harga_bekal_id => "{$tanggal} - {$harga}"];
+                                        $tanggal = $item->tanggal_update ? \Carbon\Carbon::parse($item->tanggal_update)->locale('id')->isoFormat('D MMMM YYYY') : '-';
+                                        return [$item->harga_bekal_id => "{$jenisBekal} - {$harga} - {$tanggal}"];
                                     })->toArray();
                                 })
                                 ->searchable()
@@ -539,7 +542,8 @@ class DeliveryOrderResource extends Resource
                                     if ($state) {
                                         $hargaBekal = HargaBekal::find($state);
                                         if ($hargaBekal) {
-                                            $set('harga_display', 'Rp ' . number_format($hargaBekal->harga, 0, ',', '.'));
+                                            $harga = 'Rp ' . number_format($hargaBekal->harga, 0, ',', '.');
+                                            $set('harga_display', $harga);
                                         }
                                     } else {
                                         $set('harga_display', '-');
