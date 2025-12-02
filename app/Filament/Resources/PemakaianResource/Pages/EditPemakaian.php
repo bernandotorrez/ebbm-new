@@ -70,9 +70,13 @@ class EditPemakaian extends EditRecord
 
     protected function beforeSave(): void
     {
-        // Get input values (qty sudah dalam bentuk integer dari mutateFormDataBeforeSave)
+        // Get input values - PENTING: konversi qty dari string ke integer
         $alpalId = $this->data['alpal_id'] ?? null;
-        $newQty = $this->data['qty'] ?? 0;
+        $newQtyRaw = $this->data['qty'] ?? 0;
+        
+        // Convert qty from formatted string to integer (karena beforeSave dipanggil sebelum mutateFormDataBeforeSave)
+        $newQty = (int) str_replace(['.', ',', ' '], '', $newQtyRaw);
+        
         $oldQty = $this->record->qty ?? 0;
         $oldAlpalId = $this->record->alpal_id;
 
@@ -100,21 +104,23 @@ class EditPemakaian extends EditRecord
                 $this->halt();
             }
 
-            // Cek apakah ROB alpal baru mencukupi
-            if ($newAlpal->rob < $newQty) {
+            // Validasi ROB tidak boleh negatif (maksimal 0)
+            $newRob = $newAlpal->rob - $newQty;
+            
+            if ($newRob < 0) {
                 $newQtyFormatted = number_format($newQty, 0, ',', '.');
                 $robFormatted = number_format($newAlpal->rob, 0, ',', '.');
                 
                 Notification::make()
                     ->title('Gagal Mengubah Pemakaian!')
-                    ->body("Qty pemakaian ({$newQtyFormatted}) melebihi ROB alpal baru ({$robFormatted}). Silakan kurangi qty.")
+                    ->body("Qty pemakaian ({$newQtyFormatted}) melebihi ROB alpal baru ({$robFormatted}). ROB tidak boleh negatif (minimal 0). Silakan kurangi qty.")
                     ->danger()
                     ->duration(7000)
                     ->send();
                 $this->halt();
             }
 
-            $newAlpal->rob -= $newQty;
+            $newAlpal->rob = $newRob;
             $newAlpal->save();
         } else {
             // Alpal sama, hanya update berdasarkan selisih qty

@@ -346,7 +346,8 @@ class TxBastResource extends Resource
                     // Hide untuk Kanpus
                     return $user && $user->level->value !== LevelUser::KANPUS->value;
                 }),
-            ]);
+            ])
+            ->recordUrl(null);
     }
 
     public static function getRelations(): array

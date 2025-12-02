@@ -87,7 +87,9 @@ class AlpalResource extends Resource
                     ])
                     ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
                     ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
-                    ->minValue(0),
+                    ->minValue(0)
+                    ->disabled(fn ($record) => $record && $record->rob > 0)
+                    ->dehydrated(fn ($record) => !($record && $record->rob > 0)),
                 Forms\Components\Select::make('kantor_sar_id')
                     ->relationship(name: 'kantorSar', titleAttribute: 'kantor_sar')
                     ->label('Kantor SAR')

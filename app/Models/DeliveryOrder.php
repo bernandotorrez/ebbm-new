@@ -22,6 +22,7 @@ class DeliveryOrder extends Model
         'tbbm_id',
         'bekal_id',
         'kota_id',
+        'harga_bekal_id',
         'tanggal_do',
         'tahun_anggaran',
         'nomor_do',
@@ -53,15 +54,22 @@ class DeliveryOrder extends Model
         return $this->belongsTo(Kota::class, 'kota_id', 'kota_id');
     }
 
+    public function hargaBekal()
+    {
+        return $this->belongsTo(HargaBekal::class, 'harga_bekal_id', 'harga_bekal_id');
+    }
+
     // Helper method to get harga from ms_harga_bekal
     public function getHargaAttribute()
     {
-        $hargaBekal = HargaBekal::where('kota_id', $this->kota_id)
-            ->where('bekal_id', $this->bekal_id)
-            ->orderBy('created_at', 'desc')
-            ->first();
+        // Hanya gunakan harga_bekal_id, tidak ada fallback
+        if ($this->harga_bekal_id) {
+            $hargaBekal = HargaBekal::find($this->harga_bekal_id);
+            return $hargaBekal ? $hargaBekal->harga : 0;
+        }
         
-        return $hargaBekal ? $hargaBekal->harga : 0;
+        // Jika tidak ada harga_bekal_id, return 0
+        return 0;
     }
 
     // Helper method to get jumlah_harga

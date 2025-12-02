@@ -2,30 +2,31 @@
 
 namespace App\Filament\Pages\Auth;
 
-use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
-use Filament\Facades\Filament;
+use Filament\Pages\Auth\Login as BaseLogin;
 use Filament\Forms\Components\Component;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Http\Responses\Auth\Contracts\LoginResponse;
 use Filament\Notifications\Notification;
-use Filament\Pages\Auth\Login as BaseLogin;
 use Illuminate\Validation\ValidationException;
+use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 
 class Login extends BaseLogin
 {
-    public function form(Form $form): Form
+    protected function getForms(): array
     {
-        return $form
-            ->schema([
-                $this->getLoginFormComponent(),
-                $this->getPasswordFormComponent(),
-                $this->getRememberFormComponent(),
-            ])
-            ->statePath('data');
+        return [
+            'form' => $this->form(
+                $this->makeForm()
+                    ->schema([
+                        $this->getUsernameFormComponent(),
+                        $this->getPasswordFormComponent(),
+                        $this->getRememberFormComponent(),
+                    ])
+                    ->statePath('data'),
+            ),
+        ];
     }
 
-    protected function getLoginFormComponent(): Component
+    protected function getUsernameFormComponent(): Component
     {
         return TextInput::make('username')
             ->label('Username')
@@ -43,57 +44,41 @@ class Login extends BaseLogin
         ];
     }
 
-    public function authenticate(): ?LoginResponse
+    public function authenticate(): ?\Filament\Http\Responses\Auth\Contracts\LoginResponse
     {
         try {
-            $this->rateLimit(5);
+            return parent::authenticate();
         } catch (TooManyRequestsException $exception) {
+            // Hitung waktu tunggu dalam menit dan detik
+            $seconds = $exception->secondsUntilAvailable;
+            $minutes = floor($seconds / 60);
+            $remainingSeconds = $seconds % 60;
+            
+            $waitTime = $minutes > 0 
+                ? "{$minutes} menit " . ($remainingSeconds > 0 ? "{$remainingSeconds} detik" : "")
+                : "{$remainingSeconds} detik";
+            
+            // Custom error message untuk rate limiting
             Notification::make()
-                ->title(__('filament-panels::pages/auth/login.notifications.throttled.title', [
-                    'seconds' => $exception->secondsUntilAvailable,
-                    'minutes' => ceil($exception->secondsUntilAvailable / 60),
-                ]))
-                ->body(array_values($exception->errors())[0][0] ?? null)
+                ->title('Terlalu Banyak Percobaan Login')
+                ->body("Anda telah mencoba login terlalu banyak kali. Akun Anda diblokir sementara untuk keamanan. Silakan tunggu {$waitTime} sebelum mencoba lagi.")
                 ->danger()
+                ->duration(15000)
                 ->send();
-
-            return null;
+            
+            throw ValidationException::withMessages([
+                'data.username' => "Terlalu banyak percobaan login. Silakan tunggu {$waitTime} sebelum mencoba lagi.",
+            ]);
+        } catch (ValidationException $exception) {
+            // Tampilkan notifikasi untuk username/password salah
+            Notification::make()
+                ->title('Login Gagal')
+                ->body('Username atau password yang Anda masukkan salah. Silakan periksa kembali dan coba lagi.')
+                ->danger()
+                ->duration(5000)
+                ->send();
+            
+            throw $exception;
         }
-
-        $data = $this->form->getState();
-        $credentials = $this->getCredentialsFromFormData($data);
-
-        // Use Auth facade instead of Filament::auth() for better session handling
-        if (! auth()->guard('web')->attempt($credentials, $data['remember'] ?? false)) {
-            $this->throwFailureValidationException();
-        }
-
-        // Get the authenticated user
-        $user = auth()->guard('web')->user();
-
-        if (
-            ($user instanceof \Filament\Models\Contracts\FilamentUser) &&
-            (! $user->canAccessPanel(Filament::getCurrentPanel()))
-        ) {
-            auth()->guard('web')->logout();
-            $this->throwFailureValidationException();
-        }
-
-        // Regenerate session to prevent fixation attacks
-        request()->session()->regenerate();
-
-        return app(LoginResponse::class);
-    }
-
-    protected function getAuthenticatedRedirectUrl(): ?string
-    {
-        return Filament::getUrl();
-    }
-
-    protected function throwFailureValidationException(): never
-    {
-        throw ValidationException::withMessages([
-            'data.username' => __('filament-panels::pages/auth/login.messages.failed'),
-        ]);
     }
 }

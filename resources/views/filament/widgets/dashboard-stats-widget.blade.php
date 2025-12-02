@@ -297,10 +297,10 @@
                                         <div class="text-2xl font-bold text-blue-700 dark:text-white">{{ number_format($data['sp3m']['qty'], 0, ',', '.') }}</div>
                                     </div>
                                     @if(auth()->user()->level->value === 'admin' || auth()->user()->level->value === 'kanpus')
-                                    <div class="p-3 bg-amber-50 dark:bg-gray-900 rounded-lg border-2 border-amber-500 dark:border-amber-600">
+                                    <!-- <div class="p-3 bg-amber-50 dark:bg-gray-900 rounded-lg border-2 border-amber-500 dark:border-amber-600">
                                         <div class="text-md font-medium text-gray-600 dark:text-amber-500 mb-2">Jml Harga (Rp)</div>
                                         <div class="text-lg font-bold text-blue-700 dark:text-white">{{ number_format($data['sp3m']['jumlah_harga'], 0, ',', '.') }}</div>
-                                    </div>
+                                    </div> -->
                                     @endif
                                 </div>
                             </div>

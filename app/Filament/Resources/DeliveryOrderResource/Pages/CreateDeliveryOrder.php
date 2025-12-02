@@ -6,6 +6,7 @@ use App\Filament\Resources\DeliveryOrderResource;
 use App\Models\DeliveryOrder;
 use App\Models\Sp3m;
 use App\Models\Tbbm;
+use App\Models\KantorSar;
 use App\Models\HargaBekal;
 use Filament\Actions;
 use Filament\Notifications\Notification;
@@ -46,16 +47,44 @@ class CreateDeliveryOrder extends CreateRecord
             $sp3m = Sp3m::find($sp3mId);
             if ($sp3m) {
                 $data['bekal_id'] = $sp3m->bekal_id;
+                $data['kantor_sar_id'] = $sp3m->kantor_sar_id;
             }
         }
         
         // Get kota_id from TBBM
-        $tbbmId = $data['tbbm_id'] ?? null;
-        if ($tbbmId) {
-            $tbbm = Tbbm::find($tbbmId);
-            if ($tbbm) {
-                $data['kota_id'] = $tbbm->kota_id;
+        // $tbbmId = $data['tbbm_id'] ?? null;
+        // if ($tbbmId) {
+        //     $tbbm = Tbbm::find($tbbmId);
+        //     if ($tbbm) {
+        //         $data['kota_id'] = $tbbm->kota_id;
+        //     }
+        // }
+
+        // Get Kota ID from Kantor Sar
+        $kantorSarId = $data['kantor_sar_id'] ?? null;
+        if ($kantorSarId) {
+            $kantorSar = KantorSar::find($kantorSarId);
+            if ($kantorSar) {
+                $data['kota_id'] = $kantorSar->kota_id;
             }
+        }
+        
+        // Auto-fill harga_bekal_id berdasarkan bekal_id dan kota_id
+        $bekalId = $data['bekal_id'] ?? null;
+        $kotaId = $data['kota_id'] ?? null;
+        
+        if ($bekalId && $kotaId) {
+            // Cari harga bekal terbaru berdasarkan tanggal_update
+            $hargaBekal = HargaBekal::where('bekal_id', $bekalId)
+                ->where('kota_id', $kotaId)
+                ->whereNotNull('tanggal_update')
+                ->orderBy('tanggal_update', 'desc')
+                ->first();
+            
+            // Jika ada, set harga_bekal_id, jika tidak ada set null
+            $data['harga_bekal_id'] = $hargaBekal ? $hargaBekal->harga_bekal_id : null;
+        } else {
+            $data['harga_bekal_id'] = null;
         }
         
         // Remove unused fields if any
@@ -88,8 +117,6 @@ class CreateDeliveryOrder extends CreateRecord
         
         // Get input values
         $sp3mId = $this->data['sp3m_id'] ?? null;
-        $tbbmId = $this->data['tbbm_id'] ?? null;
-        $tahunAnggaran = $this->data['tahun_anggaran'] ?? null;
         $qty = (int) preg_replace('/[^\d]/', '', $this->data['qty'] ?? 0);
 
         // Validasi sisa_qty di SP3M
@@ -139,20 +166,36 @@ class CreateDeliveryOrder extends CreateRecord
                     ->send();
                 $this->halt();
             }
-            
-            // Update rob di alpal dan sisa_qty di SP3M dalam transaction
-            \DB::transaction(function () use ($alpal, $newRob, $sp3m, $qty) {
-                $alpal->rob = $newRob;
-                $alpal->save();
-                
-                $sp3m->sisa_qty -= $qty;
-                $sp3m->save();
-            });
-        } else {
-            // Jika tidak ada alpal, hanya update sisa_qty
-            $sp3m->sisa_qty -= $qty;
-            $sp3m->save();
         }
+    }
+    
+    protected function afterCreate(): void
+    {
+        // Get the created record
+        $record = $this->record;
+        
+        // Get SP3M
+        $sp3m = Sp3m::with('alpal')->find($record->sp3m_id);
+        
+        if (!$sp3m) {
+            return;
+        }
+        
+        $qty = $record->qty;
+        
+        // Update dalam transaction untuk memastikan konsistensi
+        \DB::transaction(function () use ($sp3m, $qty) {
+            // Update sisa_qty di SP3M
+            $sp3m->sisa_qty = $sp3m->sisa_qty - $qty;
+            $sp3m->save();
+            
+            // Update rob di alpal jika ada
+            if ($sp3m->alpal) {
+                $alpal = $sp3m->alpal;
+                $alpal->rob = $alpal->rob + $qty;
+                $alpal->save();
+            }
+        });
     }
 
     protected function getCreatedNotification(): ?Notification

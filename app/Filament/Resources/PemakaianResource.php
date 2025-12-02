@@ -111,14 +111,26 @@ class PemakaianResource extends Resource
                                 }
                             }),
 
-                        // 3. Kegiatan (Keterangan)
+                        // 3. Data Kegiatan (Select)
+                        Forms\Components\Select::make('data_kegiatan')
+                            ->label('Data Kegiatan')
+                            ->options([
+                                'Rutin' => 'Rutin',
+                                'Giat Lain' => 'Giat Lain',
+                                'Operasi SAR' => 'Operasi SAR',
+                            ])
+                            ->required()
+                            ->searchable()
+                            ->native(false),
+
+                        // 4. Keterangan (Textarea)
                         Forms\Components\Textarea::make('keterangan')
-                            ->label('Kegiatan')
+                            ->label('Keterangan')
                             ->required()
                             ->maxLength(1000)
                             ->rows(3),
 
-                        // 4. Kantor SAR - otomatis terisi dari alpal (readonly, tapi data tetap dikirim)
+                        // 5. Kantor SAR - otomatis terisi dari alpal (readonly, tapi data tetap dikirim)
                         Forms\Components\Hidden::make('kantor_sar_id')
                             ->required()
                             ->default(function () {
@@ -146,7 +158,7 @@ class PemakaianResource extends Resource
                                 'style' => 'font-weight: 500;'
                             ]),
 
-                        // 5. Qty
+                        // 6. Qty
                         Forms\Components\TextInput::make('qty')
                             ->required()
                             ->label('Qty')
@@ -209,7 +221,7 @@ class PemakaianResource extends Resource
                                 },
                             ]),
 
-                        // 6. Jenis Bahan Bakar (Bekal)
+                        // 7. Jenis Bahan Bakar (Bekal)
                         Forms\Components\Select::make('bekal_id')
                             ->relationship('bekal', 'bekal')
                             ->required()
@@ -269,23 +281,35 @@ class PemakaianResource extends Resource
                 return $query;
             })
             ->columns([
-                Tables\Columns\TextColumn::make('kantorSar.kantor_sar')  // Changed from 'nama' to 'kantor_sar'
+                Tables\Columns\TextColumn::make('kantorSar.kantor_sar')
+                    ->label('Kantor SAR')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('alpal.alpal')  // Changed from 'nama' to 'alpal'
+                Tables\Columns\TextColumn::make('alpal.alpal')
+                    ->label('Alut')
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('bekal.bekal')
+                    ->label('Jenis Bahan Bakar')
                     ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('tanggal_pakai')
+                    ->label('Tanggal')
                     ->date()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('data_kegiatan')
+                    ->label('Data Kegiatan')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('qty')
+                    ->label('Qty')
                     ->numeric()
+                    ->formatStateUsing(fn ($state) => number_format($state, 0, ',', '.'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('keterangan')
-                    ->limit(50),
+                    ->label('Keterangan')
+                    ->limit(50)
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()
                     ->sortable()
@@ -340,7 +364,8 @@ class PemakaianResource extends Resource
                         }),
                 ])
                 ->label('Hapus'),
-            ]);
+            ])
+            ->recordUrl(null);
     }
 
     public static function getRelations(): array

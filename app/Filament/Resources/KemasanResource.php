@@ -52,6 +52,8 @@ class KemasanResource extends Resource
                         'maxlength' => '6'
                     ])
                     ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
+                    ->minValue(1)
+                    ->rules(['min:1'])
                     ->live(),
                 Forms\Components\TextInput::make('kemasan_pack')
                     ->label('Pack')

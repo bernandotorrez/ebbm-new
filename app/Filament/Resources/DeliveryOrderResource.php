@@ -5,12 +5,14 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\DeliveryOrderResource\Pages;
 use App\Filament\Resources\DeliveryOrderResource\RelationManagers;
 use App\Models\DeliveryOrder;
-use App\Models\Sp3m; // Add this import
+use App\Models\Sp3m;
 use App\Models\KantorSar;
+use App\Models\HargaBekal;
 use App\Enums\LevelUser;
 use App\Traits\RoleBasedResourceAccess;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -120,6 +122,9 @@ class DeliveryOrderResource extends Resource
                                         
                                         // Set sisa qty
                                         $set('sisa_qty_info', number_format($sp3m->sisa_qty, 0, ',', '.'));
+                                        
+                                        // Reset TBBM selection when SP3M changes
+                                        $set('tbbm_id', null);
                                     }
                                 } else {
                                     $set('alut_info', '');
@@ -128,6 +133,7 @@ class DeliveryOrderResource extends Resource
                                     $set('jenis_bahan_bakar_info', '');
                                     $set('harga_satuan', null);
                                     $set('sisa_qty_info', '');
+                                    $set('tbbm_id', null);
                                 }
                             }),
                         
@@ -162,9 +168,10 @@ class DeliveryOrderResource extends Resource
                                 'style' => 'font-weight: 600; color: #d97706;'
                             ]),
                         
-                        Forms\Components\Placeholder::make('spacer')
-                            ->label('')
-                            ->content(''),
+                        Forms\Components\TextInput::make('jenis_bahan_bakar_info')
+                            ->label('Jenis Bahan Bakar')
+                            ->disabled()
+                            ->dehydrated(false),
                     ]),
                 
                 Forms\Components\Grid::make(2)
@@ -206,7 +213,7 @@ class DeliveryOrderResource extends Resource
                             ])
                             ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
                             ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
-                            ->minValue(0)
+                            ->minValue(1)
                             ->maxLength(10)
                             ->live(debounce: 500)
                             ->helperText(fn ($get) => $get('qty_error') ? 
@@ -214,10 +221,15 @@ class DeliveryOrderResource extends Resource
                                 : null
                             )
                             ->rules([
+                                'min:1',
                                 function ($get, $livewire) {
                                     return function (string $attribute, $value, \Closure $fail) use ($get, $livewire) {
                                         $qty = (int) str_replace(['.', ',', ' '], '', $value);
                                         $sp3mId = $get('sp3m_id');
+                                        
+                                        if ($qty < 1) {
+                                            $fail("Qty minimal 1.");
+                                        }
                                         
                                         if ($sp3mId && $qty > 0) {
                                             $sp3m = Sp3m::find($sp3mId);
@@ -248,10 +260,28 @@ class DeliveryOrderResource extends Resource
                             ->closeOnDateSelection(true),
                         
                         Forms\Components\Select::make('tbbm_id')
-                            ->relationship(name: 'tbbm', titleAttribute: 'depot')
                             ->label('TBBM/DPPU')
                             ->searchable()
                             ->preload()
+                            ->options(function (callable $get) {
+                                $sp3mId = $get('sp3m_id');
+                                
+                                if (!$sp3mId) {
+                                    return [];
+                                }
+                                
+                                // Get SP3M with kantor_sar relationship
+                                $sp3m = Sp3m::with('kantorSar')->find($sp3mId);
+                                
+                                if (!$sp3m || !$sp3m->kantorSar || !$sp3m->kantorSar->kota_id) {
+                                    return \App\Models\Tbbm::pluck('depot', 'tbbm_id')->toArray();
+                                }
+                                
+                                // Filter TBBM by kota_id from kantor_sar
+                                return \App\Models\Tbbm::where('kota_id', $sp3m->kantorSar->kota_id)
+                                    ->pluck('depot', 'tbbm_id')
+                                    ->toArray();
+                            })
                             ->validationMessages([
                                 'required' => 'Pilih TBBM/DDPU',
                             ])
@@ -289,22 +319,26 @@ class DeliveryOrderResource extends Resource
     {
         $user = Auth::user();
         
-        // If user is admin, show all SP3M
+        // If user is admin, show all SP3M with sisa_qty > 0
         if ($user && $user->level->value === LevelUser::ADMIN->value) {
-            return Sp3m::pluck('nomor_sp3m', 'sp3m_id')->toArray();
-        }
-        
-        // For KANSAR and ABK users, only show SP3M from their assigned Kantor SAR
-        if ($user && $user->kantor_sar_id && 
-            in_array($user->level->value, [LevelUser::KANSAR->value, LevelUser::ABK->value])) {
-            return Sp3m::where('kantor_sar_id', $user->kantor_sar_id)
+            return Sp3m::where('sisa_qty', '>', 0)
                 ->pluck('nomor_sp3m', 'sp3m_id')
                 ->toArray();
         }
         
-        // For other non-admin users with kantor_sar_id
+        // For KANSAR and ABK users, only show SP3M from their assigned Kantor SAR with sisa_qty > 0
+        if ($user && $user->kantor_sar_id && 
+            in_array($user->level->value, [LevelUser::KANSAR->value, LevelUser::ABK->value])) {
+            return Sp3m::where('kantor_sar_id', $user->kantor_sar_id)
+                ->where('sisa_qty', '>', 0)
+                ->pluck('nomor_sp3m', 'sp3m_id')
+                ->toArray();
+        }
+        
+        // For other non-admin users with kantor_sar_id, show SP3M with sisa_qty > 0
         if ($user && $user->kantor_sar_id) {
             return Sp3m::where('kantor_sar_id', $user->kantor_sar_id)
+                ->where('sisa_qty', '>', 0)
                 ->pluck('nomor_sp3m', 'sp3m_id')
                 ->toArray();
         }
@@ -329,9 +363,15 @@ class DeliveryOrderResource extends Resource
                     'kota'
                 ]);
                 
-                // Apply user-level filtering for Kansar and ABK only
-                if ($user 
-                    && !in_array($user->level->value, [LevelUser::ADMIN->value, LevelUser::KANPUS->value])
+                // Filter khusus untuk ABK - hanya tampilkan DO dari kapal mereka
+                if ($user && $user->level->value === LevelUser::ABK->value && $user->alpal_id) {
+                    $query->whereHas('sp3m', function ($q) use ($user) {
+                        $q->where('alpal_id', $user->alpal_id);
+                    });
+                }
+                // Filter untuk Kansar - tampilkan DO dari kantor SAR mereka
+                elseif ($user 
+                    && $user->level->value === LevelUser::KANSAR->value
                     && $user->kantor_sar_id) {
                     $query->whereHas('sp3m', function ($q) use ($user) {
                         $q->where('kantor_sar_id', $user->kantor_sar_id);
@@ -444,23 +484,142 @@ class DeliveryOrderResource extends Resource
 
             ])
             ->actions([
-                // Tables\Actions\ViewAction::make()
-                //     ->label('Lihat'),
+                // Modal edit untuk Kanpus (hanya edit harga BBM)
+                Tables\Actions\Action::make('edit_harga_bbm')
+                    ->label('Ubah')
+                    ->icon('heroicon-o-pencil')
+                    ->modalHeading('Ubah Harga BBM')
+                    ->modalWidth('md')
+                    ->form(function (DeliveryOrder $record) {
+                        $record->load(['sp3m.bekal', 'bekal', 'kota', 'tbbm.kota']);
+                        
+                        // Get bekal_id and kota_id
+                        $bekalId = $record->bekal_id ?? $record->sp3m->bekal_id ?? null;
+                        $kotaId = $record->kota_id ?? $record->tbbm->kota_id ?? null;
+                        
+                        return [
+                            Forms\Components\TextInput::make('nomor_sp3m')
+                                ->label('Nomor SP3M')
+                                ->default($record->sp3m->nomor_sp3m ?? '-')
+                                ->disabled()
+                                ->dehydrated(false),
+                            
+                            Forms\Components\TextInput::make('nomor_do')
+                                ->label('Nomor DO')
+                                ->default($record->nomor_do ?? '-')
+                                ->disabled()
+                                ->dehydrated(false),
+                            
+                            Forms\Components\Select::make('harga_bekal_id')
+                                ->label('Data Harga BBM')
+                                ->required()
+                                ->options(function () use ($bekalId, $kotaId) {
+                                    if (!$bekalId || !$kotaId) {
+                                        return [];
+                                    }
+                                    
+                                    $hargaBekals = HargaBekal::with('bekal')
+                                        ->where('bekal_id', $bekalId)
+                                        ->where('kota_id', $kotaId)
+                                        ->orderBy('tanggal_update', 'desc')
+                                        ->limit(5)
+                                        ->get();
+                                    
+                                    if ($hargaBekals->isEmpty()) {
+                                        return [];
+                                    }
+                                    
+                                    return $hargaBekals->mapWithKeys(function ($item) {
+                                        $jenisBekal = $item->bekal->bekal ?? '-';
+                                        $harga = 'Rp ' . number_format($item->harga, 0, ',', '.');
+                                        $tanggal = $item->tanggal_update ? \Carbon\Carbon::parse($item->tanggal_update)->locale('id')->isoFormat('D MMMM YYYY') : '-';
+                                        return [$item->harga_bekal_id => "{$jenisBekal} - {$harga} - {$tanggal}"];
+                                    })->toArray();
+                                })
+                                ->searchable()
+                                ->live()
+                                ->afterStateUpdated(function (callable $set, $state) {
+                                    if ($state) {
+                                        $hargaBekal = HargaBekal::find($state);
+                                        if ($hargaBekal) {
+                                            $harga = 'Rp ' . number_format($hargaBekal->harga, 0, ',', '.');
+                                            $set('harga_display', $harga);
+                                        }
+                                    } else {
+                                        $set('harga_display', '-');
+                                    }
+                                })
+                                ->helperText('Pilih harga BBM dari 5 data terbaru'),
+                            
+                            Forms\Components\TextInput::make('harga_display')
+                                ->label('Harga BBM')
+                                ->disabled()
+                                ->dehydrated(false)
+                                ->default(function ($record) {
+                                    if ($record->harga_bekal_id) {
+                                        $hargaBekal = HargaBekal::find($record->harga_bekal_id);
+                                        return $hargaBekal ? 'Rp ' . number_format($hargaBekal->harga, 0, ',', '.') : '-';
+                                    }
+                                    return '-';
+                                }),
+                        ];
+                    })
+                    ->action(function (DeliveryOrder $record, array $data) {
+                        // Validasi harga_bekal_id
+                        $hargaBekalId = $data['harga_bekal_id'] ?? null;
+                        
+                        if (!$hargaBekalId) {
+                            Notification::make()
+                                ->title('Error!')
+                                ->body('Harga BBM harus dipilih.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+                        
+                        // Validasi apakah harga_bekal_id valid
+                        $hargaBekal = HargaBekal::where('harga_bekal_id', $hargaBekalId)
+                            ->where('bekal_id', $record->bekal_id)
+                            ->where('kota_id', $record->kota_id)
+                            ->first();
+                        
+                        if (!$hargaBekal) {
+                            Notification::make()
+                                ->title('Error!')
+                                ->body('Harga BBM yang dipilih tidak valid.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+                        
+                        // Update harga_bekal_id
+                        $record->harga_bekal_id = $hargaBekalId;
+                        $record->save();
+                        
+                        Notification::make()
+                            ->title('Berhasil')
+                            ->body('Harga BBM berhasil diperbarui.')
+                            ->success()
+                            ->send();
+                    })
+                    ->visible(function (DeliveryOrder $record) {
+                        $user = Auth::user();
+                        return $user && $user->level->value === LevelUser::KANPUS->value;
+                    }),
+                
+                // Edit action untuk Kansar (redirect ke halaman edit)
                 Tables\Actions\EditAction::make()
                     ->label('Ubah')
                     ->visible(function (DeliveryOrder $record) {
-                        // Cek apakah ini DO terakhir dari SP3M
-                        $latestDo = DeliveryOrder::where('sp3m_id', $record->sp3m_id)
-                            ->orderBy('created_at', 'desc')
-                            ->first();
+                        $user = Auth::user();
                         
-                        return $latestDo && $latestDo->do_id === $record->do_id;
-                    }),
-                Tables\Actions\DeleteAction::make()
-                    ->label('Hapus')
-                    ->visible(function (DeliveryOrder $record) {
-                        // Cek apakah ini DO terakhir dari SP3M
-                        $latestDo = DeliveryOrder::where('sp3m_id', $record->sp3m_id)
+                        // Jika Kanpus atau ABK, hide
+                        if ($user && in_array($user->level->value, [LevelUser::KANPUS->value, LevelUser::ABK->value])) {
+                            return false;
+                        }
+                        
+                        // Jika Kansar, tombol edit hanya muncul di DO terbaru
+                        $latestDo = DeliveryOrder::orderBy('tanggal_do', 'desc')
                             ->orderBy('created_at', 'desc')
                             ->first();
                         
@@ -473,11 +632,17 @@ class DeliveryOrderResource extends Resource
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
                         ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->visible(function () {
+                            $user = Auth::user();
+                            // Hide untuk ABK
+                            return $user && $user->level->value !== LevelUser::ABK->value;
+                        }),
                 ])
                 ->label('Hapus'),
             ])
-            ->defaultSort('tanggal_do', 'desc');
+            ->defaultSort('tanggal_do', 'desc')
+            ->recordUrl(null);
     }
 
     public static function getRelations(): array

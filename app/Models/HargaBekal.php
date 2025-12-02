@@ -23,6 +23,7 @@ class HargaBekal extends Model
         'kota_id',
         'bekal_id',
         'harga',
+        'tanggal_update',
         'created_by',
         'updated_by',
         'deleted_by',
@@ -31,6 +32,7 @@ class HargaBekal extends Model
     protected $casts = [
         'harga_bekal_id' => 'integer',
         'harga' => 'decimal:2',
+        'tanggal_update' => 'date',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
