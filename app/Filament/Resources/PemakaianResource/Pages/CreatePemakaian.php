@@ -47,9 +47,12 @@ class CreatePemakaian extends CreateRecord
 
     protected function beforeCreate(): void
     {
-        // Get input values (qty sudah dalam bentuk integer dari mutateFormDataBeforeCreate)
+        // Get input values - PENTING: konversi qty dari string ke integer
         $alpalId = $this->data['alpal_id'] ?? null;
-        $qty = $this->data['qty'] ?? 0;
+        $qtyRaw = $this->data['qty'] ?? 0;
+        
+        // Convert qty from formatted string to integer (karena beforeCreate dipanggil sebelum mutateFormDataBeforeCreate)
+        $qty = (int) str_replace(['.', ',', ' '], '', $qtyRaw);
 
         // Validasi ROB di Alpal
         $alpal = Alpal::find($alpalId);
@@ -64,27 +67,18 @@ class CreatePemakaian extends CreateRecord
             $this->halt();
         }
 
-        // Cek apakah ROB mencukupi
-        if ($alpal->rob < $qty) {
+        // Validasi ROB tidak boleh negatif setelah dikurangi (maksimal 0)
+        $newRob = $alpal->rob - $qty;
+        
+        if ($newRob < 0) {
             $qtyFormatted = number_format($qty, 0, ',', '.');
             $robFormatted = number_format($alpal->rob, 0, ',', '.');
             
             Notification::make()
                 ->title('Gagal Membuat Pemakaian!')
-                ->body("Qty pemakaian ({$qtyFormatted}) melebihi ROB alpal ({$robFormatted}). Silakan kurangi qty.")
+                ->body("Qty pemakaian ({$qtyFormatted}) melebihi ROB alpal ({$robFormatted}). ROB tidak boleh negatif (minimal 0). Silakan kurangi qty.")
                 ->danger()
                 ->duration(7000)
-                ->send();
-            $this->halt();
-        }
-
-        // Validasi ROB tidak boleh negatif setelah dikurangi
-        if ($alpal->rob - $qty < 0) {
-            Notification::make()
-                ->title('Gagal Membuat Pemakaian!')
-                ->body('ROB tidak boleh negatif setelah pemakaian.')
-                ->danger()
-                ->duration(5000)
                 ->send();
             $this->halt();
         }

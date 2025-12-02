@@ -23,6 +23,7 @@ class Pemakaian extends Model
         'alpal_id',
         'bekal_id',
         'tanggal_pakai',
+        'data_kegiatan',
         'qty',
         'keterangan',
         'created_by',
