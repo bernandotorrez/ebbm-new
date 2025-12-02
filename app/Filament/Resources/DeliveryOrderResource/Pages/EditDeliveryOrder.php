@@ -338,11 +338,15 @@ class EditDeliveryOrder extends EditRecord
                 Forms\Components\Grid::make(2)
                     ->schema([
                         // Nomor DO - Readonly
-                        Forms\Components\TextInput::make('nomor_do')
+                        Forms\Components\TextInput::make('nomor_do_display')
                             ->label('Nomor DO')
                             ->disabled()
-                            ->dehydrated(true)
-                            ->default($record->nomor_do),
+                            ->dehydrated(false)
+                            ->afterStateHydrated(function ($component, $record) {
+                                if ($record) {
+                                    $component->state($record->nomor_do ?? '-');
+                                }
+                            }),
                         
                         // Qty - Editable
                         Forms\Components\TextInput::make('qty')
