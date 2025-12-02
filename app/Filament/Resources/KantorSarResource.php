@@ -47,6 +47,13 @@ class KantorSarResource extends Resource
                     ->label('Kantor SAR')
                     ->required()
                     ->maxLength(50),
+                
+                Forms\Components\Select::make('kota_id')
+                    ->label('Kota')
+                    ->relationship('kota', 'kota')
+                    ->searchable()
+                    ->preload()
+                    ->nullable(),
             ]);
     }
 
@@ -57,6 +64,12 @@ class KantorSarResource extends Resource
                 Tables\Columns\TextColumn::make('kantor_sar')
                     ->label('Kantor SAR')
                     ->searchable(),
+                
+                Tables\Columns\TextColumn::make('kota.kota')
+                    ->label('Kota')
+                    ->sortable()
+                    ->searchable(),
+                
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->label('Dihapus Pada')
                     ->dateTime()

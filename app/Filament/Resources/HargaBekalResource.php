@@ -62,7 +62,17 @@ class HargaBekalResource extends Resource
                     ])
                     ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
                     ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
+                    ->minValue(1)
+                    ->rules(['min:1'])
                     ->live(),
+                    
+                Forms\Components\DatePicker::make('tanggal_update')
+                    ->label('Tanggal Update')
+                    ->required()
+                    ->native(false)
+                    ->displayFormat('d/m/Y')
+                    ->closeOnDateSelection(true)
+                    ->default(now()),
             ]);
     }
 
@@ -84,6 +94,11 @@ class HargaBekalResource extends Resource
                     ->label('Harga')
                     ->formatStateUsing(fn ($state) => 'Rp ' . number_format($state, 0, ',', '.'))
                     ->alignment('right')
+                    ->sortable(),
+                    
+                Tables\Columns\TextColumn::make('tanggal_update')
+                    ->label('Tanggal Update')
+                    ->date('d/m/Y')
                     ->sortable(),
                     
                 Tables\Columns\TextColumn::make('created_at')

@@ -62,6 +62,8 @@ class PaguResource extends Resource
                     ])
                     ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
                     ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
+                    ->minValue(1)
+                    ->rules(['min:1'])
                     ->live(),
                 Forms\Components\TextInput::make('tahun_anggaran')
                     ->required()
