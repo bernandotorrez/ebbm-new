@@ -103,8 +103,23 @@ class DashboardStatsWidget extends Widget
         $query = Sp3m::whereIn('bekal_id', $bekalIds)
             ->where('tahun_anggaran', $this->selectedYear);
 
-        // Filter untuk Kansar dan ABK berdasarkan kantor_sar_id
-        if ($user && in_array($user->level->value, [\App\Enums\LevelUser::KANSAR->value, \App\Enums\LevelUser::ABK->value])) {
+        // Filter khusus untuk ABK berdasarkan alpal_id
+        if ($user && $user->level->value === \App\Enums\LevelUser::ABK->value) {
+            // Jika tidak punya alpal_id, return empty data
+            if (!$user->alpal_id) {
+                return [
+                    'bekal' => '-',
+                    'qty' => 0,
+                    'jumlah_harga' => 0,
+                    'sisa_qty' => 0,
+                ];
+            }
+            
+            // Filter berdasarkan alpal_id user
+            $query->where('alpal_id', $user->alpal_id);
+        }
+        // Filter untuk Kansar berdasarkan kantor_sar_id
+        elseif ($user && $user->level->value === \App\Enums\LevelUser::KANSAR->value) {
             // Jika tidak punya kantor_sar_id, return empty data
             if (!$user->kantor_sar_id) {
                 return [
@@ -115,7 +130,7 @@ class DashboardStatsWidget extends Widget
                 ];
             }
             
-            // Filter langsung berdasarkan kantor_sar_id user
+            // Filter berdasarkan kantor_sar_id user
             $query->where('kantor_sar_id', $user->kantor_sar_id);
         }
 
@@ -142,20 +157,8 @@ class DashboardStatsWidget extends Widget
 
         $user = auth()->user();
         
-        $query = DeliveryOrder::whereHas('sp3m', function ($query) use ($bekalIds, $user) {
-                $query->whereIn('bekal_id', $bekalIds);
-                
-                // Filter untuk Kansar dan ABK berdasarkan kantor_sar_id
-                if ($user && in_array($user->level->value, [\App\Enums\LevelUser::KANSAR->value, \App\Enums\LevelUser::ABK->value])) {
-                    if ($user->kantor_sar_id) {
-                        $query->where('kantor_sar_id', $user->kantor_sar_id);
-                    }
-                }
-            })
-            ->where('tahun_anggaran', $this->selectedYear);
-        
-        // Return empty jika user Kansar/ABK tidak punya kantor_sar_id
-        if ($user && in_array($user->level->value, [\App\Enums\LevelUser::KANSAR->value, \App\Enums\LevelUser::ABK->value]) && !$user->kantor_sar_id) {
+        // Return empty jika user ABK tidak punya alpal_id
+        if ($user && $user->level->value === \App\Enums\LevelUser::ABK->value && !$user->alpal_id) {
             return [
                 'bekal' => '-',
                 'qty' => 0,
@@ -163,6 +166,30 @@ class DashboardStatsWidget extends Widget
                 'sisa_sp3m' => 0,
             ];
         }
+        
+        // Return empty jika user Kansar tidak punya kantor_sar_id
+        if ($user && $user->level->value === \App\Enums\LevelUser::KANSAR->value && !$user->kantor_sar_id) {
+            return [
+                'bekal' => '-',
+                'qty' => 0,
+                'jumlah_harga' => 0,
+                'sisa_sp3m' => 0,
+            ];
+        }
+        
+        $query = DeliveryOrder::whereHas('sp3m', function ($query) use ($bekalIds, $user) {
+                $query->whereIn('bekal_id', $bekalIds);
+                
+                // Filter khusus untuk ABK berdasarkan alpal_id
+                if ($user && $user->level->value === \App\Enums\LevelUser::ABK->value && $user->alpal_id) {
+                    $query->where('alpal_id', $user->alpal_id);
+                }
+                // Filter untuk Kansar berdasarkan kantor_sar_id
+                elseif ($user && $user->level->value === \App\Enums\LevelUser::KANSAR->value && $user->kantor_sar_id) {
+                    $query->where('kantor_sar_id', $user->kantor_sar_id);
+                }
+            })
+            ->where('tahun_anggaran', $this->selectedYear);
 
         $pengambilanData = $query
             ->leftJoin('ms_harga_bekal', function($join) {
@@ -193,8 +220,17 @@ class DashboardStatsWidget extends Widget
 
         $user = auth()->user();
         
-        // Return empty jika user Kansar/ABK tidak punya kantor_sar_id
-        if ($user && in_array($user->level->value, [\App\Enums\LevelUser::KANSAR->value, \App\Enums\LevelUser::ABK->value]) && !$user->kantor_sar_id) {
+        // Return empty jika user ABK tidak punya alpal_id
+        if ($user && $user->level->value === \App\Enums\LevelUser::ABK->value && !$user->alpal_id) {
+            return [
+                'bekal' => '-',
+                'qty' => 0,
+                'pengisian' => 0,
+            ];
+        }
+        
+        // Return empty jika user Kansar tidak punya kantor_sar_id
+        if ($user && $user->level->value === \App\Enums\LevelUser::KANSAR->value && !$user->kantor_sar_id) {
             return [
                 'bekal' => '-',
                 'qty' => 0,
@@ -205,8 +241,12 @@ class DashboardStatsWidget extends Widget
         $queryPemakaian = Pemakaian::whereIn('bekal_id', $bekalIds)
             ->whereYear('tanggal_pakai', $this->selectedYear);
 
-        // Filter untuk Kansar dan ABK berdasarkan kantor_sar_id
-        if ($user && in_array($user->level->value, [\App\Enums\LevelUser::KANSAR->value, \App\Enums\LevelUser::ABK->value]) && $user->kantor_sar_id) {
+        // Filter khusus untuk ABK berdasarkan alpal_id
+        if ($user && $user->level->value === \App\Enums\LevelUser::ABK->value && $user->alpal_id) {
+            $queryPemakaian->where('alpal_id', $user->alpal_id);
+        }
+        // Filter untuk Kansar berdasarkan kantor_sar_id
+        elseif ($user && $user->level->value === \App\Enums\LevelUser::KANSAR->value && $user->kantor_sar_id) {
             $queryPemakaian->where('kantor_sar_id', $user->kantor_sar_id);
         }
 
@@ -217,8 +257,12 @@ class DashboardStatsWidget extends Widget
         $queryPengisian = DeliveryOrder::whereHas('sp3m', function ($query) use ($bekalIds, $user) {
                 $query->whereIn('bekal_id', $bekalIds);
                 
-                // Filter untuk Kansar dan ABK berdasarkan kantor_sar_id
-                if ($user && in_array($user->level->value, [\App\Enums\LevelUser::KANSAR->value, \App\Enums\LevelUser::ABK->value]) && $user->kantor_sar_id) {
+                // Filter khusus untuk ABK berdasarkan alpal_id
+                if ($user && $user->level->value === \App\Enums\LevelUser::ABK->value && $user->alpal_id) {
+                    $query->where('alpal_id', $user->alpal_id);
+                }
+                // Filter untuk Kansar berdasarkan kantor_sar_id
+                elseif ($user && $user->level->value === \App\Enums\LevelUser::KANSAR->value && $user->kantor_sar_id) {
                     $query->where('kantor_sar_id', $user->kantor_sar_id);
                 }
             })

@@ -12,6 +12,13 @@ class ListDeliveryOrders extends ListRecords
 
     protected function getHeaderActions(): array
     {
+        $user = auth()->user();
+        
+        // Jika ABK, jangan tampilkan tombol Create
+        if ($user && $user->level->value === \App\Enums\LevelUser::ABK->value) {
+            return [];
+        }
+        
         return [
             Actions\CreateAction::make()
                 ->label('Tambah Delivery Order'),

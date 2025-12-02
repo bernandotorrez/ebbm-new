@@ -117,8 +117,6 @@ class CreateDeliveryOrder extends CreateRecord
         
         // Get input values
         $sp3mId = $this->data['sp3m_id'] ?? null;
-        $tbbmId = $this->data['tbbm_id'] ?? null;
-        $tahunAnggaran = $this->data['tahun_anggaran'] ?? null;
         $qty = (int) preg_replace('/[^\d]/', '', $this->data['qty'] ?? 0);
 
         // Validasi sisa_qty di SP3M
@@ -168,20 +166,36 @@ class CreateDeliveryOrder extends CreateRecord
                     ->send();
                 $this->halt();
             }
-            
-            // Update rob di alpal dan sisa_qty di SP3M dalam transaction
-            \DB::transaction(function () use ($alpal, $newRob, $sp3m, $qty) {
-                $alpal->rob = $newRob;
-                $alpal->save();
-                
-                $sp3m->sisa_qty -= $qty;
-                $sp3m->save();
-            });
-        } else {
-            // Jika tidak ada alpal, hanya update sisa_qty
-            $sp3m->sisa_qty -= $qty;
-            $sp3m->save();
         }
+    }
+    
+    protected function afterCreate(): void
+    {
+        // Get the created record
+        $record = $this->record;
+        
+        // Get SP3M
+        $sp3m = Sp3m::with('alpal')->find($record->sp3m_id);
+        
+        if (!$sp3m) {
+            return;
+        }
+        
+        $qty = $record->qty;
+        
+        // Update dalam transaction untuk memastikan konsistensi
+        \DB::transaction(function () use ($sp3m, $qty) {
+            // Update sisa_qty di SP3M
+            $sp3m->sisa_qty = $sp3m->sisa_qty - $qty;
+            $sp3m->save();
+            
+            // Update rob di alpal jika ada
+            if ($sp3m->alpal) {
+                $alpal = $sp3m->alpal;
+                $alpal->rob = $alpal->rob + $qty;
+                $alpal->save();
+            }
+        });
     }
 
     protected function getCreatedNotification(): ?Notification

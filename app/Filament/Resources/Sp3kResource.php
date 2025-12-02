@@ -259,7 +259,8 @@ class Sp3kResource extends Resource
                         ->modalButton('Ya, Hapus Sekarang'),
                 ])
                 ->label('Hapus'),
-            ]);
+            ])
+            ->recordUrl(null);
     }
 
     public static function getRelations(): array

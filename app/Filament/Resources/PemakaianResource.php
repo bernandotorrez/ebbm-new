@@ -340,7 +340,8 @@ class PemakaianResource extends Resource
                         }),
                 ])
                 ->label('Hapus'),
-            ]);
+            ])
+            ->recordUrl(null);
     }
 
     public static function getRelations(): array

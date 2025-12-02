@@ -122,6 +122,9 @@ class DeliveryOrderResource extends Resource
                                         
                                         // Set sisa qty
                                         $set('sisa_qty_info', number_format($sp3m->sisa_qty, 0, ',', '.'));
+                                        
+                                        // Reset TBBM selection when SP3M changes
+                                        $set('tbbm_id', null);
                                     }
                                 } else {
                                     $set('alut_info', '');
@@ -130,6 +133,7 @@ class DeliveryOrderResource extends Resource
                                     $set('jenis_bahan_bakar_info', '');
                                     $set('harga_satuan', null);
                                     $set('sisa_qty_info', '');
+                                    $set('tbbm_id', null);
                                 }
                             }),
                         
@@ -256,10 +260,28 @@ class DeliveryOrderResource extends Resource
                             ->closeOnDateSelection(true),
                         
                         Forms\Components\Select::make('tbbm_id')
-                            ->relationship(name: 'tbbm', titleAttribute: 'depot')
                             ->label('TBBM/DPPU')
                             ->searchable()
                             ->preload()
+                            ->options(function (callable $get) {
+                                $sp3mId = $get('sp3m_id');
+                                
+                                if (!$sp3mId) {
+                                    return [];
+                                }
+                                
+                                // Get SP3M with kantor_sar relationship
+                                $sp3m = Sp3m::with('kantorSar')->find($sp3mId);
+                                
+                                if (!$sp3m || !$sp3m->kantorSar || !$sp3m->kantorSar->kota_id) {
+                                    return \App\Models\Tbbm::pluck('depot', 'tbbm_id')->toArray();
+                                }
+                                
+                                // Filter TBBM by kota_id from kantor_sar
+                                return \App\Models\Tbbm::where('kota_id', $sp3m->kantorSar->kota_id)
+                                    ->pluck('depot', 'tbbm_id')
+                                    ->toArray();
+                            })
                             ->validationMessages([
                                 'required' => 'Pilih TBBM/DDPU',
                             ])
@@ -341,9 +363,15 @@ class DeliveryOrderResource extends Resource
                     'kota'
                 ]);
                 
-                // Apply user-level filtering for Kansar and ABK only
-                if ($user 
-                    && !in_array($user->level->value, [LevelUser::ADMIN->value, LevelUser::KANPUS->value])
+                // Filter khusus untuk ABK - hanya tampilkan DO dari kapal mereka
+                if ($user && $user->level->value === LevelUser::ABK->value && $user->alpal_id) {
+                    $query->whereHas('sp3m', function ($q) use ($user) {
+                        $q->where('alpal_id', $user->alpal_id);
+                    });
+                }
+                // Filter untuk Kansar - tampilkan DO dari kantor SAR mereka
+                elseif ($user 
+                    && $user->level->value === LevelUser::KANSAR->value
                     && $user->kantor_sar_id) {
                     $query->whereHas('sp3m', function ($q) use ($user) {
                         $q->where('kantor_sar_id', $user->kantor_sar_id);
@@ -575,18 +603,18 @@ class DeliveryOrderResource extends Resource
                         return $user && $user->level->value === LevelUser::KANPUS->value;
                     }),
                 
-                // Edit action untuk Kansar/ABK (redirect ke halaman edit)
+                // Edit action untuk Kansar (redirect ke halaman edit)
                 Tables\Actions\EditAction::make()
                     ->label('Ubah')
                     ->visible(function (DeliveryOrder $record) {
                         $user = Auth::user();
                         
-                        // Jika Kanpus, hide (karena sudah ada modal)
-                        if ($user && $user->level->value === LevelUser::KANPUS->value) {
+                        // Jika Kanpus atau ABK, hide
+                        if ($user && in_array($user->level->value, [LevelUser::KANPUS->value, LevelUser::ABK->value])) {
                             return false;
                         }
                         
-                        // Jika Kansar/ABK, tombol edit hanya muncul di DO terbaru
+                        // Jika Kansar, tombol edit hanya muncul di DO terbaru
                         $latestDo = DeliveryOrder::orderBy('tanggal_do', 'desc')
                             ->orderBy('created_at', 'desc')
                             ->first();
@@ -600,11 +628,17 @@ class DeliveryOrderResource extends Resource
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
                         ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->visible(function () {
+                            $user = Auth::user();
+                            // Hide untuk ABK
+                            return $user && $user->level->value !== LevelUser::ABK->value;
+                        }),
                 ])
                 ->label('Hapus'),
             ])
-            ->defaultSort('tanggal_do', 'desc');
+            ->defaultSort('tanggal_do', 'desc')
+            ->recordUrl(null);
     }
 
     public static function getRelations(): array
