@@ -341,7 +341,14 @@ class EditDeliveryOrder extends EditRecord
                         Forms\Components\TextInput::make('nomor_do')
                             ->label('Nomor DO')
                             ->required()
-                            ->maxLength(200),
+                            ->maxLength(200)
+                            ->extraInputAttributes([
+                                'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "")'
+                            ])
+                            ->rules(['numeric'])
+                            ->validationMessages([
+                                'numeric' => 'Nomor DO harus berupa angka',
+                            ]),
                         
                         // Qty - Editable
                         Forms\Components\TextInput::make('qty')
