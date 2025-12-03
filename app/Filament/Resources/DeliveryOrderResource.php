@@ -425,14 +425,16 @@ class DeliveryOrderResource extends Resource
                         }
                         return 'Rp ' . number_format($harga, 0, ',', '.');
                     })
-                    ->sortable(false),
+                    ->sortable(false)
+                    ->visible(fn () => !in_array(Auth::user()?->level?->value, [LevelUser::KANSAR->value, LevelUser::ABK->value])),
                 Tables\Columns\TextColumn::make('jumlah_harga_display')
                     ->label('Jumlah Harga')
                     ->getStateUsing(function ($record) {
                         $jumlahHarga = $record->jumlah_harga; // Using accessor
                         return 'Rp ' . number_format($jumlahHarga, 0, ',', '.');
                     })
-                    ->sortable(false),
+                    ->sortable(false)
+                    ->visible(fn () => !in_array(Auth::user()?->level?->value, [LevelUser::KANSAR->value, LevelUser::ABK->value])),
                 Tables\Columns\TextColumn::make('ppn')
                     ->label('PPN')
                     ->numeric()
@@ -619,6 +621,51 @@ class DeliveryOrderResource extends Resource
                         }
                         
                         // Jika Kansar, tombol edit hanya muncul di DO terbaru
+                        $latestDo = DeliveryOrder::orderBy('tanggal_do', 'desc')
+                            ->orderBy('created_at', 'desc')
+                            ->first();
+                        
+                        return $latestDo && $latestDo->do_id === $record->do_id;
+                    }),
+                
+                // Delete action untuk Kansar
+                Tables\Actions\DeleteAction::make()
+                    ->label('Hapus')
+                    ->modalHeading('Konfirmasi Hapus Data')
+                    ->modalDescription('Apakah kamu yakin ingin menghapus data ini? Qty akan dikembalikan ke Sisa SP3M.')
+                    ->modalSubmitActionLabel('Ya, Hapus')
+                    ->before(function (DeliveryOrder $record) {
+                        // Kembalikan qty ke sisa SP3M
+                        $sp3m = Sp3m::find($record->sp3m_id);
+                        if ($sp3m) {
+                            $sp3m->sisa_qty += $record->qty;
+                            $sp3m->save();
+                            
+                            // Kurangi ROB di alpal (pastikan tidak minus)
+                            if ($sp3m->alpal_id) {
+                                $alpal = \App\Models\Alpal::find($sp3m->alpal_id);
+                                if ($alpal) {
+                                    $alpal->rob = max(0, $alpal->rob - $record->qty);
+                                    $alpal->save();
+                                }
+                            }
+                        }
+                    })
+                    ->successNotification(
+                        Notification::make()
+                            ->success()
+                            ->title('Berhasil')
+                            ->body('Data delivery order berhasil dihapus dan qty dikembalikan ke Sisa SP3M.')
+                    )
+                    ->visible(function (DeliveryOrder $record) {
+                        $user = Auth::user();
+                        
+                        // Hanya tampilkan untuk Kansar
+                        if (!$user || $user->level->value !== LevelUser::KANSAR->value) {
+                            return false;
+                        }
+                        
+                        // Hanya tampilkan di DO terbaru
                         $latestDo = DeliveryOrder::orderBy('tanggal_do', 'desc')
                             ->orderBy('created_at', 'desc')
                             ->first();

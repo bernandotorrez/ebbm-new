@@ -289,11 +289,13 @@ class Sp3mResource extends Resource
                 Tables\Columns\TextColumn::make('harga_satuan')
                     ->label('Harga Satuan')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->visible(fn () => !in_array(Auth::user()?->level?->value, [LevelUser::KANSAR->value, LevelUser::ABK->value])),
                 Tables\Columns\TextColumn::make('jumlah_harga')
                     ->label('Jumlah Harga')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->visible(fn () => !in_array(Auth::user()?->level?->value, [LevelUser::KANSAR->value, LevelUser::ABK->value])),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->label('Dihapus Pada')
                     ->dateTime()
