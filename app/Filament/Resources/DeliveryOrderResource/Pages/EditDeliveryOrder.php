@@ -337,16 +337,11 @@ class EditDeliveryOrder extends EditRecord
                 
                 Forms\Components\Grid::make(2)
                     ->schema([
-                        // Nomor DO - Readonly
-                        Forms\Components\TextInput::make('nomor_do_display')
+                        // Nomor DO - Editable
+                        Forms\Components\TextInput::make('nomor_do')
                             ->label('Nomor DO')
-                            ->disabled()
-                            ->dehydrated(false)
-                            ->afterStateHydrated(function ($component, $record) {
-                                if ($record) {
-                                    $component->state($record->nomor_do ?? '-');
-                                }
-                            }),
+                            ->required()
+                            ->maxLength(200),
                         
                         // Qty - Editable
                         Forms\Components\TextInput::make('qty')
@@ -359,7 +354,16 @@ class EditDeliveryOrder extends EditRecord
                             ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : null)
                             ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
                             ->minValue(1)
-                            ->rules(['min:1'])
+                            ->rules([
+                                function () {
+                                    return function (string $attribute, $value, \Closure $fail) {
+                                        $qty = (int) str_replace(['.', ',', ' '], '', $value);
+                                        if ($qty < 1) {
+                                            $fail('Qty minimal 1.');
+                                        }
+                                    };
+                                },
+                            ])
                             ->live(),
                     ]),
                 

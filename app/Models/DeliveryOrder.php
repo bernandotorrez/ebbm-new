@@ -78,25 +78,5 @@ class DeliveryOrder extends Model
         return $this->qty * $this->harga;
     }
 
-    protected static function boot()
-    {
-        parent::boot();
 
-        // Event saat DO akan dihapus
-        static::deleting(function ($deliveryOrder) {
-            // Kembalikan sisa_qty ke SP3M
-            $sp3m = Sp3m::find($deliveryOrder->sp3m_id);
-            if ($sp3m) {
-                $sp3m->sisa_qty += $deliveryOrder->qty;
-                $sp3m->save();
-                
-                // Kurangi rob di alpal
-                $alpal = Alpal::find($sp3m->alpal_id);
-                if ($alpal) {
-                    $alpal->rob -= $deliveryOrder->qty;
-                    $alpal->save();
-                }
-            }
-        });
-    }
 }
