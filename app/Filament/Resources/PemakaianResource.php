@@ -203,6 +203,12 @@ class PemakaianResource extends Resource
                                         $qty = (int) str_replace(['.', ',', ' '], '', $value);
                                         $alpalId = $get('alpal_id');
                                         
+                                        // Validasi qty minimal 1
+                                        if ($qty < 1) {
+                                            $fail('Qty minimal 1.');
+                                            return;
+                                        }
+                                        
                                         if ($alpalId && $qty > 0) {
                                             $alpal = Alpal::find($alpalId);
                                             if ($alpal) {
@@ -272,9 +278,12 @@ class PemakaianResource extends Resource
         
         return $table
             ->modifyQueryUsing(function (Builder $query) use ($user) {
-                // Apply user-level filtering for KANSAR and ABK users
-                if ($user && $user->kantor_sar_id && 
-                    in_array($user->level->value, [LevelUser::KANSAR->value, LevelUser::ABK->value])) {
+                // Filter khusus untuk ABK - hanya tampilkan pemakaian dari kapal mereka
+                if ($user && $user->level->value === LevelUser::ABK->value && $user->alpal_id) {
+                    $query->where('alpal_id', $user->alpal_id);
+                }
+                // Filter untuk Kansar - tampilkan pemakaian dari kantor SAR mereka
+                elseif ($user && $user->level->value === LevelUser::KANSAR->value && $user->kantor_sar_id) {
                     $query->where('kantor_sar_id', $user->kantor_sar_id);
                 }
                 
@@ -344,6 +353,25 @@ class PemakaianResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->label('Ubah'),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Hapus')
+                    ->modalHeading('Konfirmasi Hapus Data')
+                    ->modalDescription('Apakah kamu yakin ingin menghapus data ini? Qty akan dikembalikan ke ROB.')
+                    ->modalSubmitActionLabel('Ya, Hapus')
+                    ->before(function (Pemakaian $record) {
+                        // Kembalikan qty ke ROB alpal
+                        $alpal = Alpal::find($record->alpal_id);
+                        if ($alpal) {
+                            $alpal->rob += $record->qty;
+                            $alpal->save();
+                        }
+                    })
+                    ->successNotification(
+                        \Filament\Notifications\Notification::make()
+                            ->success()
+                            ->title('Berhasil')
+                            ->body('Data pemakaian berhasil dihapus dan qty dikembalikan ke ROB.')
+                    ),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -390,9 +418,12 @@ class PemakaianResource extends Resource
             
         $user = Auth::user();
         
-        // Apply user-level filtering for KANSAR and ABK users
-        if ($user && $user->kantor_sar_id && 
-            in_array($user->level->value, [LevelUser::KANSAR->value, LevelUser::ABK->value])) {
+        // Filter khusus untuk ABK - hanya tampilkan pemakaian dari kapal mereka
+        if ($user && $user->level->value === LevelUser::ABK->value && $user->alpal_id) {
+            $query->where('alpal_id', $user->alpal_id);
+        }
+        // Filter untuk Kansar - tampilkan pemakaian dari kantor SAR mereka
+        elseif ($user && $user->level->value === LevelUser::KANSAR->value && $user->kantor_sar_id) {
             $query->where('kantor_sar_id', $user->kantor_sar_id);
         }
         
