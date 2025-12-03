@@ -33,14 +33,18 @@ class CreateSp3k extends CreateRecord
      */
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // kalau mau simpan siapa yang buat
-        // $data['created_by'] = Auth::id();
+        // Generate nomor SP3K di backend untuk menghindari duplikasi
+        if (!empty($data['alpal_id'])) {
+            $tahunAnggaran = $data['tahun_anggaran'] ?? null;
+            $data['nomor_sp3k'] = \DB::transaction(function () use ($data, $tahunAnggaran) {
+                return Sp3kResource::generateNomorSp3k($data['alpal_id'], $tahunAnggaran);
+            });
+        }
 
         // pastikan kolom NOT NULL punya nilai
         $data['jumlah_qty'] = 0;
         $data['jumlah_harga'] = 0;
         $data['jumlah_liter'] = 0;
-        $data['nomor_sp3k'] = strtoupper($data['nomor_sp3k']);
 
         return $data;
     }
@@ -50,20 +54,6 @@ class CreateSp3k extends CreateRecord
         $kantorSarId   = $this->data['kantor_sar_id'] ?? null;
         $tahunAnggaran = $this->data['tahun_anggaran'] ?? null;
         $tw            = $this->data['tw'] ?? null;
-        $nomor_sp3k    = $this->data['nomor_sp3k'];
-
-        $duplicateSp3kNumber = TxSp3k::where('nomor_sp3k', $nomor_sp3k)->exists();
-        if ($duplicateSp3kNumber) {
-            $message = 'Nomor SP3K : '.$nomor_sp3k.' Sudah ada';
-
-            Notification::make()
-                ->title('Kesalahan!')
-                ->body($message)
-                ->danger()
-                ->send();
-
-            $this->halt();
-        }
 
         $exists = TxSp3k::where('kantor_sar_id', $kantorSarId)
             ->where('tahun_anggaran', $tahunAnggaran)
