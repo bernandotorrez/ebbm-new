@@ -48,6 +48,22 @@ class AlpalResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\TextInput::make('kode_alut')
+                    ->required()
+                    ->label('Kode Alut')
+                    ->maxLength(3)
+                    ->extraInputAttributes([
+                        'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").slice(0, 3)'
+                    ])
+                    ->rules([
+                        'required',
+                        'digits:3',
+                    ])
+                    ->validationMessages([
+                        'required' => 'Kode Alut harus diisi',
+                        'digits' => 'Kode Alut harus tepat 3 digit angka',
+                    ])
+                    ->helperText('Masukkan 3 digit angka (contoh: 001, 123)'),
                 Forms\Components\TextInput::make('alpal')
                     ->required()
                     ->label('Nama Alut')
@@ -130,6 +146,10 @@ class AlpalResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('kode_alut')
+                    ->label('Kode Alut')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('alpal')
                     ->label('Nama Alut')
                     ->searchable()

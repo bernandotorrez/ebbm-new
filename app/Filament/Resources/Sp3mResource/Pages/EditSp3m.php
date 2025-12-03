@@ -30,7 +30,29 @@ class EditSp3m extends EditRecord
     {
         // Clean numeric fields
         $data['qty'] = (int) preg_replace('/[^\d]/', '', $data['qty']);
-        $data['nomor_sp3m'] = strtoupper($data['nomor_sp3m']);
+        
+        // Cek apakah nomor SP3M berubah (alut atau tahun anggaran berubah)
+        $nomorSp3mChanged = $data['nomor_sp3m_changed'] ?? false;
+        $originalAlpalId = $data['original_alpal_id'] ?? null;
+        $currentAlpalId = $data['alpal_id'] ?? null;
+        $originalTahunAnggaran = $data['original_tahun_anggaran'] ?? null;
+        $currentTahunAnggaran = $data['tahun_anggaran'] ?? null;
+        
+        // Jika alut dan tahun anggaran kembali ke original, gunakan nomor original
+        if ($originalAlpalId && $currentAlpalId && $originalTahunAnggaran && $currentTahunAnggaran &&
+            $originalAlpalId == $currentAlpalId && $originalTahunAnggaran == $currentTahunAnggaran) {
+            // Alut dan tahun anggaran sama dengan original, gunakan nomor SP3M original
+            $data['nomor_sp3m'] = $data['original_nomor_sp3m'] ?? $this->record->nomor_sp3m;
+        } elseif ($nomorSp3mChanged && !empty($data['alpal_id'])) {
+            // Alut atau tahun anggaran berubah, generate nomor SP3M baru di backend
+            $tahunAnggaran = $data['tahun_anggaran'] ?? null;
+            $data['nomor_sp3m'] = \DB::transaction(function () use ($data, $tahunAnggaran) {
+                return Sp3mResource::generateNomorSp3m($data['alpal_id'], $tahunAnggaran);
+            });
+        } else {
+            // Tidak ada perubahan, gunakan nomor SP3M yang sudah ada
+            $data['nomor_sp3m'] = $this->record->nomor_sp3m;
+        }
         
         // Get kantor_sar_id from Alut if not set
         if (empty($data['kantor_sar_id']) && !empty($data['alpal_id'])) {
@@ -106,22 +128,14 @@ class EditSp3m extends EditRecord
             }
         }
 
-        $nomorSp3m = strtoupper($this->data['nomor_sp3m']);
-
-        $duplicateSp3kNumber = Sp3m::where('nomor_sp3m', $nomorSp3m)
-            ->where('sp3m_id', '!=', $id)
-            ->exists();
-
-        if ($duplicateSp3kNumber) {
-            $message = 'Nomor SP3M : '.$nomorSp3m.' Sudah ada';
-
-            Notification::make()
-                ->title('Kesalahan!')
-                ->body($message)
-                ->danger()
-                ->send();
-
-            $this->halt();
+        // Validasi duplikasi nomor SP3M hanya jika alut berubah
+        $originalAlpalId = $this->data['original_alpal_id'] ?? null;
+        $currentAlpalId = $this->data['alpal_id'] ?? null;
+        $isAlutChanged = $originalAlpalId && $currentAlpalId && $originalAlpalId != $currentAlpalId;
+        
+        if ($isAlutChanged) {
+            // Nomor akan di-generate ulang, tidak perlu validasi duplikasi
+            // karena sudah di-handle di generateNomorSp3m dengan lockForUpdate
         }
     }
 

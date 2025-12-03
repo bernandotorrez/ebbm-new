@@ -18,6 +18,7 @@ class Alpal extends Model
 
     protected $fillable = [
         'alpal_id',
+        'kode_alut',
         'kantor_sar_id',
         'golongan_bbm_id',
         'pos_sandar_id',
