@@ -51,6 +51,17 @@ class CreateSp3k extends CreateRecord
 
     protected function beforeCreate(): void
     {
+        // Validasi minimal 1 detail
+        $details = $this->data['details'] ?? [];
+        if (empty($details) || count($details) < 1) {
+            Notification::make()
+                ->title('Kesalahan!')
+                ->body('Minimal harus ada 1 detail pelumas.')
+                ->danger()
+                ->send();
+            $this->halt();
+        }
+
         $kantorSarId   = $this->data['kantor_sar_id'] ?? null;
         $tahunAnggaran = $this->data['tahun_anggaran'] ?? null;
         $tw            = $this->data['tw'] ?? null;

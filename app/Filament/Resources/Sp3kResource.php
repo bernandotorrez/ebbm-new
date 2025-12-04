@@ -345,7 +345,12 @@ class Sp3kResource extends Resource
                     ->orderColumn('sort')
                     ->addActionLabel('Tambah Detail')
                     ->reorderableWithButtons()
-                    ->itemLabel(fn (array $state): ?string => $state['pelumas_id'] ?? null),
+                    ->itemLabel(fn (array $state): ?string => $state['pelumas_id'] ?? null)
+                    ->minItems(1)
+                    ->live()
+                    ->deleteAction(
+                        fn ($action) => $action->hidden(fn (array $arguments, Forms\Components\Repeater $component): bool => count($component->getState()) <= 1)
+                    ),
             ]);
     }
 

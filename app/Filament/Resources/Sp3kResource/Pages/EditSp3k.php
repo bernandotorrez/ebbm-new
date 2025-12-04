@@ -84,6 +84,20 @@ class EditSp3k extends EditRecord
 
     protected function beforeSave(): void
     {
+        // Validasi minimal 1 detail
+        $details = $this->data['details'] ?? [];
+        if (empty($details) || count($details) < 1) {
+            Notification::make()
+                ->title('Kesalahan!')
+                ->body('Minimal harus ada 1 detail pelumas.')
+                ->danger()
+                ->send();
+            $this->halt();
+        }
+    }
+
+    protected function beforeSaveOld(): void
+    {
         // Get input values
         $id = $this->data['sp3k_id'] ?? null;
         $kantorSarId = $this->data['kantor_sar_id'] ?? null;
