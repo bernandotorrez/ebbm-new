@@ -264,15 +264,38 @@ class Sp3kResource extends Resource
                             ])
                             ->required()
                             ->live()
-                            ->afterStateUpdated(function (callable $get, callable $set, $state) {
+                            ->afterStateHydrated(function (callable $get, callable $set, $state) {
+                                // Populate pack, kemasan, jumlah_isi saat load data (edit)
                                 if ($state) {
-                                    $pelumas = \App\Models\Pelumas::find($state);
+                                    $pelumas = \App\Models\Pelumas::with(['pack', 'kemasan'])->find($state);
                                     if ($pelumas) {
                                         $pack = $pelumas->pack;
                                         $kemasan = $pelumas->kemasan;
 
                                         $set('pack', $pack ? $pack->nama_pack : '');
                                         $set('kemasan_liter', $kemasan ? $kemasan->kemasan_liter : '');
+                                        
+                                        // Calculate jumlah_isi
+                                        $qty = (int) str_replace(['.', ',', ' '], '', $get('qty')) ?: 0;
+                                        $kemasanLiter = $kemasan ? $kemasan->kemasan_liter : 0;
+                                        $set('jumlah_isi', number_format($qty * $kemasanLiter, 0, ',', '.'));
+                                    }
+                                }
+                            })
+                            ->afterStateUpdated(function (callable $get, callable $set, $state) {
+                                if ($state) {
+                                    $pelumas = \App\Models\Pelumas::with(['pack', 'kemasan'])->find($state);
+                                    if ($pelumas) {
+                                        $pack = $pelumas->pack;
+                                        $kemasan = $pelumas->kemasan;
+
+                                        $set('pack', $pack ? $pack->nama_pack : '');
+                                        $set('kemasan_liter', $kemasan ? $kemasan->kemasan_liter : '');
+                                        
+                                        // Calculate jumlah_isi
+                                        $qty = (int) str_replace(['.', ',', ' '], '', $get('qty')) ?: 0;
+                                        $kemasanLiter = $kemasan ? $kemasan->kemasan_liter : 0;
+                                        $set('jumlah_isi', number_format($qty * $kemasanLiter, 0, ',', '.'));
                                     }
                                 }
                             }),
@@ -296,8 +319,16 @@ class Sp3kResource extends Resource
                             ->dehydrateStateUsing(fn ($state) => (int) str_replace(['.', ',', ' '], '', $state))
                             ->minValue(1)
                             ->live(debounce: 500)
+                            ->afterStateHydrated(function (callable $get, callable $set, $state) {
+                                // Calculate jumlah_isi saat load data
+                                if ($state) {
+                                    $qty = (int) str_replace(['.', ',', ' '], '', $state) ?: 0;
+                                    $kemasanLiter = (int) str_replace(['.', ',', ' '], '', $get('kemasan_liter')) ?: 0;
+                                    $set('jumlah_isi', number_format($qty * $kemasanLiter, 0, ',', '.'));
+                                }
+                            })
                             ->afterStateUpdated(function (callable $get, callable $set) {
-                                // Calculate jumlah_isi
+                                // Calculate jumlah_isi saat user ubah qty
                                 $qty = (int) str_replace(['.', ',', ' '], '', $get('qty')) ?: 0;
                                 $kemasanLiter = (int) str_replace(['.', ',', ' '], '', $get('kemasan_liter')) ?: 0;
                                 $set('jumlah_isi', number_format($qty * $kemasanLiter, 0, ',', '.'));
