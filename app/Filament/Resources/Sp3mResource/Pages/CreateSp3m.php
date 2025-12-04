@@ -37,7 +37,14 @@ class CreateSp3m extends CreateRecord
     {
         // Clean numeric fields
         $data['qty'] = (int) preg_replace('/[^\d]/', '', $data['qty']);
-        $data['nomor_sp3m'] = strtoupper($data['nomor_sp3m']);
+        
+        // Generate nomor SP3M di backend untuk menghindari duplikasi
+        if (!empty($data['alpal_id'])) {
+            $tahunAnggaran = $data['tahun_anggaran'] ?? null;
+            $data['nomor_sp3m'] = \DB::transaction(function () use ($data, $tahunAnggaran) {
+                return Sp3mResource::generateNomorSp3m($data['alpal_id'], $tahunAnggaran);
+            });
+        }
         
         // Get kantor_sar_id from Alut if not set
         if (empty($data['kantor_sar_id']) && !empty($data['alpal_id'])) {
@@ -47,15 +54,27 @@ class CreateSp3m extends CreateRecord
             }
         }
         
-        // Calculate harga_satuan from HargaBekal (get latest harga for the bekal_id)
+        // Calculate harga_satuan from HargaBekal berdasarkan bekal_id dan wilayah_id
         $bekalId = $data['bekal_id'] ?? null;
+        $kantorSarId = $data['kantor_sar_id'] ?? null;
         
-        if ($bekalId) {
-            $hargaBekal = HargaBekal::where('bekal_id', $bekalId)
-                ->orderBy('created_at', 'desc')
-                ->first();
+        if ($bekalId && $kantorSarId) {
+            // Ambil wilayah_id dari kantor_sar -> kota -> wilayah
+            $kantorSar = KantorSar::with('kota.wilayah')->find($kantorSarId);
+            $wilayahId = $kantorSar?->kota?->wilayah_id;
             
-            $data['harga_satuan'] = $hargaBekal ? (int) $hargaBekal->harga : 0;
+            if ($wilayahId) {
+                // Cari harga bekal terbaru berdasarkan tanggal_update
+                $hargaBekal = HargaBekal::where('bekal_id', $bekalId)
+                    ->where('wilayah_id', $wilayahId)
+                    ->whereNotNull('tanggal_update')
+                    ->orderBy('tanggal_update', 'desc')
+                    ->first();
+                
+                $data['harga_satuan'] = $hargaBekal ? (int) $hargaBekal->harga : 0;
+            } else {
+                $data['harga_satuan'] = 0;
+            }
         } else {
             $data['harga_satuan'] = 0;
         }
@@ -73,23 +92,5 @@ class CreateSp3m extends CreateRecord
     {
         // Redirect to the list page after creation
         return $this->getResource()::getUrl('index');
-    }
-
-    protected function beforeCreate(): void
-    {
-        $nomorSp3m = strtoupper($this->data['nomor_sp3m']);
-
-        $duplicateSp3kNumber = Sp3m::where('nomor_sp3m', $nomorSp3m)->exists();
-        if ($duplicateSp3kNumber) {
-            $message = 'Nomor SP3M : '.$nomorSp3m.' Sudah ada';
-
-            Notification::make()
-                ->title('Kesalahan!')
-                ->body($message)
-                ->danger()
-                ->send();
-
-            $this->halt();
-        }
     }
 }

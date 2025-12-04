@@ -67,7 +67,58 @@ class Sp3mResource extends Resource
                         'required' => 'Pilih Tahun Anggaran',
                     ])
                     ->preload()
-                    ->live(),
+                    ->live()
+                    ->afterStateHydrated(function (callable $set, $state, $record) {
+                        // Simpan tahun anggaran original saat edit
+                        if ($record && $state) {
+                            $set('original_tahun_anggaran', $state);
+                        }
+                    })
+                    ->afterStateUpdated(function (callable $set, callable $get, $state, $livewire) {
+                        // Trigger regenerate nomor SP3M jika tahun anggaran berubah
+                        $alpalId = $get('alpal_id');
+                        if ($alpalId && $state) {
+                            $isEdit = isset($livewire->record) && $livewire->record;
+                            $originalTahunAnggaran = $get('original_tahun_anggaran');
+                            $originalAlpalId = $get('original_alpal_id');
+                            
+                            // Cek apakah tahun anggaran dan alut kembali ke original
+                            if ($isEdit && $originalTahunAnggaran && $originalAlpalId && 
+                                $originalTahunAnggaran == $state && $originalAlpalId == $alpalId) {
+                                // Kembalikan ke nomor original
+                                $originalNomorSp3m = $get('original_nomor_sp3m');
+                                if ($originalNomorSp3m) {
+                                    $set('nomor_sp3m_preview', $originalNomorSp3m);
+                                    $set('nomor_sp3m_changed', false);
+                                }
+                            } else {
+                                // Generate ulang nomor SP3M
+                                $alpal = Alpal::find($alpalId);
+                                if ($alpal) {
+                                    $kodeAlut = $alpal->kode_alut ?? '000';
+                                    $bulanRomawi = static::getBulanRomawi(now()->month);
+                                    $tahun = $state; // Gunakan tahun_anggaran
+                                    $pattern = "SP3M.{$kodeAlut}/{$bulanRomawi}/SAR-{$tahun}";
+                                    
+                                    $lastSp3m = Sp3m::where('nomor_sp3m', 'like', "%{$pattern}")
+                                        ->orderBy('nomor_sp3m', 'desc')
+                                        ->first();
+                                    
+                                    $sequence = 1;
+                                    if ($lastSp3m) {
+                                        preg_match('/^(\d{4})\//', $lastSp3m->nomor_sp3m, $matches);
+                                        if (isset($matches[1])) {
+                                            $sequence = intval($matches[1]) + 1;
+                                        }
+                                    }
+                                    
+                                    $nomorSp3m = sprintf('%04d/%s', $sequence, $pattern);
+                                    $set('nomor_sp3m_preview', $nomorSp3m);
+                                    $set('nomor_sp3m_changed', true);
+                                }
+                            }
+                        }
+                    }),
                 
                 // 2. TW
                 Forms\Components\Select::make('tw')
@@ -82,29 +133,7 @@ class Sp3mResource extends Resource
                     ->searchable()
                     ->live(),
                 
-                // 3. Nomor SP3M
-                Forms\Components\TextInput::make('nomor_sp3m')
-                    ->label('Nomor SP3M')
-                    ->placeholder('Nomor SP3M')
-                    ->required()
-                    ->maxLength(255)
-                    ->validationMessages([
-                        'required' => 'Nomor SP3M harus diisi',
-                    ]),
-                
-                // 4. Tanggal
-                Forms\Components\DatePicker::make('tanggal_sp3m')
-                    ->label('Tanggal SP3M')
-                    ->placeholder('Tanggal SP3M')
-                    ->required()
-                    ->native(false)
-                    ->displayFormat('d/m/Y')
-                    ->closeOnDateSelection(true)
-                    ->validationMessages([
-                        'required' => 'Tanggal SP3M harus diisi',
-                    ]),
-                
-                // 5. Alut
+                // 3. Alut
                 Forms\Components\Select::make('alpal_id')
                     ->label('Alut')
                     ->required()
@@ -125,7 +154,7 @@ class Sp3mResource extends Resource
                         'required' => 'Pilih Alut',
                     ])
                     ->live()
-                    ->afterStateHydrated(function (callable $set, $state) {
+                    ->afterStateHydrated(function (callable $set, callable $get, $state, $record) {
                         // Set kantor_sar_info saat form di-load (untuk edit)
                         if ($state) {
                             $alpal = Alpal::find($state);
@@ -133,21 +162,111 @@ class Sp3mResource extends Resource
                                 $kantorSar = KantorSar::find($alpal->kantor_sar_id);
                                 $set('kantor_sar_info', $kantorSar ? $kantorSar->kantor_sar : '');
                             }
+                            
+                            // Jika edit, tampilkan nomor SP3M dari database dan simpan sebagai original
+                            if ($record && $record->nomor_sp3m) {
+                                $set('nomor_sp3m_preview', $record->nomor_sp3m);
+                                $set('original_alpal_id', $state); // Simpan alpal_id original
+                                $set('original_nomor_sp3m', $record->nomor_sp3m); // Simpan nomor SP3M original
+                            }
                         }
                     })
-                    ->afterStateUpdated(function (callable $set, $state) {
+                    ->afterStateUpdated(function (callable $set, callable $get, $state, $livewire) {
                         if ($state) {
                             $alpal = Alpal::find($state);
                             if ($alpal && $alpal->kantor_sar_id) {
                                 $kantorSar = KantorSar::find($alpal->kantor_sar_id);
                                 $set('kantor_sar_info', $kantorSar ? $kantorSar->kantor_sar : '');
                                 $set('kantor_sar_id', $alpal->kantor_sar_id);
+                                
+                                // Cek apakah ini mode edit atau create
+                                $isEdit = isset($livewire->record) && $livewire->record;
+                                
+                                // Ambil tahun anggaran
+                                $tahunAnggaran = $get('tahun_anggaran');
+                                
+                                // Cek apakah alut dan tahun anggaran berubah
+                                $originalAlpalId = $get('original_alpal_id');
+                                $originalTahunAnggaran = $get('original_tahun_anggaran');
+                                $originalNomorSp3m = $get('original_nomor_sp3m');
+                                
+                                // Jika alut dan tahun anggaran kembali ke original, kembalikan nomor SP3M original
+                                if ($isEdit && $originalAlpalId && $originalTahunAnggaran && 
+                                    $originalAlpalId == $state && $originalTahunAnggaran == $tahunAnggaran && 
+                                    $originalNomorSp3m) {
+                                    $set('nomor_sp3m_preview', $originalNomorSp3m);
+                                    $set('nomor_sp3m_changed', false);
+                                } else {
+                                    // Alut atau tahun anggaran berubah, atau mode create
+                                    $isAlutChanged = $isEdit && $originalAlpalId && $originalAlpalId != $state;
+                                    $isTahunChanged = $isEdit && $originalTahunAnggaran && $originalTahunAnggaran != $tahunAnggaran;
+                                    
+                                    // Generate nomor SP3M preview jika create atau ada perubahan
+                                    if (!$isEdit || $isAlutChanged || $isTahunChanged) {
+                                        if ($tahunAnggaran) {
+                                            $kodeAlut = $alpal->kode_alut ?? '000';
+                                            $bulanRomawi = static::getBulanRomawi(now()->month);
+                                            $tahun = $tahunAnggaran; // Gunakan tahun_anggaran
+                                            $pattern = "SP3M.{$kodeAlut}/{$bulanRomawi}/SAR-{$tahun}";
+                                            
+                                            // Get next sequence
+                                            $lastSp3m = Sp3m::where('nomor_sp3m', 'like', "%{$pattern}")
+                                                ->orderBy('nomor_sp3m', 'desc')
+                                                ->first();
+                                            
+                                            $sequence = 1;
+                                            if ($lastSp3m) {
+                                                // Extract sequence from nomor_sp3m (format: 0001/SP3M.026/XII/SAR-2025)
+                                                preg_match('/^(\d{4})\//', $lastSp3m->nomor_sp3m, $matches);
+                                                if (isset($matches[1])) {
+                                                    $sequence = intval($matches[1]) + 1;
+                                                }
+                                            }
+                                            
+                                            $nomorSp3m = sprintf('%04d/%s', $sequence, $pattern);
+                                            $set('nomor_sp3m_preview', $nomorSp3m);
+                                            $set('nomor_sp3m_changed', true); // Flag bahwa nomor berubah
+                                        }
+                                    }
+                                }
                             }
                         } else {
                             $set('kantor_sar_info', '');
                             $set('kantor_sar_id', null);
+                            $set('nomor_sp3m_preview', '');
                         }
                     }),
+                
+                // 4. Nomor SP3M (Auto-generated preview)
+                Forms\Components\TextInput::make('nomor_sp3m_preview')
+                    ->label('Nomor SP3M')
+                    ->placeholder('Pilih Alut & Tahun Anggaran untuk generate nomor')
+                    ->disabled()
+                    ->dehydrated(false)
+                    ->helperText(fn ($record) => $record 
+                        ? 'Nomor akan di-generate ulang jika Alut berubah' 
+                        : 'Nomor akan di-generate otomatis saat menyimpan')
+                    ->extraAttributes([
+                        'class' => 'dark:bg-gray-800 dark:text-gray-400 bg-gray-100 text-gray-600',
+                    ]),
+                
+                Forms\Components\Hidden::make('nomor_sp3m'),
+                Forms\Components\Hidden::make('original_alpal_id'),
+                Forms\Components\Hidden::make('original_tahun_anggaran'),
+                Forms\Components\Hidden::make('original_nomor_sp3m'),
+                Forms\Components\Hidden::make('nomor_sp3m_changed'),
+                
+                // 5. Tanggal SP3M
+                Forms\Components\DatePicker::make('tanggal_sp3m')
+                    ->label('Tanggal SP3M')
+                    ->placeholder('Tanggal SP3M')
+                    ->required()
+                    ->native(false)
+                    ->displayFormat('d/m/Y')
+                    ->closeOnDateSelection(true)
+                    ->validationMessages([
+                        'required' => 'Tanggal SP3M harus diisi',
+                    ]),
                 
                 // 6. Kantor SAR (readonly, auto-filled from Alut)
                 Forms\Components\TextInput::make('kantor_sar_info')
@@ -247,6 +366,40 @@ class Sp3mResource extends Resource
 
         // If no user or no kantor_sar_id assigned, return empty array
         return [];
+    }
+
+    protected static function getBulanRomawi(int $bulan): string
+    {
+        $romawi = [
+            1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV', 5 => 'V', 6 => 'VI',
+            7 => 'VII', 8 => 'VIII', 9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'
+        ];
+        return $romawi[$bulan] ?? 'I';
+    }
+
+    public static function generateNomorSp3m(int $alpalId, ?int $tahunAnggaran = null): string
+    {
+        $alpal = Alpal::find($alpalId);
+        $kodeAlut = $alpal?->kode_alut ?? '000';
+        $bulanRomawi = static::getBulanRomawi(now()->month);
+        $tahun = $tahunAnggaran ?? now()->year; // Gunakan tahun_anggaran jika ada
+        $pattern = "SP3M.{$kodeAlut}/{$bulanRomawi}/SAR-{$tahun}";
+        
+        // Get next sequence with lock to prevent duplicate
+        $lastSp3m = Sp3m::where('nomor_sp3m', 'like', "%{$pattern}")
+            ->lockForUpdate()
+            ->orderBy('nomor_sp3m', 'desc')
+            ->first();
+        
+        $sequence = 1;
+        if ($lastSp3m) {
+            preg_match('/^(\d{4})\//', $lastSp3m->nomor_sp3m, $matches);
+            if (isset($matches[1])) {
+                $sequence = intval($matches[1]) + 1;
+            }
+        }
+        
+        return sprintf('%04d/%s', $sequence, $pattern);
     }
 
     public static function table(Table $table): Table

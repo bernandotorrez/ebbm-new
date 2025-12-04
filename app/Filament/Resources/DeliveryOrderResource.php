@@ -179,7 +179,14 @@ class DeliveryOrderResource extends Resource
                         Forms\Components\TextInput::make('nomor_do')
                             ->label('Nomor DO')
                             ->required()
-                            ->maxLength(200),
+                            ->maxLength(200)
+                            ->extraInputAttributes([
+                                'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "")'
+                            ])
+                            ->rules(['numeric'])
+                            ->validationMessages([
+                                'numeric' => 'Nomor DO harus berupa angka',
+                            ]),
                         
                         Forms\Components\TextInput::make('qty')
                             ->required()
@@ -493,11 +500,11 @@ class DeliveryOrderResource extends Resource
                     ->modalHeading('Ubah Harga BBM')
                     ->modalWidth('md')
                     ->form(function (DeliveryOrder $record) {
-                        $record->load(['sp3m.bekal', 'bekal', 'kota', 'tbbm.kota']);
+                        $record->load(['sp3m.bekal', 'bekal', 'kota.wilayah', 'tbbm.kota']);
                         
-                        // Get bekal_id and kota_id
+                        // Get bekal_id and wilayah_id (dari kota)
                         $bekalId = $record->bekal_id ?? $record->sp3m->bekal_id ?? null;
-                        $kotaId = $record->kota_id ?? $record->tbbm->kota_id ?? null;
+                        $wilayahId = $record->kota?->wilayah_id ?? $record->tbbm?->kota?->wilayah_id ?? null;
                         
                         return [
                             Forms\Components\TextInput::make('nomor_sp3m')
@@ -515,14 +522,14 @@ class DeliveryOrderResource extends Resource
                             Forms\Components\Select::make('harga_bekal_id')
                                 ->label('Data Harga BBM')
                                 ->required()
-                                ->options(function () use ($bekalId, $kotaId) {
-                                    if (!$bekalId || !$kotaId) {
+                                ->options(function () use ($bekalId, $wilayahId) {
+                                    if (!$bekalId || !$wilayahId) {
                                         return [];
                                     }
                                     
                                     $hargaBekals = HargaBekal::with('bekal')
                                         ->where('bekal_id', $bekalId)
-                                        ->where('kota_id', $kotaId)
+                                        ->where('wilayah_id', $wilayahId)
                                         ->orderBy('tanggal_update', 'desc')
                                         ->limit(5)
                                         ->get();
@@ -579,10 +586,13 @@ class DeliveryOrderResource extends Resource
                             return;
                         }
                         
-                        // Validasi apakah harga_bekal_id valid
+                        // Validasi apakah harga_bekal_id valid (berdasarkan wilayah_id)
+                        $kota = \App\Models\Kota::find($record->kota_id);
+                        $wilayahId = $kota?->wilayah_id;
+                        
                         $hargaBekal = HargaBekal::where('harga_bekal_id', $hargaBekalId)
                             ->where('bekal_id', $record->bekal_id)
-                            ->where('kota_id', $record->kota_id)
+                            ->where('wilayah_id', $wilayahId)
                             ->first();
                         
                         if (!$hargaBekal) {

@@ -19,6 +19,7 @@ class TxSp3k extends Model
 
     protected $fillable = [
         'sp3k_id',
+        'alpal_id',
         'kantor_sar_id',
         'nomor_sp3k',
         'tahun_anggaran',
@@ -41,6 +42,11 @@ class TxSp3k extends Model
     ];
 
     // Relationships
+    public function alpal()
+    {
+        return $this->belongsTo(Alpal::class, 'alpal_id', 'alpal_id');
+    }
+
     public function kantorSar()
     {
         return $this->belongsTo(KantorSar::class, 'kantor_sar_id', 'kantor_sar_id');

@@ -13,16 +13,17 @@ return new class extends Migration
     {
         Schema::create('ms_harga_bekal', function (Blueprint $table) {
             $table->id('harga_bekal_id');
-            $table->unsignedBigInteger('kota_id')->index('idx_kota_id');
+            $table->unsignedBigInteger('wilayah_id')->index('idx_wilayah_id');
             $table->unsignedBigInteger('bekal_id')->index('idx_bekal_id');
             $table->decimal('harga', 20, 2);
+            $table->date('tanggal_update')->nullable();
             $table->timestamps();
             $table->softDeletes();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->unsignedBigInteger('deleted_by')->nullable();
             
-            $table->foreign('kota_id')->references('kota_id')->on('ms_kota')->noActionOnDelete()->noActionOnUpdate();
+            $table->foreign('wilayah_id')->references('wilayah_id')->on('ms_wilayah')->noActionOnDelete()->noActionOnUpdate();
             $table->foreign('bekal_id')->references('bekal_id')->on('ms_bekal')->noActionOnDelete()->noActionOnUpdate();
         });
     }

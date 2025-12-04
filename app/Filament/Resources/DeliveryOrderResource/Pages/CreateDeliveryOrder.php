@@ -69,20 +69,28 @@ class CreateDeliveryOrder extends CreateRecord
             }
         }
         
-        // Auto-fill harga_bekal_id berdasarkan bekal_id dan kota_id
+        // Auto-fill harga_bekal_id berdasarkan bekal_id dan wilayah_id
         $bekalId = $data['bekal_id'] ?? null;
         $kotaId = $data['kota_id'] ?? null;
         
         if ($bekalId && $kotaId) {
-            // Cari harga bekal terbaru berdasarkan tanggal_update
-            $hargaBekal = HargaBekal::where('bekal_id', $bekalId)
-                ->where('kota_id', $kotaId)
-                ->whereNotNull('tanggal_update')
-                ->orderBy('tanggal_update', 'desc')
-                ->first();
+            // Ambil wilayah_id dari kota
+            $kota = \App\Models\Kota::find($kotaId);
+            $wilayahId = $kota?->wilayah_id;
             
-            // Jika ada, set harga_bekal_id, jika tidak ada set null
-            $data['harga_bekal_id'] = $hargaBekal ? $hargaBekal->harga_bekal_id : null;
+            if ($wilayahId) {
+                // Cari harga bekal terbaru berdasarkan tanggal_update
+                $hargaBekal = HargaBekal::where('bekal_id', $bekalId)
+                    ->where('wilayah_id', $wilayahId)
+                    ->whereNotNull('tanggal_update')
+                    ->orderBy('tanggal_update', 'desc')
+                    ->first();
+                
+                // Jika ada, set harga_bekal_id, jika tidak ada set null
+                $data['harga_bekal_id'] = $hargaBekal ? $hargaBekal->harga_bekal_id : null;
+            } else {
+                $data['harga_bekal_id'] = null;
+            }
         } else {
             $data['harga_bekal_id'] = null;
         }

@@ -26,6 +26,15 @@ return new class extends Migration
                 ->onDelete('no action')
                 ->onUpdate('no action');
         });
+        
+        // Foreign key untuk kota_id di ms_kantor_sar (karena ms_kota dibuat setelah ms_kantor_sar)
+        Schema::table('ms_kantor_sar', function (Blueprint $table) {
+            $table->foreign('kota_id', 'fk_ms_kantor_sar_kota_id')
+                ->references('kota_id')
+                ->on('ms_kota')
+                ->onDelete('no action')
+                ->onUpdate('no action');
+        });
     }
 
     /**
@@ -33,6 +42,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('ms_kantor_sar', function (Blueprint $table) {
+            $table->dropForeign('fk_ms_kantor_sar_kota_id');
+        });
+        
         Schema::table('ms_user', function (Blueprint $table) {
             $table->dropForeign('fk_ms_user_kantor_sar_id');
             $table->dropForeign('fk_ms_user_alpal_id');

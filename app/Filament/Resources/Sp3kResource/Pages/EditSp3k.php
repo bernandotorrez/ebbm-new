@@ -27,6 +27,26 @@ class EditSp3k extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
+        // Cek apakah nomor SP3K berubah (alut atau tahun anggaran berubah)
+        $nomorSp3kChanged = $data['nomor_sp3k_changed'] ?? false;
+        $originalAlpalId = $data['original_alpal_id'] ?? null;
+        $currentAlpalId = $data['alpal_id'] ?? null;
+        $originalTahunAnggaran = $data['original_tahun_anggaran'] ?? null;
+        $currentTahunAnggaran = $data['tahun_anggaran'] ?? null;
+        
+        // Jika alut dan tahun anggaran kembali ke original, gunakan nomor original
+        if ($originalAlpalId && $currentAlpalId && $originalTahunAnggaran && $currentTahunAnggaran &&
+            $originalAlpalId == $currentAlpalId && $originalTahunAnggaran == $currentTahunAnggaran) {
+            $data['nomor_sp3k'] = $data['original_nomor_sp3k'] ?? $this->record->nomor_sp3k;
+        } elseif ($nomorSp3kChanged && !empty($data['alpal_id'])) {
+            $tahunAnggaran = $data['tahun_anggaran'] ?? null;
+            $data['nomor_sp3k'] = \DB::transaction(function () use ($data, $tahunAnggaran) {
+                return Sp3kResource::generateNomorSp3k($data['alpal_id'], $tahunAnggaran);
+            });
+        } else {
+            $data['nomor_sp3k'] = $this->record->nomor_sp3k;
+        }
+
         // Set updated_by to current user ID (not username)
         $userId = Auth::id();
         $data['updated_by'] = $userId;
@@ -63,6 +83,20 @@ class EditSp3k extends EditRecord
     }
 
     protected function beforeSave(): void
+    {
+        // Validasi minimal 1 detail
+        $details = $this->data['details'] ?? [];
+        if (empty($details) || count($details) < 1) {
+            Notification::make()
+                ->title('Kesalahan!')
+                ->body('Minimal harus ada 1 detail pelumas.')
+                ->danger()
+                ->send();
+            $this->halt();
+        }
+    }
+
+    protected function beforeSaveOld(): void
     {
         // Get input values
         $id = $this->data['sp3k_id'] ?? null;

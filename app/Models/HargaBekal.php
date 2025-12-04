@@ -20,7 +20,7 @@ class HargaBekal extends Model
     protected $keyType = 'bigint';
     
     protected $fillable = [
-        'kota_id',
+        'wilayah_id',
         'bekal_id',
         'harga',
         'tanggal_update',
@@ -39,9 +39,9 @@ class HargaBekal extends Model
     ];
 
     // Relationships
-    public function kota()
+    public function wilayah()
     {
-        return $this->belongsTo(Kota::class, 'kota_id', 'kota_id');
+        return $this->belongsTo(Wilayah::class, 'wilayah_id', 'wilayah_id');
     }
 
     public function bekal()
