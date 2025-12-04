@@ -42,6 +42,18 @@ class CreatePemakaian extends CreateRecord
         // Convert qty from formatted string to integer
         $data['qty'] = (int) str_replace(['.', ',', ' '], '', $data['qty']);
         
+        // Set bekal_id dari golongan_bbm_id alpal
+        $alpalId = $data['alpal_id'] ?? null;
+        if ($alpalId) {
+            $alpal = Alpal::find($alpalId);
+            if ($alpal && $alpal->golongan_bbm_id) {
+                $bekal = \App\Models\Bekal::where('golongan_bbm_id', $alpal->golongan_bbm_id)->first();
+                if ($bekal) {
+                    $data['bekal_id'] = $bekal->bekal_id;
+                }
+            }
+        }
+        
         return $data;
     }
 
