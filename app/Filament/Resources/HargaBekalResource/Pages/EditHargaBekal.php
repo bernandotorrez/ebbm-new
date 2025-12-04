@@ -44,15 +44,15 @@ class EditHargaBekal extends EditRecord
     {
         // Get input values
         $id = $this->record->harga_bekal_id;
-        $kotaId = $this->data['kota_id'] ?? null;
+        $wilayahId = $this->data['wilayah_id'] ?? null;
         $bekalId = $this->data['bekal_id'] ?? null;
         $tanggalUpdate = $this->data['tanggal_update'] ?? null;
 
         // Validasi input tidak boleh null
-        if (!$kotaId || !$bekalId || !$tanggalUpdate) {
+        if (!$wilayahId || !$bekalId || !$tanggalUpdate) {
             Notification::make()
                 ->title('Error!')
-                ->body('Kota, Bekal, dan Tanggal Update harus diisi')
+                ->body('Wilayah, Bekal, dan Tanggal Update harus diisi')
                 ->danger()
                 ->send();
             $this->halt();
@@ -61,8 +61,8 @@ class EditHargaBekal extends EditRecord
         // Convert to date only for comparison
         $tanggalUpdateDate = \Carbon\Carbon::parse($tanggalUpdate)->format('Y-m-d');
 
-        // Check if the same record exists (Kota + Bekal + Tanggal Update, excluding current record)
-        $exists = HargaBekal::where('kota_id', $kotaId)
+        // Check if the same record exists (Wilayah + Bekal + Tanggal Update, excluding current record)
+        $exists = HargaBekal::where('wilayah_id', $wilayahId)
             ->where('bekal_id', $bekalId)
             ->whereDate('tanggal_update', $tanggalUpdateDate)
             ->where('harga_bekal_id', '!=', $id)
@@ -73,7 +73,7 @@ class EditHargaBekal extends EditRecord
             // Show Filament error notification
             Notification::make()
                 ->title('Error!')
-                ->body('Harga BBM untuk kombinasi Kota, Bekal, dan Tanggal Update yang sama sudah ada')
+                ->body('Harga BBM untuk kombinasi Wilayah, Bekal, dan Tanggal Update yang sama sudah ada')
                 ->danger()
                 ->send();
 

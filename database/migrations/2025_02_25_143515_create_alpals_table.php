@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('tx_alpal', function (Blueprint $table) {
             $table->bigIncrements('alpal_id');
+            $table->string('kode_alut', 3)->nullable()->index('idx_kode_alut');
             $table->unsignedBigInteger('kantor_sar_id')->index('idx_kantor_sar_id_tx_alpal');
             $table->unsignedBigInteger('golongan_bbm_id');
             $table->unsignedBigInteger('pos_sandar_id')->index('idx_pos_sandar_id_tx_alpal');

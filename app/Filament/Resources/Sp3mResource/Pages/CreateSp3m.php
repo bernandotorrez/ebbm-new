@@ -54,15 +54,27 @@ class CreateSp3m extends CreateRecord
             }
         }
         
-        // Calculate harga_satuan from HargaBekal (get latest harga for the bekal_id)
+        // Calculate harga_satuan from HargaBekal berdasarkan bekal_id dan wilayah_id
         $bekalId = $data['bekal_id'] ?? null;
+        $kantorSarId = $data['kantor_sar_id'] ?? null;
         
-        if ($bekalId) {
-            $hargaBekal = HargaBekal::where('bekal_id', $bekalId)
-                ->orderBy('created_at', 'desc')
-                ->first();
+        if ($bekalId && $kantorSarId) {
+            // Ambil wilayah_id dari kantor_sar -> kota -> wilayah
+            $kantorSar = KantorSar::with('kota.wilayah')->find($kantorSarId);
+            $wilayahId = $kantorSar?->kota?->wilayah_id;
             
-            $data['harga_satuan'] = $hargaBekal ? (int) $hargaBekal->harga : 0;
+            if ($wilayahId) {
+                // Cari harga bekal terbaru berdasarkan tanggal_update
+                $hargaBekal = HargaBekal::where('bekal_id', $bekalId)
+                    ->where('wilayah_id', $wilayahId)
+                    ->whereNotNull('tanggal_update')
+                    ->orderBy('tanggal_update', 'desc')
+                    ->first();
+                
+                $data['harga_satuan'] = $hargaBekal ? (int) $hargaBekal->harga : 0;
+            } else {
+                $data['harga_satuan'] = 0;
+            }
         } else {
             $data['harga_satuan'] = 0;
         }

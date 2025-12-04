@@ -204,8 +204,16 @@ class EditDeliveryOrder extends EditRecord
                                     return [];
                                 }
                                 
+                                // Ambil wilayah_id dari kota
+                                $kota = \App\Models\Kota::find($record->kota_id);
+                                $wilayahId = $kota?->wilayah_id;
+                                
+                                if (!$wilayahId) {
+                                    return [];
+                                }
+                                
                                 return HargaBekal::where('bekal_id', $record->bekal_id)
-                                    ->where('kota_id', $record->kota_id)
+                                    ->where('wilayah_id', $wilayahId)
                                     ->orderBy('tanggal_update', 'desc')
                                     ->limit(5)
                                     ->get()
@@ -489,10 +497,13 @@ class EditDeliveryOrder extends EditRecord
                 $this->halt();
             }
             
-            // Validasi apakah harga_bekal_id valid untuk bekal_id dan kota_id DO ini
+            // Validasi apakah harga_bekal_id valid untuk bekal_id dan wilayah_id DO ini
+            $kota = \App\Models\Kota::find($this->record->kota_id);
+            $wilayahId = $kota?->wilayah_id;
+            
             $hargaBekal = HargaBekal::where('harga_bekal_id', $hargaBekalId)
                 ->where('bekal_id', $this->record->bekal_id)
-                ->where('kota_id', $this->record->kota_id)
+                ->where('wilayah_id', $wilayahId)
                 ->first();
             
             if (!$hargaBekal) {

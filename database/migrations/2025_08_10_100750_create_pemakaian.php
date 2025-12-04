@@ -17,6 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('alpal_id')->index('idx_alpal_id_tx_pemakaian');
             $table->unsignedBigInteger('bekal_id')->index('idx_bekal_id_tx_pemakaian');
             $table->date('tanggal_pakai')->index('idx_tanggal_pakai_tx_pemakaian');
+            $table->string('data_kegiatan', 50)->nullable();
             $table->unsignedSmallInteger('qty');
             $table->text('keterangan');
             $table->softDeletes();

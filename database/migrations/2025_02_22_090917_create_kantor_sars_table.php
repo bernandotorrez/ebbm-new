@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('ms_kantor_sar', function (Blueprint $table) {
             $table->bigIncrements('kantor_sar_id');
             $table->string('kantor_sar', 50);
+            $table->unsignedBigInteger('kota_id')->nullable()->index('idx_kota_id_kantor_sar');
             $table->softDeletes();
             $table->timestamps();
             $table->unsignedBigInteger('created_by')->nullable();

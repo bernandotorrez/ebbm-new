@@ -17,6 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('tbbm_id')->index('idx_tbbm_id_tx_do');
             $table->unsignedBigInteger('bekal_id')->index('idx_bekal_id_tx_do');
             $table->unsignedBigInteger('kota_id')->index('idx_kota_id_tx_do');
+            $table->unsignedBigInteger('harga_bekal_id')->nullable()->index('idx_harga_bekal_id_tx_do');
             $table->string('nomor_do', 200)->index('idx_nomor_do_tx_do');
             $table->char('tahun_anggaran', 4)->index('idx_tahun_anggaran');
             $table->date('tanggal_do');
@@ -33,6 +34,7 @@ return new class extends Migration
             $table->foreign('tbbm_id')->references('tbbm_id')->on('ms_tbbm')->noActionOnDelete()->noActionOnUpdate();
             $table->foreign('bekal_id')->references('bekal_id')->on('ms_bekal')->noActionOnDelete()->noActionOnUpdate();
             $table->foreign('kota_id')->references('kota_id')->on('ms_kota')->noActionOnDelete()->noActionOnUpdate();
+            $table->foreign('harga_bekal_id')->references('harga_bekal_id')->on('ms_harga_bekal')->noActionOnDelete()->noActionOnUpdate();
         });
     }
 

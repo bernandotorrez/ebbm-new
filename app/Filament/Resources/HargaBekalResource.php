@@ -38,12 +38,13 @@ class HargaBekalResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('kota_id')
-                    ->label('Kota')
-                    ->relationship('kota', 'kota')
+                Forms\Components\Select::make('wilayah_id')
+                    ->label('Wilayah')
+                    ->relationship('wilayah', 'wilayah_ke')
                     ->required()
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->getOptionLabelFromRecordUsing(fn ($record) => "Wilayah {$record->wilayah_ke}"),
                     
                 Forms\Components\Select::make('bekal_id')
                     ->label('Bekal')
@@ -80,8 +81,9 @@ class HargaBekalResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('kota.kota')
-                    ->label('Kota')
+                Tables\Columns\TextColumn::make('wilayah.wilayah_ke')
+                    ->label('Wilayah')
+                    ->formatStateUsing(fn ($state) => "Wilayah {$state}")
                     ->sortable()
                     ->searchable(),
                     
