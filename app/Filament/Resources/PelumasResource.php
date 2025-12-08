@@ -138,7 +138,6 @@ class PelumasResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('tahun')
                     ->label('Tahun')
-                    ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->label('Dihapus Pada')
