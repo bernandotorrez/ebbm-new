@@ -56,12 +56,9 @@ class GolonganBbmResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('golongan')
                     ->label('Jenis Alut')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->label('Dihapus Pada')
-                    ->dateTime()
+                    ->searchable()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->default('asc'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat Pada')
                     ->dateTime()
@@ -73,6 +70,7 @@ class GolonganBbmResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('golongan', 'asc')
             ->filters([
                 // Tables\Filters\TrashedFilter::make(),
             ])
