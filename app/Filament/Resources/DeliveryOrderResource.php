@@ -179,9 +179,10 @@ class DeliveryOrderResource extends Resource
                             ->extraInputAttributes([
                                 'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "")'
                             ])
-                            ->rules(['numeric'])
+                            ->rules(['regex:/^[0-9]+$/'])
                             ->validationMessages([
-                                'numeric' => 'Nomor DO harus berupa angka',
+                                'regex' => 'Nomor DO harus berupa angka',
+                                'max' => 'Nomor DO maksimal 200 karakter',
                             ]),
                         
                         Forms\Components\TextInput::make('qty')
