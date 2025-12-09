@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\DB;
 use App\Traits\RoleBasedResourceAccess;
+use Filament\Notifications\Notification;
 
 class PelumasResource extends Resource
 {
@@ -166,8 +167,37 @@ class PelumasResource extends Resource
                     Tables\Actions\DeleteBulkAction::make()
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
-                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih?')
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->before(function (Tables\Actions\DeleteBulkAction $action, $records) {
+                            $hasRelations = false;
+                            $errorMessages = [];
+                            
+                            foreach ($records as $record) {
+                                $sp3kCount = $record->dxSp3ks()->count();
+                                $bastCount = $record->dxBasts()->count();
+                                
+                                if ($sp3kCount > 0 || $bastCount > 0) {
+                                    $hasRelations = true;
+                                    $relations = [];
+                                    if ($sp3kCount > 0) $relations[] = "{$sp3kCount} detail SP3K";
+                                    if ($bastCount > 0) $relations[] = "{$bastCount} detail BAST";
+                                    
+                                    $errorMessages[] = "Pelumas {$record->nama_pelumas} masih memiliki " . implode(', ', $relations) . " yang terkait.";
+                                }
+                            }
+                            
+                            if ($hasRelations) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Tidak dapat menghapus Pelumas')
+                                    ->body('Beberapa Pelumas masih memiliki data terkait:<br>' . implode('<br>', $errorMessages))
+                                    ->persistent()
+                                    ->send();
+                                
+                                $action->cancel();
+                            }
+                        }),
                 ])
                 ->label('Hapus'),
             ]);

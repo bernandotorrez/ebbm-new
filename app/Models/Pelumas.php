@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\PreventUpdateTimestamp;
 
@@ -38,13 +40,23 @@ class Pelumas extends Model
     ];
 
     // Relationships
-    public function pack()
+    public function pack(): BelongsTo
     {
         return $this->belongsTo(Pack::class, 'pack_id', 'pack_id');
     }
 
-    public function kemasan()
+    public function kemasan(): BelongsTo
     {
         return $this->belongsTo(Kemasan::class, 'kemasan_id', 'kemasan_id');
+    }
+
+    public function dxSp3ks(): HasMany
+    {
+        return $this->hasMany(DxSp3k::class, 'pelumas_id', 'pelumas_id');
+    }
+
+    public function dxBasts(): HasMany
+    {
+        return $this->hasMany(DxBast::class, 'pelumas_id', 'pelumas_id');
     }
 }
