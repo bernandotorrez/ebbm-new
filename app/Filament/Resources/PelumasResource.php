@@ -132,7 +132,7 @@ class PelumasResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('isi')
-                    ->label('Isi')
+                    ->label('Isi (Ltr)')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('harga')
