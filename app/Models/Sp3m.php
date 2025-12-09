@@ -21,6 +21,7 @@ class Sp3m extends Model
         'alpal_id',
         'kantor_sar_id',
         'bekal_id',
+        'tbbm_id',
         'nomor_sp3m',
         'tanggal_sp3m',
         'tahun_anggaran',
@@ -38,6 +39,7 @@ class Sp3m extends Model
 
     protected $casts = [
         'tanggal_sp3m' => 'date',
+        'tbbm_id' => 'integer',
     ];
 
     public function kantorSar()
@@ -53,5 +55,10 @@ class Sp3m extends Model
     public function bekal()
     {
         return $this->belongsTo(Bekal::class, 'bekal_id', 'bekal_id');
+    }
+
+    public function tbbm()
+    {
+        return $this->belongsTo(Tbbm::class, 'tbbm_id', 'tbbm_id');
     }
 }

@@ -291,6 +291,18 @@ class Sp3mResource extends Resource
                     ])
                     ->live(),
                 
+                // 7b. TBBM/DPPU
+                Forms\Components\Select::make('tbbm_id')
+                    ->label('TBBM/DPPU')
+                    ->required()
+                    ->relationship('tbbm', 'depot')
+                    ->searchable()
+                    ->preload()
+                    ->validationMessages([
+                        'required' => 'Pilih TBBM/DPPU',
+                    ])
+                    ->placeholder('Pilih TBBM/DPPU'),
+                
                 // 8. Qty
                 Forms\Components\TextInput::make('qty')
                     ->required()
@@ -417,6 +429,10 @@ class Sp3mResource extends Resource
                 Tables\Columns\TextColumn::make('bekal.bekal')
                     ->numeric()
                     ->label('Bekal')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('tbbm.depot')
+                    ->label('Depot')
+                    ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('nomor_sp3m')
                     ->label('Nomor SP3M')

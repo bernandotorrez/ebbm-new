@@ -19,7 +19,6 @@ class DeliveryOrder extends Model
     protected $fillable = [
         'do_id',
         'sp3m_id',
-        'tbbm_id',
         'bekal_id',
         'kota_id',
         'harga_bekal_id',
@@ -39,9 +38,10 @@ class DeliveryOrder extends Model
         return $this->belongsTo(Sp3m::class, 'sp3m_id', 'sp3m_id');
     }
 
+    // TBBM sekarang diambil dari SP3M
     public function tbbm()
     {
-        return $this->belongsTo(Tbbm::class, 'tbbm_id', 'tbbm_id');
+        return $this->sp3m ? $this->sp3m->tbbm() : null;
     }
 
     public function bekal()
