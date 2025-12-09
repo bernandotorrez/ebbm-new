@@ -52,12 +52,6 @@ class PelumasResource extends Resource
                     ->placeholder('Contoh: Meditrans 15W-40 SAE')
                     ->required()
                     ->maxLength(200),
-                Forms\Components\Select::make('pack_id')
-                    ->label('Pack')
-                    ->relationship('pack', 'nama_pack')
-                    ->searchable()
-                    ->preload()
-                    ->required(),
                 Forms\Components\Select::make('kemasan_id')
                     ->label('Kemasan')
                     ->relationship('kemasan', 'kemasan_pack')
@@ -67,14 +61,27 @@ class PelumasResource extends Resource
                     ->live()
                     ->afterStateUpdated(function (callable $get, callable $set, $state) {
                         if ($state) {
-                            $kemasan = Kemasan::find($state);
+                            $kemasan = Kemasan::with('pack')->find($state);
                             if ($kemasan) {
                                 $set('isi', $kemasan->kemasan_liter);
+                                // Auto-fill pack_id dari kemasan
+                                if ($kemasan->pack_id) {
+                                    $set('pack_id', $kemasan->pack_id);
+                                }
                             }
                         } else {
                             $set('isi', null);
+                            $set('pack_id', null);
                         }
                     }),
+                Forms\Components\Select::make('pack_id')
+                    ->label('Pack')
+                    ->relationship('pack', 'nama_pack')
+                    ->searchable()
+                    ->preload()
+                    ->required()
+                    ->disabled()
+                    ->dehydrated(),
                 Forms\Components\TextInput::make('isi')
                     ->label('Isi')
                     ->required()

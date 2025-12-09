@@ -117,11 +117,13 @@ class CreateSp3k extends CreateRecord
             }
 
             $qty = (int) ($detail->qty ?? 0);
+            $jumlahIsi = $qty * $liter; // jumlah_isi = qty * kemasan_liter
 
             // akumulasi ke master
-            $jumlahQty   += $qty;
+            // jumlah_qty adalah penjumlahan dari jumlah_isi (qty * kemasan_liter)
+            $jumlahQty   += $jumlahIsi;
             $jumlahHarga += $qty * $harga;
-            $jumlahLiter += $qty * $liter;
+            $jumlahLiter += $jumlahIsi;
 
             // simpan kembali ke detail
             // kalau kamu mau simpan total per baris:

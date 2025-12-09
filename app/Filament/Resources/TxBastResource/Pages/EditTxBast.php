@@ -59,18 +59,24 @@ class EditTxBast extends EditRecord
 
     protected function afterSave(): void
     {
-        // Check if all details are completed
+        // Refresh record untuk mendapatkan data terbaru dari database
+        $this->record->refresh();
+        $this->record->load('details', 'sp3k');
+        
+        // Check if all details are completed (qty_terutang = 0 untuk semua detail)
         $allCompleted = true;
-        foreach ($this->record->fresh()->details as $detail) {
-            if ($detail->qty_terutang > 0) {
+        foreach ($this->record->details as $detail) {
+            if ((int) $detail->qty_terutang > 0) {
                 $allCompleted = false;
                 break;
             }
         }
         
-        // Update sudah_diterima_semua
-        $this->record->sudah_diterima_semua = $allCompleted ? '1' : '0';
-        $this->record->save();
+        // Update bast_sudah_diterima_semua di SP3K
+        if ($this->record->sp3k) {
+            $this->record->sp3k->bast_sudah_diterima_semua = $allCompleted ? '1' : '0';
+            $this->record->sp3k->save();
+        }
     }
 
     protected function getRedirectUrl(): string
