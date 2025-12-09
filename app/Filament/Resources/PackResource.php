@@ -44,6 +44,7 @@ class PackResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('nama_pack')
                     ->label('Nama Pack')
+                    ->placeholder('Contoh: Drum')
                     ->required()
                     ->maxLength(50),
             ]);

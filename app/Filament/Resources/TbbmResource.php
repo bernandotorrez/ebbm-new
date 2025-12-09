@@ -46,10 +46,18 @@ class TbbmResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('plant')
                     ->label('Plant')
+                    ->placeholder('Contoh: 1234')
                     ->required()
-                    ->maxLength(5),
+                    ->maxLength(4)
+                    ->extraInputAttributes([
+                        'type' => 'text',
+                        'maxlength' => '4',
+                        'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "")',
+                    ])
+                    ->rules(['required', 'regex:/^[0-9]{1,4}$/']),
                 Forms\Components\TextInput::make('depot')
                     ->label('Depot')
+                    ->placeholder('Contoh: Pelumpang')
                     ->required()
                     ->maxLength(50),
                 Forms\Components\Select::make('kota_id')
@@ -60,6 +68,7 @@ class TbbmResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('pbbkb')
                     ->label('PBBKB (%)')
+                    ->placeholder('Contoh: 10')
                     ->required()
                     ->maxLength(6)
                     ->suffix('%')

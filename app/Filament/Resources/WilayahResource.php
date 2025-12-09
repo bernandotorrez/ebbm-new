@@ -12,6 +12,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use App\Traits\RoleBasedResourceAccess;
+use Filament\Notifications\Notification;
+use Illuminate\Database\Eloquent\Model;
 
 class WilayahResource extends Resource
 {
@@ -44,6 +46,7 @@ class WilayahResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('wilayah_ke')
                     ->label('Wilayah Ke')
+                    ->placeholder('Contoh: 1')
                     ->required()
                     ->extraInputAttributes([
                         'type' => 'text',
@@ -77,14 +80,74 @@ class WilayahResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->label('Ubah'),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Hapus')
+                    ->modalHeading('Konfirmasi Hapus Data')
+                    ->modalSubheading('Apakah kamu yakin ingin menghapus data ini? ')
+                    ->modalButton('Ya, Hapus')
+                    ->before(function (Tables\Actions\DeleteAction $action, Model $record) {
+                        // Cek apakah ada kota yang terkait
+                        $kotaCount = $record->kotas()->count();
+                        
+                        if ($kotaCount > 0) {
+                            Notification::make()
+                                ->danger()
+                                ->title('Tidak dapat menghapus wilayah')
+                                ->body("Wilayah ini masih memiliki {$kotaCount} kota yang terkait. Hapus kota terlebih dahulu.")
+                                ->persistent()
+                                ->send();
+                            
+                            $action->cancel();
+                        }
+                        
+                        // Cek apakah ada harga bekal yang terkait
+                        $hargaBekalCount = \App\Models\HargaBekal::where('wilayah_id', $record->wilayah_id)->count();
+                        
+                        if ($hargaBekalCount > 0) {
+                            Notification::make()
+                                ->danger()
+                                ->title('Tidak dapat menghapus wilayah')
+                                ->body("Wilayah ini masih memiliki {$hargaBekalCount} harga bekal yang terkait. Hapus harga bekal terlebih dahulu.")
+                                ->persistent()
+                                ->send();
+                            
+                            $action->cancel();
+                        }
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
-                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? ')
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->before(function (Tables\Actions\DeleteBulkAction $action, $records) {
+                            $hasRelations = false;
+                            $errorMessages = [];
+                            
+                            foreach ($records as $record) {
+                                $kotaCount = $record->kotas()->count();
+                                $hargaBekalCount = \App\Models\HargaBekal::where('wilayah_id', $record->wilayah_id)->count();
+                                
+                                if ($kotaCount > 0 || $hargaBekalCount > 0) {
+                                    $hasRelations = true;
+                                    $errorMessages[] = "Wilayah {$record->wilayah_ke} masih memiliki " . 
+                                        ($kotaCount > 0 ? "{$kotaCount} kota" : "");
+                                }
+                            }
+                            
+                            if ($hasRelations) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Tidak dapat menghapus wilayah')
+                                    ->body('Beberapa wilayah masih memiliki data terkait:<br>' . implode('<br>', $errorMessages))
+                                    ->persistent()
+                                    ->send();
+                                
+                                $action->cancel();
+                            }
+                        }),
                 ])
                 ->label('Hapus'),
             ]);

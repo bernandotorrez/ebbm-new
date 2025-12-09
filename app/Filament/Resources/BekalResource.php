@@ -58,6 +58,7 @@ class BekalResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('bekal')
                     ->label('Jenis Bahan Bakar')
+                    ->placeholder('Contoh: Dexlite')
                     ->required()
                     ->maxLength(50),
             ]);

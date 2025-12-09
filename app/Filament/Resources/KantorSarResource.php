@@ -45,6 +45,7 @@ class KantorSarResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('kantor_sar')
                     ->label('Kantor SAR')
+                    ->placeholder('Contoh: Kantor SAR Jakarta')
                     ->required()
                     ->maxLength(50),
                 

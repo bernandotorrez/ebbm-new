@@ -48,6 +48,7 @@ class PelumasResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('nama_pelumas')
                     ->label('Nama Pelumas')
+                    ->placeholder('Contoh: Meditrans 15W-40 SAE')
                     ->required()
                     ->maxLength(200),
                 Forms\Components\Select::make('pack_id')
@@ -89,6 +90,7 @@ class PelumasResource extends Resource
                     ->readOnly(),
                 Forms\Components\TextInput::make('harga')
                     ->label('Harga')
+                    ->placeholder('Contoh: 50000')
                     ->required()
                     ->prefix('Rp')
                     ->inputMode('numeric')
@@ -101,6 +103,7 @@ class PelumasResource extends Resource
                     ->live(),
                 Forms\Components\TextInput::make('tahun')
                     ->label('Tahun')
+                    ->placeholder('Contoh: '.date('Y'))
                     ->required()
                     ->inputMode('numeric')
                     ->extraInputAttributes([

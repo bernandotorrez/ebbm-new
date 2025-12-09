@@ -45,6 +45,7 @@ class PosSandarResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('pos_sandar')
                     ->label('Pos Sandar')
+                    ->placeholder('Contoh: Pos Sandar')
                     ->required()
                     ->maxLength(50),
             ]);

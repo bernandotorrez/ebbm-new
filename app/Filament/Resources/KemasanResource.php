@@ -45,6 +45,7 @@ class KemasanResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('kemasan_liter')
                     ->label('Liter')
+                    ->placeholder('Contoh: 209')
                     ->required()
                     ->inputMode('numeric')
                     ->extraInputAttributes([
@@ -57,6 +58,7 @@ class KemasanResource extends Resource
                     ->live(),
                 Forms\Components\TextInput::make('kemasan_pack')
                     ->label('Pack')
+                    ->placeholder('Contoh: Drum 209L')
                     ->required()
                     ->maxLength(50),
             ]);

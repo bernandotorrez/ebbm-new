@@ -51,6 +51,7 @@ class AlpalResource extends Resource
                 Forms\Components\TextInput::make('kode_alut')
                     ->required()
                     ->label('Kode Alut')
+                    ->placeholder('Contoh: 001')
                     ->maxLength(3)
                     ->extraInputAttributes([
                         'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").slice(0, 3)'
@@ -63,9 +64,10 @@ class AlpalResource extends Resource
                         'required' => 'Kode Alut harus diisi',
                         'digits' => 'Kode Alut harus tepat 3 digit angka',
                     ])
-                    ->helperText('Masukkan 3 digit angka (contoh: 001, 123)'),
+                    ->helperText('Masukkan 3 digit angka'),
                 Forms\Components\TextInput::make('alpal')
                     ->required()
+                    ->placeholder('Contoh: KN SAR Laksamana 241')
                     ->label('Nama Alut')
                     ->maxLength(100),
                 Forms\Components\Select::make('golongan_bbm_id')
@@ -77,6 +79,7 @@ class AlpalResource extends Resource
                 Forms\Components\TextInput::make('ukuran')
                     ->required()
                     ->label('Ukuran (m)')
+                    ->placeholder('Contoh: 100')
                     ->maxLength(6)
                     ->extraInputAttributes([
                         'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
@@ -87,6 +90,7 @@ class AlpalResource extends Resource
                 Forms\Components\TextInput::make('kapasitas')
                     ->required()
                     ->label('Kapasitas (Ltr)')
+                    ->placeholder('Contoh: 1000')
                     ->maxLength(8)
                     ->extraInputAttributes([
                         'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
@@ -97,6 +101,7 @@ class AlpalResource extends Resource
                 Forms\Components\TextInput::make('rob')
                     ->required()
                     ->label('ROB (Ltr)')
+                    ->placeholder('Contoh: 100')
                     ->maxLength(8)
                     ->extraInputAttributes([
                         'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'

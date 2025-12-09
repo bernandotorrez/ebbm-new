@@ -13,6 +13,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Traits\RoleBasedResourceAccess;
+use Filament\Notifications\Notification;
+use Illuminate\Database\Eloquent\Model;
 
 class KotaResource extends Resource
 {
@@ -45,6 +47,7 @@ class KotaResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('kota')
                     ->required()
+                    ->placeholder('Contoh: Jakarta')
                     ->maxLength(50),
                 Forms\Components\Select::make('wilayah_id')
                     ->label('Wilayah')
@@ -84,14 +87,93 @@ class KotaResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->label('Ubah'),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Hapus')
+                    ->modalHeading('Konfirmasi Hapus Data')
+                    ->modalSubheading('Apakah kamu yakin ingin menghapus data ini? ')
+                    ->modalButton('Ya, Hapus')
+                    ->before(function (Tables\Actions\DeleteAction $action, Model $record) {
+                        // Cek apakah ada TBBM yang terkait
+                        $tbbmCount = $record->tbbms()->count();
+                        
+                        if ($tbbmCount > 0) {
+                            Notification::make()
+                                ->danger()
+                                ->title('Tidak dapat menghapus kota')
+                                ->body("Kota ini masih memiliki {$tbbmCount} TBBM yang terkait. Hapus TBBM terlebih dahulu.")
+                                ->persistent()
+                                ->send();
+                            
+                            $action->cancel();
+                        }
+                        
+                        // Cek apakah ada Kantor SAR yang terkait
+                        $kantorSarCount = $record->kantorSars()->count();
+                        
+                        if ($kantorSarCount > 0) {
+                            Notification::make()
+                                ->danger()
+                                ->title('Tidak dapat menghapus kota')
+                                ->body("Kota ini masih memiliki {$kantorSarCount} Kantor SAR yang terkait. Hapus Kantor SAR terlebih dahulu.")
+                                ->persistent()
+                                ->send();
+                            
+                            $action->cancel();
+                        }
+                        
+                        // Cek apakah ada Delivery Order yang terkait
+                        $doCount = $record->deliveryOrders()->count();
+                        
+                        if ($doCount > 0) {
+                            Notification::make()
+                                ->danger()
+                                ->title('Tidak dapat menghapus kota')
+                                ->body("Kota ini masih memiliki {$doCount} Delivery Order yang terkait. Hapus Delivery Order terlebih dahulu.")
+                                ->persistent()
+                                ->send();
+                            
+                            $action->cancel();
+                        }
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
-                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? ')
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->before(function (Tables\Actions\DeleteBulkAction $action, $records) {
+                            $hasRelations = false;
+                            $errorMessages = [];
+                            
+                            foreach ($records as $record) {
+                                $tbbmCount = $record->tbbms()->count();
+                                $kantorSarCount = $record->kantorSars()->count();
+                                $doCount = $record->deliveryOrders()->count();
+                                
+                                if ($tbbmCount > 0 || $kantorSarCount > 0 || $doCount > 0) {
+                                    $hasRelations = true;
+                                    $relations = [];
+                                    if ($tbbmCount > 0) $relations[] = "{$tbbmCount} TBBM";
+                                    if ($kantorSarCount > 0) $relations[] = "{$kantorSarCount} Kantor SAR";
+                                    if ($doCount > 0) $relations[] = "{$doCount} Delivery Order";
+                                    
+                                    $errorMessages[] = "Kota {$record->kota} masih memiliki " . implode(', ', $relations) . " yang terkait.";
+                                }
+                            }
+                            
+                            if ($hasRelations) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Tidak dapat menghapus kota')
+                                    ->body('Beberapa kota masih memiliki data terkait:<br>' . implode('<br>', $errorMessages))
+                                    ->persistent()
+                                    ->send();
+                                
+                                $action->cancel();
+                            }
+                        }),
                 ])
                 ->label('Hapus'),
             ]);

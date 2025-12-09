@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\PreventUpdateTimestamp;
 
@@ -29,5 +30,20 @@ class Kota extends Model
     public function wilayah(): BelongsTo
     {
         return $this->belongsTo(Wilayah::class, 'wilayah_id');
+    }
+
+    public function tbbms(): HasMany
+    {
+        return $this->hasMany(Tbbm::class, 'kota_id', 'kota_id');
+    }
+
+    public function kantorSars(): HasMany
+    {
+        return $this->hasMany(KantorSar::class, 'kota_id', 'kota_id');
+    }
+
+    public function deliveryOrders(): HasMany
+    {
+        return $this->hasMany(DeliveryOrder::class, 'kota_id', 'kota_id');
     }
 }

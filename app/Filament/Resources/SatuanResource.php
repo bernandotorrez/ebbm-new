@@ -45,6 +45,7 @@ class SatuanResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('satuan')
                     ->required()
+                    ->placeholder('Contoh: Liter')
                     ->maxLength(50),
             ]);
     }
