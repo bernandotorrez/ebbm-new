@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\PreventUpdateTimestamp;
@@ -20,12 +21,22 @@ class PosSandar extends Model
     protected $fillable = [
         'pos_sandar_id',
         'pos_sandar',
+        'kantor_sar_id',
         'created_by',
         'updated_by',
         'deleted_by',
     ];
 
-    public function alpals()
+    protected $casts = [
+        'kantor_sar_id' => 'integer',
+    ];
+
+    public function kantorSar(): BelongsTo
+    {
+        return $this->belongsTo(KantorSar::class, 'kantor_sar_id', 'kantor_sar_id');
+    }
+
+    public function alpals(): HasMany
     {
         return $this->hasMany(Alpal::class, 'pos_sandar_id', 'pos_sandar_id');
     }

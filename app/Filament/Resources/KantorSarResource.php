@@ -49,14 +49,17 @@ class KantorSarResource extends Resource
                     ->label('Kantor SAR')
                     ->placeholder('Contoh: Kantor SAR Jakarta')
                     ->required()
-                    ->maxLength(50),
+                    ->maxLength(50)
+                    ->rules(['required', 'string', 'max:50']),
                 
                 Forms\Components\Select::make('kota_id')
                     ->label('Kota')
                     ->relationship('kota', 'kota')
                     ->searchable()
                     ->preload()
-                    ->nullable(),
+                    ->required()
+                    ->placeholder('Pilih Kota')
+                    ->rules(['required', 'exists:ms_kota,kota_id']),
             ]);
     }
 

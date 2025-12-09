@@ -57,4 +57,9 @@ class KantorSar extends Model
     {
         return $this->hasMany(Pemakaian::class, 'kantor_sar_id', 'kantor_sar_id');
     }
+
+    public function posSandars()
+    {
+        return $this->hasMany(PosSandar::class, 'kantor_sar_id', 'kantor_sar_id');
+    }
 }

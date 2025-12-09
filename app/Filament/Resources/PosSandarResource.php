@@ -44,9 +44,16 @@ class PosSandarResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('kantor_sar_id')
+                    ->label('Kantor SAR')
+                    ->relationship('kantorSar', 'kantor_sar')
+                    ->searchable()
+                    ->preload()
+                    ->required()
+                    ->placeholder('Pilih Kantor SAR'),
                 Forms\Components\TextInput::make('pos_sandar')
                     ->label('Pos Sandar')
-                    ->placeholder('Contoh: Pos Sandar')
+                    ->placeholder('Contoh: Pos Sandar Jakarta')
                     ->required()
                     ->maxLength(50),
             ]);
@@ -56,7 +63,12 @@ class PosSandarResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('kantorSar.kantor_sar')
+                    ->label('Kantor SAR')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('pos_sandar')
+                    ->label('Pos Sandar')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')

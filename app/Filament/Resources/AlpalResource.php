@@ -70,8 +70,7 @@ class AlpalResource extends Resource
                     ->required()
                     ->placeholder('Contoh: KN SAR Laksamana 241')
                     ->label('Nama Alut')
-                    ->maxLength(100)
-                    ->helperText('Nama lengkap alat apung'),
+                    ->maxLength(100),
                 Forms\Components\Select::make('golongan_bbm_id')
                     ->relationship(name: 'golonganBbm', titleAttribute: 'golongan')
                     ->label('Jenis Alut')
@@ -119,13 +118,27 @@ class AlpalResource extends Resource
                     ->options(static::getKantorSarOptions())
                     ->searchable()
                     ->preload()
-                    ->required(),
+                    ->required()
+                    ->live()
+                    ->afterStateUpdated(function (callable $set) {
+                        $set('pos_sandar_id', null);
+                    }),
                 Forms\Components\Select::make('pos_sandar_id')
-                    ->relationship(name: 'posSandar', titleAttribute: 'pos_sandar')
                     ->label('Pos Sandar')
+                    ->options(function (callable $get) {
+                        $kantorSarId = $get('kantor_sar_id');
+                        if (!$kantorSarId) {
+                            return [];
+                        }
+                        return \App\Models\PosSandar::where('kantor_sar_id', $kantorSarId)
+                            ->pluck('pos_sandar', 'pos_sandar_id')
+                            ->toArray();
+                    })
                     ->searchable()
                     ->preload()
-                    ->required(),
+                    ->required()
+                    ->placeholder('Pilih Kantor SAR terlebih dahulu')
+                    ->disabled(fn (callable $get) => !$get('kantor_sar_id')),
             ]);
     }
 
