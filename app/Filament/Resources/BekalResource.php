@@ -77,12 +77,8 @@ class BekalResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('bekal')
                     ->label('Jenis Bahan Bakar')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->label('Dihapus Pada')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat Pada')
                     ->dateTime()

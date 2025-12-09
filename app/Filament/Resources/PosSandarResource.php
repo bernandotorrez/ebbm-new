@@ -55,11 +55,8 @@ class PosSandarResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('pos_sandar')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

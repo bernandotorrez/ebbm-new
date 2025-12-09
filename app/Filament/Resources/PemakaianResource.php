@@ -347,11 +347,8 @@ class PemakaianResource extends Resource
                 Tables\Columns\TextColumn::make('keterangan')
                     ->label('Keterangan')
                     ->limit(50)
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

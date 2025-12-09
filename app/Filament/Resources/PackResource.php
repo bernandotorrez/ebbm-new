@@ -55,11 +55,8 @@ class PackResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('nama_pack')
                     ->label('Nama Pack')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

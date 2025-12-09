@@ -417,17 +417,20 @@ class Sp3kResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('nomor_sp3k')
                     ->label('Nomor SP3K')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('tahun_anggaran')
                     ->label('Tahun Anggaran')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('tanggal_sp3k')
                     ->label('Tanggal SP3K')
                     ->date()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('tw')
                     ->label('Triwulan')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                  Tables\Columns\TextColumn::make('pelumas_list')
                     ->label('Pelumas')
                     ->html()
@@ -447,11 +450,6 @@ class Sp3kResource extends Resource
                     ->label('Jumlah Harga')
                     ->money('IDR')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->label('Dihapus Pada')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat Pada')
                     ->dateTime()

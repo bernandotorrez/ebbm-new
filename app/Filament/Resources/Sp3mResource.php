@@ -420,17 +420,20 @@ class Sp3mResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('nomor_sp3m')
                     ->label('Nomor SP3M')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('tanggal_sp3m')
                     ->label('Tanggal SP3M')
                     ->date('d-m-Y')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('tahun_anggaran')
                     ->label('Tahun Anggaran')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('tw')
                     ->label('Triwulan')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('qty')
                     ->label('Qty')
                     ->numeric()
@@ -449,11 +452,6 @@ class Sp3mResource extends Resource
                     ->numeric()
                     ->sortable()
                     ->visible(fn () => !in_array(Auth::user()?->level?->value, [LevelUser::KANSAR->value, LevelUser::ABK->value])),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->label('Dihapus Pada')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat Pada')
                     ->dateTime()

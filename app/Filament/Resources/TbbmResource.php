@@ -107,10 +107,6 @@ class TbbmResource extends Resource
                         $formatted = rtrim(rtrim(number_format($state, 2, ',', ''), '0'), ',');
                         return $formatted . '%';
                     }),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

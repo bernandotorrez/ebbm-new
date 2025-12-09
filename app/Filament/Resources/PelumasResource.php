@@ -118,7 +118,8 @@ class PelumasResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('nama_pelumas')
                     ->label('Nama Pelumas')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('pack.nama_pack')
                     ->label('Pack')
                     ->searchable()
@@ -139,11 +140,6 @@ class PelumasResource extends Resource
                 Tables\Columns\TextColumn::make('tahun')
                     ->label('Tahun')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->label('Dihapus Pada')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat Pada')
                     ->dateTime()

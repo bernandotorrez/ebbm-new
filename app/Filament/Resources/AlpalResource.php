@@ -181,11 +181,6 @@ class AlpalResource extends Resource
                     ->label('Pos Sandar')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->label('Dihapus Pada')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->label('Dibuat Pada')

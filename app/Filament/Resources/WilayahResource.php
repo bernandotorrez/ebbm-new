@@ -62,10 +62,6 @@ class WilayahResource extends Resource
                     ->label('Wilayah Ke')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
