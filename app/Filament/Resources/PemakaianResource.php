@@ -373,7 +373,7 @@ class PemakaianResource extends Resource
                     ->relationship('bekal', 'bekal')
                     ->searchable()
                     ->preload()
-                    ->label('Bekal'),
+                    ->label('Jenis Bahan Bakar'),
                 // Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([

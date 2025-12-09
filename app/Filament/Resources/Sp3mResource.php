@@ -428,7 +428,7 @@ class Sp3mResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('bekal.bekal')
                     ->numeric()
-                    ->label('Bekal')
+                    ->label('Jenis Bahan Bakar')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('tbbm.depot')
                     ->label('Depot')
@@ -485,12 +485,12 @@ class Sp3mResource extends Resource
                     ->options(static::getKantorSarOptions())
                     ->preload(),
                 SelectFilter::make('alpal_id')
-                    ->label('Alpal')
-                    ->relationship('alpal', 'alpal') // Relasi ke Golongan BBM
+                    ->label('Alut')
+                    ->relationship('alpal', 'alpal')
                     ->preload(),
                 SelectFilter::make('bekal_id')
-                    ->label('Bekal')
-                    ->relationship('bekal', 'bekal') // Relasi ke Golongan BBM
+                    ->label('Jenis Bahan Bakar')
+                    ->relationship('bekal', 'bekal')
                     ->preload(),
                 SelectFilter::make('tahun_anggaran')
                     ->label('Tahun Anggaran'),

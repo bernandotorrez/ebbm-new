@@ -47,7 +47,7 @@ class HargaBekalResource extends Resource
                     ->getOptionLabelFromRecordUsing(fn ($record) => "Wilayah {$record->wilayah_ke}"),
                     
                 Forms\Components\Select::make('bekal_id')
-                    ->label('Bekal')
+                    ->label('Jenis Bahan Bakar')
                     ->relationship('bekal', 'bekal')
                     ->required()
                     ->searchable()
@@ -88,7 +88,7 @@ class HargaBekalResource extends Resource
                     ->searchable(),
                     
                 Tables\Columns\TextColumn::make('bekal.bekal')
-                    ->label('Bekal')
+                    ->label('Jenis Bahan Bakar')
                     ->sortable()
                     ->searchable(),
                     
