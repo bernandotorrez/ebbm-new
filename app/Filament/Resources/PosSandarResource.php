@@ -13,6 +13,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\RoleBasedResourceAccess;
+use Filament\Notifications\Notification;
 
 class PosSandarResource extends Resource
 {
@@ -79,8 +80,32 @@ class PosSandarResource extends Resource
                     Tables\Actions\DeleteBulkAction::make()
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
-                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih?')
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->before(function (Tables\Actions\DeleteBulkAction $action, $records) {
+                            $hasRelations = false;
+                            $errorMessages = [];
+                            
+                            foreach ($records as $record) {
+                                $alpalCount = $record->alpals()->count();
+                                
+                                if ($alpalCount > 0) {
+                                    $hasRelations = true;
+                                    $errorMessages[] = "Pos Sandar {$record->pos_sandar} masih memiliki {$alpalCount} Alut yang terkait.";
+                                }
+                            }
+                            
+                            if ($hasRelations) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Tidak dapat menghapus Pos Sandar')
+                                    ->body('Beberapa Pos Sandar masih memiliki data terkait:<br>' . implode('<br>', $errorMessages))
+                                    ->persistent()
+                                    ->send();
+                                
+                                $action->cancel();
+                            }
+                        }),
                 ])
                 ->label('Hapus'),
             ]);

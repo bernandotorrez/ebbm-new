@@ -12,6 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use App\Traits\RoleBasedResourceAccess;
+use Filament\Notifications\Notification;
 
 class PackResource extends Resource
 {
@@ -79,8 +80,37 @@ class PackResource extends Resource
                     Tables\Actions\DeleteBulkAction::make()
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
-                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih?')
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->before(function (Tables\Actions\DeleteBulkAction $action, $records) {
+                            $hasRelations = false;
+                            $errorMessages = [];
+                            
+                            foreach ($records as $record) {
+                                $pelumasCount = $record->pelumas()->count();
+                                $kemasanCount = $record->kemasans()->count();
+                                
+                                if ($pelumasCount > 0 || $kemasanCount > 0) {
+                                    $hasRelations = true;
+                                    $relations = [];
+                                    if ($pelumasCount > 0) $relations[] = "{$pelumasCount} pelumas";
+                                    if ($kemasanCount > 0) $relations[] = "{$kemasanCount} kemasan";
+                                    
+                                    $errorMessages[] = "Pack {$record->nama_pack} masih memiliki " . implode(', ', $relations) . " yang terkait.";
+                                }
+                            }
+                            
+                            if ($hasRelations) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Tidak dapat menghapus Pack')
+                                    ->body('Beberapa Pack masih memiliki data terkait:<br>' . implode('<br>', $errorMessages))
+                                    ->persistent()
+                                    ->send();
+                                
+                                $action->cancel();
+                            }
+                        }),
                 ])
                 ->label('Hapus'),
             ]);

@@ -114,7 +114,7 @@ class KantorSarResource extends Resource
                                     $hasRelations = true;
                                     $relations = [];
                                     if ($userCount > 0) $relations[] = "{$userCount} user";
-                                    if ($alpalCount > 0) $relations[] = "{$alpalCount} alpal";
+                                    if ($alpalCount > 0) $relations[] = "{$alpalCount} alut";
                                     if ($sp3mCount > 0) $relations[] = "{$sp3mCount} SP3M";
                                     if ($sp3kCount > 0) $relations[] = "{$sp3kCount} SP3K";
                                     if ($pemakaianCount > 0) $relations[] = "{$pemakaianCount} pemakaian";

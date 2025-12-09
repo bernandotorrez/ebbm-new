@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\PreventUpdateTimestamp;
 
@@ -49,5 +51,25 @@ class Alpal extends Model
     public function tbbm()
     {
         return $this->belongsTo(Tbbm::class, 'tbbm_id', 'tbbm_id');
+    }
+
+    public function users()
+    {
+        return $this->hasMany(User::class, 'alpal_id', 'alpal_id');
+    }
+
+    public function sp3ms()
+    {
+        return $this->hasMany(Sp3m::class, 'alpal_id', 'alpal_id');
+    }
+
+    public function txSp3ks()
+    {
+        return $this->hasMany(TxSp3k::class, 'alpal_id', 'alpal_id');
+    }
+
+    public function pemakaians()
+    {
+        return $this->hasMany(Pemakaian::class, 'alpal_id', 'alpal_id');
     }
 }

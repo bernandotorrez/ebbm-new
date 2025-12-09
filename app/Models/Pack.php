@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\PreventUpdateTimestamp;
 
@@ -22,4 +23,14 @@ class Pack extends Model
         'updated_by',
         'deleted_by',
     ];
+
+    public function pelumas()
+    {
+        return $this->hasMany(Pelumas::class, 'pack_id', 'pack_id');
+    }
+
+    public function kemasans()
+    {
+        return $this->hasMany(Kemasan::class, 'pack_id', 'pack_id');
+    }
 }

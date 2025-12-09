@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\RoleBasedResourceAccess;
+use Filament\Notifications\Notification;
 
 class AlpalResource extends Resource
 {
@@ -69,7 +70,8 @@ class AlpalResource extends Resource
                     ->required()
                     ->placeholder('Contoh: KN SAR Laksamana 241')
                     ->label('Nama Alut')
-                    ->maxLength(100),
+                    ->maxLength(100)
+                    ->helperText('Nama lengkap alat apung'),
                 Forms\Components\Select::make('golongan_bbm_id')
                     ->relationship(name: 'golonganBbm', titleAttribute: 'golongan')
                     ->label('Jenis Alut')
@@ -158,7 +160,8 @@ class AlpalResource extends Resource
                 Tables\Columns\TextColumn::make('alpal')
                     ->label('Nama Alut')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->wrap(),
                 Tables\Columns\TextColumn::make('golonganBbm.golongan')
                     ->label('Jenis Alut')
                     ->sortable()
@@ -226,8 +229,41 @@ class AlpalResource extends Resource
                     Tables\Actions\DeleteBulkAction::make()
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
-                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih?')
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->before(function (Tables\Actions\DeleteBulkAction $action, $records) {
+                            $hasRelations = false;
+                            $errorMessages = [];
+                            
+                            foreach ($records as $record) {
+                                $userCount = $record->users()->count();
+                                $sp3mCount = $record->sp3ms()->count();
+                                $sp3kCount = $record->txSp3ks()->count();
+                                $pemakaianCount = $record->pemakaians()->count();
+                                
+                                if ($userCount > 0 || $sp3mCount > 0 || $sp3kCount > 0 || $pemakaianCount > 0) {
+                                    $hasRelations = true;
+                                    $relations = [];
+                                    if ($userCount > 0) $relations[] = "{$userCount} user";
+                                    if ($sp3mCount > 0) $relations[] = "{$sp3mCount} SP3M";
+                                    if ($sp3kCount > 0) $relations[] = "{$sp3kCount} SP3K";
+                                    if ($pemakaianCount > 0) $relations[] = "{$pemakaianCount} pemakaian";
+                                    
+                                    $errorMessages[] = "Alut {$record->alpal} masih memiliki " . implode(', ', $relations) . " yang terkait.";
+                                }
+                            }
+                            
+                            if ($hasRelations) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Tidak dapat menghapus Alut')
+                                    ->body('Beberapa Alut masih memiliki data terkait:<br>' . implode('<br>', $errorMessages))
+                                    ->persistent()
+                                    ->send();
+                                
+                                $action->cancel();
+                            }
+                        }),
                 ])
                 ->label('Hapus'),
             ]);

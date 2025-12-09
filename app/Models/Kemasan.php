@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\PreventUpdateTimestamp;
 
@@ -20,6 +22,7 @@ class Kemasan extends Model
     protected $fillable = [
         'kemasan_liter',
         'kemasan_pack',
+        'pack_id',
         'created_by',
         'updated_by',
         'deleted_by',
@@ -27,5 +30,16 @@ class Kemasan extends Model
 
     protected $casts = [
         'kemasan_liter' => 'integer',
+        'pack_id' => 'integer',
     ];
+
+    public function pack(): BelongsTo
+    {
+        return $this->belongsTo(Pack::class, 'pack_id', 'pack_id');
+    }
+
+    public function pelumas(): HasMany
+    {
+        return $this->hasMany(Pelumas::class, 'kemasan_id', 'kemasan_id');
+    }
 }

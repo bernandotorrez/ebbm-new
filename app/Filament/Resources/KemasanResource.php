@@ -13,6 +13,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Traits\RoleBasedResourceAccess;
+use Filament\Notifications\Notification;
 
 class KemasanResource extends Resource
 {
@@ -43,6 +44,13 @@ class KemasanResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('pack_id')
+                    ->label('Pack')
+                    ->relationship('pack', 'nama_pack')
+                    ->searchable()
+                    ->preload()
+                    ->required()
+                    ->placeholder('Pilih Pack'),
                 Forms\Components\TextInput::make('kemasan_liter')
                     ->label('Liter')
                     ->placeholder('Contoh: 209')
@@ -57,7 +65,7 @@ class KemasanResource extends Resource
                     ->rules(['min:1'])
                     ->live(),
                 Forms\Components\TextInput::make('kemasan_pack')
-                    ->label('Pack')
+                    ->label('Nama Kemasan')
                     ->placeholder('Contoh: Drum 209L')
                     ->required()
                     ->maxLength(50),
@@ -68,12 +76,16 @@ class KemasanResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('pack.nama_pack')
+                    ->label('Pack')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('kemasan_liter')
                     ->label('Liter')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('kemasan_pack')
-                    ->label('Pack')
+                    ->label('Nama Kemasan')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
@@ -99,8 +111,32 @@ class KemasanResource extends Resource
                     Tables\Actions\DeleteBulkAction::make()
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
-                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih?')
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->before(function (Tables\Actions\DeleteBulkAction $action, $records) {
+                            $hasRelations = false;
+                            $errorMessages = [];
+                            
+                            foreach ($records as $record) {
+                                $pelumasCount = $record->pelumas()->count();
+                                
+                                if ($pelumasCount > 0) {
+                                    $hasRelations = true;
+                                    $errorMessages[] = "Kemasan {$record->kemasan_pack} masih memiliki {$pelumasCount} pelumas yang terkait.";
+                                }
+                            }
+                            
+                            if ($hasRelations) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Tidak dapat menghapus Kemasan')
+                                    ->body('Beberapa Kemasan masih memiliki data terkait:<br>' . implode('<br>', $errorMessages))
+                                    ->persistent()
+                                    ->send();
+                                
+                                $action->cancel();
+                            }
+                        }),
                 ])
                 ->label('Hapus'),
             ]);
