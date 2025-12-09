@@ -38,12 +38,6 @@ class DeliveryOrder extends Model
         return $this->belongsTo(Sp3m::class, 'sp3m_id', 'sp3m_id');
     }
 
-    // TBBM sekarang diambil dari SP3M
-    public function tbbm()
-    {
-        return $this->sp3m ? $this->sp3m->tbbm() : null;
-    }
-
     public function bekal()
     {
         return $this->belongsTo(Bekal::class, 'bekal_id', 'bekal_id');

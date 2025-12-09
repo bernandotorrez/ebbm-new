@@ -122,9 +122,6 @@ class DeliveryOrderResource extends Resource
                                         
                                         // Set sisa qty
                                         $set('sisa_qty_info', number_format($sp3m->sisa_qty, 0, ',', '.'));
-                                        
-                                        // Reset TBBM selection when SP3M changes
-                                        $set('tbbm_id', null);
                                     }
                                 } else {
                                     $set('alut_info', '');
@@ -133,7 +130,6 @@ class DeliveryOrderResource extends Resource
                                     $set('jenis_bahan_bakar_info', '');
                                     $set('harga_satuan', null);
                                     $set('sisa_qty_info', '');
-                                    $set('tbbm_id', null);
                                 }
                             }),
                         
@@ -266,33 +262,9 @@ class DeliveryOrderResource extends Resource
                             ->displayFormat('d/m/Y')
                             ->closeOnDateSelection(true),
                         
-                        Forms\Components\Select::make('tbbm_id')
-                            ->label('TBBM/DPPU')
-                            ->searchable()
-                            ->preload()
-                            ->options(function (callable $get) {
-                                $sp3mId = $get('sp3m_id');
-                                
-                                if (!$sp3mId) {
-                                    return [];
-                                }
-                                
-                                // Get SP3M with kantor_sar relationship
-                                $sp3m = Sp3m::with('kantorSar')->find($sp3mId);
-                                
-                                if (!$sp3m || !$sp3m->kantorSar || !$sp3m->kantorSar->kota_id) {
-                                    return \App\Models\Tbbm::pluck('depot', 'tbbm_id')->toArray();
-                                }
-                                
-                                // Filter TBBM by kota_id from kantor_sar
-                                return \App\Models\Tbbm::where('kota_id', $sp3m->kantorSar->kota_id)
-                                    ->pluck('depot', 'tbbm_id')
-                                    ->toArray();
-                            })
-                            ->validationMessages([
-                                'required' => 'Pilih TBBM/DDPU',
-                            ])
-                            ->required(),
+                        Forms\Components\Placeholder::make('spacer1')
+                            ->label('')
+                            ->content(''),
                     ]),
                 
                 Forms\Components\Grid::make(2)
@@ -365,7 +337,7 @@ class DeliveryOrderResource extends Resource
                     'sp3m.alpal',
                     'sp3m.kantorSar',
                     'sp3m.bekal',
-                    'tbbm.kota',
+                    'sp3m.tbbm',
                     'bekal',
                     'kota'
                 ]);
@@ -398,10 +370,6 @@ class DeliveryOrderResource extends Resource
                     ->formatStateUsing(fn ($state) => number_format($state, 0, ',', '.'))
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: false),
-                Tables\Columns\TextColumn::make('tbbm.depot')
-                    ->label('TBBM/DDPU')
-                    ->searchable()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('tanggal_do')
                     ->label('Tanggal DO')
                     ->date()
@@ -470,11 +438,6 @@ class DeliveryOrderResource extends Resource
                     ->options(static::getSp3mOptions())
                     ->searchable()
                     ->preload(),
-                Tables\Filters\SelectFilter::make('tbbm_id')
-                    ->label('TBBM/DDPU')
-                    ->relationship('tbbm', 'depot')
-                    ->searchable()
-                    ->preload(),
                 Tables\Filters\SelectFilter::make('tahun_anggaran')
                     ->label('Tahun Anggaran')
                     ->options(function () {
@@ -495,11 +458,11 @@ class DeliveryOrderResource extends Resource
                     ->modalHeading('Ubah Harga BBM')
                     ->modalWidth('md')
                     ->form(function (DeliveryOrder $record) {
-                        $record->load(['sp3m.bekal', 'bekal', 'kota.wilayah', 'tbbm.kota']);
+                        $record->load(['sp3m.bekal', 'sp3m.tbbm.kota', 'bekal', 'kota.wilayah']);
                         
                         // Get bekal_id and wilayah_id (dari kota)
                         $bekalId = $record->bekal_id ?? $record->sp3m->bekal_id ?? null;
-                        $wilayahId = $record->kota?->wilayah_id ?? $record->tbbm?->kota?->wilayah_id ?? null;
+                        $wilayahId = $record->kota?->wilayah_id ?? $record->sp3m?->tbbm?->kota?->wilayah_id ?? null;
                         
                         return [
                             Forms\Components\TextInput::make('nomor_sp3m')
