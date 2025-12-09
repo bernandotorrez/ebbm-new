@@ -87,61 +87,13 @@ class KotaResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->label('Ubah'),
-                Tables\Actions\DeleteAction::make()
-                    ->label('Hapus')
-                    ->modalHeading('Konfirmasi Hapus Data')
-                    ->modalSubheading('Apakah kamu yakin ingin menghapus data ini? ')
-                    ->modalButton('Ya, Hapus')
-                    ->before(function (Tables\Actions\DeleteAction $action, Model $record) {
-                        // Cek apakah ada TBBM yang terkait
-                        $tbbmCount = $record->tbbms()->count();
-                        
-                        if ($tbbmCount > 0) {
-                            Notification::make()
-                                ->danger()
-                                ->title('Tidak dapat menghapus kota')
-                                ->body("Kota ini masih memiliki {$tbbmCount} TBBM yang terkait. Hapus TBBM terlebih dahulu.")
-                                ->persistent()
-                                ->send();
-                            
-                            $action->cancel();
-                        }
-                        
-                        // Cek apakah ada Kantor SAR yang terkait
-                        $kantorSarCount = $record->kantorSars()->count();
-                        
-                        if ($kantorSarCount > 0) {
-                            Notification::make()
-                                ->danger()
-                                ->title('Tidak dapat menghapus kota')
-                                ->body("Kota ini masih memiliki {$kantorSarCount} Kantor SAR yang terkait. Hapus Kantor SAR terlebih dahulu.")
-                                ->persistent()
-                                ->send();
-                            
-                            $action->cancel();
-                        }
-                        
-                        // Cek apakah ada Delivery Order yang terkait
-                        $doCount = $record->deliveryOrders()->count();
-                        
-                        if ($doCount > 0) {
-                            Notification::make()
-                                ->danger()
-                                ->title('Tidak dapat menghapus kota')
-                                ->body("Kota ini masih memiliki {$doCount} Delivery Order yang terkait. Hapus Delivery Order terlebih dahulu.")
-                                ->persistent()
-                                ->send();
-                            
-                            $action->cancel();
-                        }
-                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
-                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? ')
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih?')
                         ->modalButton('Ya, Hapus Sekarang')
                         ->before(function (Tables\Actions\DeleteBulkAction $action, $records) {
                             $hasRelations = false;

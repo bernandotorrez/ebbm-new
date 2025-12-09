@@ -13,6 +13,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Traits\RoleBasedResourceAccess;
+use Filament\Notifications\Notification;
+use Illuminate\Database\Eloquent\Model;
 
 class KantorSarResource extends Resource
 {
@@ -95,8 +97,43 @@ class KantorSarResource extends Resource
                     Tables\Actions\DeleteBulkAction::make()
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
-                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih?')
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->before(function (Tables\Actions\DeleteBulkAction $action, $records) {
+                            $hasRelations = false;
+                            $errorMessages = [];
+                            
+                            foreach ($records as $record) {
+                                $userCount = $record->users()->count();
+                                $alpalCount = $record->alpals()->count();
+                                $sp3mCount = $record->sp3ms()->count();
+                                $sp3kCount = $record->txSp3ks()->count();
+                                $pemakaianCount = $record->pemakaians()->count();
+                                
+                                if ($userCount > 0 || $alpalCount > 0 || $sp3mCount > 0 || $sp3kCount > 0 || $pemakaianCount > 0) {
+                                    $hasRelations = true;
+                                    $relations = [];
+                                    if ($userCount > 0) $relations[] = "{$userCount} user";
+                                    if ($alpalCount > 0) $relations[] = "{$alpalCount} alpal";
+                                    if ($sp3mCount > 0) $relations[] = "{$sp3mCount} SP3M";
+                                    if ($sp3kCount > 0) $relations[] = "{$sp3kCount} SP3K";
+                                    if ($pemakaianCount > 0) $relations[] = "{$pemakaianCount} pemakaian";
+                                    
+                                    $errorMessages[] = "Kantor SAR {$record->kantor_sar} masih memiliki " . implode(', ', $relations) . " yang terkait.";
+                                }
+                            }
+                            
+                            if ($hasRelations) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Tidak dapat menghapus Kantor SAR')
+                                    ->body('Beberapa Kantor SAR masih memiliki data terkait:<br>' . implode('<br>', $errorMessages))
+                                    ->persistent()
+                                    ->send();
+                                
+                                $action->cancel();
+                            }
+                        }),
                 ])
                 ->label('Hapus'),
             ]);
