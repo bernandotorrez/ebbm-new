@@ -72,5 +72,9 @@ class DeliveryOrder extends Model
         return $this->qty * $this->harga;
     }
 
-
+    // Helper method to get tbbm through sp3m
+    public function getTbbmAttribute()
+    {
+        return $this->sp3m?->tbbm;
+    }
 }
