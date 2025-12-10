@@ -23,7 +23,7 @@ return new class extends Migration
             'ms_kota',
             'ms_tbbm',
             'ms_pos_sandar',
-            'ms_alpal',
+            'tx_alpal', // Alpal menggunakan tx_ bukan ms_
             'ms_pack',
             'ms_kemasan',
             'ms_pelumas',
