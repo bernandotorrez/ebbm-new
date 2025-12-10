@@ -8,6 +8,7 @@ use App\Models\Sp3m;
 use App\Models\Alpal;
 use App\Models\KantorSar;
 use App\Models\HargaBekal;
+use App\Models\DeliveryOrder;
 use App\Enums\LevelUser;
 use App\Traits\RoleBasedResourceAccess;
 use Filament\Forms;
@@ -20,6 +21,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Filament\Notifications\Notification;
 
 class Sp3mResource extends Resource
 {
@@ -50,6 +52,8 @@ class Sp3mResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Hidden::make('has_delivery_order'),
+                
                 // 1. Tahun Anggaran (TA)
                 Forms\Components\Select::make('tahun_anggaran')
                     ->label('Tahun Anggaran')
@@ -68,6 +72,7 @@ class Sp3mResource extends Resource
                     ])
                     ->preload()
                     ->live()
+                    ->disabled(fn ($record) => $record !== null)
                     ->afterStateHydrated(function (callable $set, $state, $record) {
                         // Simpan tahun anggaran original saat edit
                         if ($record && $state) {
@@ -131,7 +136,8 @@ class Sp3mResource extends Resource
                         '4' => 'Triwulan IV',
                     ])
                     ->searchable()
-                    ->live(),
+                    ->live()
+                    ->disabled(fn ($record) => $record !== null),
                 
                 // 3. Alut
                 Forms\Components\Select::make('alpal_id')
@@ -154,6 +160,7 @@ class Sp3mResource extends Resource
                         'required' => 'Pilih Alut',
                     ])
                     ->live()
+                    ->disabled(fn ($record) => $record !== null)
                     ->afterStateHydrated(function (callable $set, callable $get, $state, $record) {
                         // Set kantor_sar_info saat form di-load (untuk edit)
                         if ($state) {
@@ -266,7 +273,8 @@ class Sp3mResource extends Resource
                     ->closeOnDateSelection(true)
                     ->validationMessages([
                         'required' => 'Tanggal SP3M harus diisi',
-                    ]),
+                    ])
+                    ->disabled(fn ($record) => $record !== null),
                 
                 // 6. Kantor SAR (readonly, auto-filled from Alut)
                 Forms\Components\TextInput::make('kantor_sar_info')
@@ -289,7 +297,8 @@ class Sp3mResource extends Resource
                     ->validationMessages([
                         'required' => 'Pilih Jenis Bahan Bakar',
                     ])
-                    ->live(),
+                    ->live()
+                    ->disabled(fn ($record) => $record !== null),
                 
                 // 7b. TBBM/DPPU
                 Forms\Components\Select::make('tbbm_id')
@@ -327,6 +336,13 @@ class Sp3mResource extends Resource
                             $cleanQty = (int) str_replace(['.', ',', ' '], '', $state ?? '0');
                             $set('sisa_qty', $cleanQty ? number_format($cleanQty, 0, ',', '.') : null);
                         }
+                    })
+                    ->disabled(fn (callable $get) => $get('has_delivery_order') === true)
+                    ->helperText(function (callable $get, $record) {
+                        if ($record && $get('has_delivery_order') === true) {
+                            return '⚠️ SP3M ini sudah memiliki Delivery Order yang berjalan. Qty tidak dapat diubah.';
+                        }
+                        return null;
                     }),
                 
                 // 9. Sisa SP3M (readonly, calculated)
@@ -356,7 +372,8 @@ class Sp3mResource extends Resource
                         'file' => 'File SP3M harus berupa PDF atau gambar',
                         'max' => 'Ukuran file SP3M maksimal 5MB',
                     ])
-                    ->uploadingMessage('Mengunggah...'),
+                    ->uploadingMessage('Mengunggah...')
+                    ->disabled(fn ($record) => $record !== null),
             ]);
     }
 
@@ -499,6 +516,15 @@ class Sp3mResource extends Resource
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->label('Ubah'),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Hapus')
+                    ->visible(function ($record) {
+                        // Hide delete button if SP3M has DO
+                        return !\App\Models\DeliveryOrder::where('sp3m_id', $record->sp3m_id)->exists();
+                    })
+                    ->modalHeading('Konfirmasi Hapus Data')
+                    ->modalSubheading('Apakah kamu yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.')
+                    ->modalButton('Ya, Hapus Sekarang'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -506,7 +532,22 @@ class Sp3mResource extends Resource
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
                         ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->before(function ($records) {
+                            // Check if any of the selected records has DO
+                            foreach ($records as $record) {
+                                $hasDo = \App\Models\DeliveryOrder::where('sp3m_id', $record->sp3m_id)->exists();
+                                if ($hasDo) {
+                                    Notification::make()
+                                        ->title('Gagal Menghapus!')
+                                        ->body("SP3M dengan nomor {$record->nomor_sp3m} tidak dapat dihapus karena sudah memiliki Delivery Order.")
+                                        ->danger()
+                                        ->duration(7000)
+                                        ->send();
+                                    return false;
+                                }
+                            }
+                        }),
                 ])
                 ->label('Hapus'),
             ])
