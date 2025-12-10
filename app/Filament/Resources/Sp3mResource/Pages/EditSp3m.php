@@ -39,7 +39,11 @@ class EditSp3m extends EditRecord
     protected function mutateFormDataBeforeSave(array $data): array
     {
         // Clean numeric fields
-        $data['qty'] = (int) preg_replace('/[^\d]/', '', $data['qty']);
+        if (isset($data['qty'])) {
+            $data['qty'] = (int) preg_replace('/[^\d]/', '', $data['qty']);
+        } else {
+            $data['qty'] = $this->record->qty ?? 0;
+        }
         
         // Cek apakah nomor SP3M berubah (alut atau tahun anggaran berubah)
         $nomorSp3mChanged = $data['nomor_sp3m_changed'] ?? false;

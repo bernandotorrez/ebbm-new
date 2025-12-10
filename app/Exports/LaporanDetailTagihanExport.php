@@ -59,8 +59,9 @@ class LaporanDetailTagihanExport implements FromCollection, WithHeadings, WithMa
             'Jumlah Harga',
             'PPN (11%)',
             'PPKB',
-            'Pembulatan',
             'Total',
+            'Pembulatan',
+            'Total Setelah Pembulatan',
         ];
     }
 
@@ -71,18 +72,19 @@ class LaporanDetailTagihanExport implements FromCollection, WithHeadings, WithMa
         return [
             $this->rowNumber,
             \Carbon\Carbon::parse($row->tanggal_isi)->format('d-m-Y'),
-            $row->nomor_sp3m,
-            $row->nomor_do,
-            $row->qty,
-            $row->harga_per_liter,
-            $row->kantor_sar,
-            $row->alpal,
-            'Dexlite', // Placeholder untuk jenis bahan bakar
-            $row->jumlah_harga,
-            $row->ppn_11,
-            $row->ppkb,
-            $row->jumlah_pembulatan,
-            $row->total_setelah_pembulatan,
+            $row->nomor_sp3m ?? '',
+            $row->nomor_do ?? '',
+            $row->qty ?? 0,
+            $row->harga_per_liter ?? 0,
+            $row->kantor_sar ?? '',
+            $row->alpal ?? '',
+            'Dexlite',
+            $row->jumlah_harga ?? 0,
+            $row->ppn_11 ?? 0,
+            $row->ppkb ?? 0,
+            $row->total_ppn_ppkb ?? 0,
+            $row->jumlah_pembulatan ?? 0,
+            $row->total_setelah_pembulatan ?? 0,
         ];
     }
 
@@ -123,21 +125,23 @@ class LaporanDetailTagihanExport implements FromCollection, WithHeadings, WithMa
             'J' => 20,  // Jumlah Harga
             'K' => 20,  // PPN
             'L' => 20,  // PPKB
-            'M' => 15,  // Pembulatan
-            'N' => 20,  // Total
+            'M' => 20,  // Total
+            'N' => 15,  // Pembulatan
+            'O' => 25,  // Total Setelah Pembulatan
         ];
     }
 
     public function columnFormats(): array
     {
         return [
-            'E' => NumberFormat::FORMAT_NUMBER,
-            'F' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
-            'J' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
-            'K' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
-            'L' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
-            'M' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
-            'N' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
+            'E' => '#,##0',
+            'F' => '#,##0',
+            'J' => '#,##0',
+            'K' => '#,##0',
+            'L' => '#,##0',
+            'M' => '#,##0',
+            'N' => '#,##0',
+            'O' => '#,##0',
         ];
     }
 }
