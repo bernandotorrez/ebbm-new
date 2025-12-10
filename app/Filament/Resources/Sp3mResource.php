@@ -105,7 +105,9 @@ class Sp3mResource extends Resource
                                     $tahun = $state; // Gunakan tahun_anggaran
                                     $pattern = "SP3M.{$kodeAlut}/{$bulanRomawi}/SAR-{$tahun}";
                                     
-                                    $lastSp3m = Sp3m::where('nomor_sp3m', 'like', "%{$pattern}")
+                                    // Include soft deleted records untuk menghindari duplicate nomor
+                                    $lastSp3m = Sp3m::withTrashed()
+                                        ->where('nomor_sp3m', 'like', "%{$pattern}")
                                         ->orderBy('nomor_sp3m', 'desc')
                                         ->first();
                                     
@@ -216,8 +218,9 @@ class Sp3mResource extends Resource
                                             $tahun = $tahunAnggaran; // Gunakan tahun_anggaran
                                             $pattern = "SP3M.{$kodeAlut}/{$bulanRomawi}/SAR-{$tahun}";
                                             
-                                            // Get next sequence
-                                            $lastSp3m = Sp3m::where('nomor_sp3m', 'like', "%{$pattern}")
+                                            // Get next sequence - Include soft deleted records
+                                            $lastSp3m = Sp3m::withTrashed()
+                                                ->where('nomor_sp3m', 'like', "%{$pattern}")
                                                 ->orderBy('nomor_sp3m', 'desc')
                                                 ->first();
                                             
@@ -414,8 +417,9 @@ class Sp3mResource extends Resource
         $tahun = $tahunAnggaran ?? now()->year; // Gunakan tahun_anggaran jika ada
         $pattern = "SP3M.{$kodeAlut}/{$bulanRomawi}/SAR-{$tahun}";
         
-        // Get next sequence with lock to prevent duplicate
-        $lastSp3m = Sp3m::where('nomor_sp3m', 'like', "%{$pattern}")
+        // Get next sequence with lock to prevent duplicate - Include soft deleted records
+        $lastSp3m = Sp3m::withTrashed()
+            ->where('nomor_sp3m', 'like', "%{$pattern}")
             ->lockForUpdate()
             ->orderBy('nomor_sp3m', 'desc')
             ->first();

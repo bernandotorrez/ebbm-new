@@ -94,7 +94,9 @@ class Sp3kResource extends Resource
                                     $tahun = $state;
                                     $pattern = "SP3K.{$kodeAlut}/{$bulanRomawi}/SAR-{$tahun}";
                                     
-                                    $lastSp3k = TxSp3k::where('nomor_sp3k', 'like', "%{$pattern}")
+                                    // Include soft deleted records untuk menghindari duplicate nomor
+                                    $lastSp3k = TxSp3k::withTrashed()
+                                        ->where('nomor_sp3k', 'like', "%{$pattern}")
                                         ->orderBy('nomor_sp3k', 'desc')
                                         ->first();
                                     
@@ -180,7 +182,9 @@ class Sp3kResource extends Resource
                                             $tahun = $tahunAnggaran;
                                             $pattern = "SP3K.{$kodeAlut}/{$bulanRomawi}/SAR-{$tahun}";
                                             
-                                            $lastSp3k = TxSp3k::where('nomor_sp3k', 'like', "%{$pattern}")
+                                            // Include soft deleted records untuk menghindari duplicate nomor
+                                            $lastSp3k = TxSp3k::withTrashed()
+                                                ->where('nomor_sp3k', 'like', "%{$pattern}")
                                                 ->orderBy('nomor_sp3k', 'desc')
                                                 ->first();
                                             
@@ -391,8 +395,9 @@ class Sp3kResource extends Resource
         $tahun = $tahunAnggaran ?? now()->year;
         $pattern = "SP3K.{$kodeAlut}/{$bulanRomawi}/SAR-{$tahun}";
         
-        // Get next sequence with lock to prevent duplicate
-        $lastSp3k = TxSp3k::where('nomor_sp3k', 'like', "%{$pattern}")
+        // Get next sequence with lock to prevent duplicate - Include soft deleted records
+        $lastSp3k = TxSp3k::withTrashed()
+            ->where('nomor_sp3k', 'like', "%{$pattern}")
             ->lockForUpdate()
             ->orderBy('nomor_sp3k', 'desc')
             ->first();
