@@ -361,22 +361,59 @@ class Sp3mResource extends Resource
                         'class' => 'dark:bg-gray-800 dark:text-gray-400 bg-gray-100 text-gray-600',
                     ]),
                 
-                // 10. Lampiran
-                Forms\Components\FileUpload::make('file_upload_sp3m')
-                    ->required()
+                // 10. Lampiran (Multiple - Minimal 1)
+                Forms\Components\Repeater::make('lampiran')
                     ->label('Lampiran')
-                    ->disk('public')
-                    ->directory('sp3m')
-                    ->visibility('public')
-                    ->acceptedFileTypes(['application/pdf', 'image/*'])
-                    ->maxSize(5120)
-                    ->validationMessages([
-                        'required' => 'File SP3M harus diunggah',
-                        'file' => 'File SP3M harus berupa PDF atau gambar',
-                        'max' => 'Ukuran file SP3M maksimal 5MB',
+                    ->schema([
+                        Forms\Components\TextInput::make('nama_file')
+                            ->label('Nama File')
+                            ->required()
+                            ->maxLength(255)
+                            ->placeholder('Contoh: SP3M, Surat Persetujuan, Dokumen Pendukung')
+                            ->validationMessages([
+                                'required' => 'Nama file harus diisi',
+                            ]),
+                        Forms\Components\FileUpload::make('file_path')
+                            ->label('File')
+                            ->required()
+                            ->disk('public')
+                            ->directory('sp3m/lampiran')
+                            ->visibility('public')
+                            ->acceptedFileTypes(['application/pdf', 'image/*'])
+                            ->maxSize(5120)
+                            ->validationMessages([
+                                'required' => 'File harus diunggah',
+                                'file' => 'File harus berupa PDF atau gambar',
+                                'max' => 'Ukuran file maksimal 5MB',
+                            ])
+                            ->uploadingMessage('Mengunggah...'),
+                        Forms\Components\Textarea::make('keterangan')
+                            ->label('Keterangan')
+                            ->maxLength(500)
+                            ->rows(2)
+                            ->placeholder('Keterangan tambahan (opsional)'),
                     ])
-                    ->uploadingMessage('Mengunggah...')
-                    ->disabled(fn ($record) => $record !== null),
+                    ->columns(1)
+                    ->defaultItems(1)
+                    ->minItems(1)
+                    ->required()
+                    ->addActionLabel('+ Tambah Lampiran')
+                    ->collapsible()
+                    ->itemLabel(fn (array $state): ?string => $state['nama_file'] ?? 'Lampiran Baru')
+                    ->reorderable(false)
+                    ->cloneable()
+                    ->validationMessages([
+                        'required' => 'Minimal 1 lampiran harus diisi',
+                        'min' => 'Minimal 1 lampiran harus diisi',
+                    ])
+                    ->helperText('Minimal 1 lampiran harus diisi. Anda dapat menambahkan lebih banyak lampiran dengan klik tombol "+ Tambah Lampiran".')
+                    ->visible(fn ($livewire) => $livewire instanceof \App\Filament\Resources\Sp3mResource\Pages\CreateSp3m),
+                
+                // Info untuk halaman edit
+                Forms\Components\Placeholder::make('lampiran_info')
+                    ->label('Lampiran')
+                    ->content('Lampiran dapat dikelola di tab "Lampiran" di bawah form ini.')
+                    ->visible(fn ($livewire) => $livewire instanceof \App\Filament\Resources\Sp3mResource\Pages\EditSp3m),
             ]);
     }
 
@@ -479,6 +516,13 @@ class Sp3mResource extends Resource
                     ->label('Sisa Qty')
                     ->numeric()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('lampiran_count')
+                    ->label('Lampiran')
+                    ->counts('lampiran')
+                    ->badge()
+                    ->color('success')
+                    ->formatStateUsing(fn ($state) => $state > 0 ? "{$state} file" : 'Tidak ada')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('harga_satuan')
                     ->label('Harga Satuan')
                     ->numeric()
@@ -518,6 +562,8 @@ class Sp3mResource extends Resource
                 // Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()
+                    ->label('Lihat'),
                 Tables\Actions\EditAction::make()
                     ->label('Ubah'),
                 Tables\Actions\DeleteAction::make()
@@ -561,7 +607,7 @@ class Sp3mResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\LampiranRelationManager::class,
         ];
     }
 
@@ -570,6 +616,7 @@ class Sp3mResource extends Resource
         return [
             'index' => Pages\ListSp3ms::route('/'),
             'create' => Pages\CreateSp3m::route('/create'),
+            'view' => Pages\ViewSp3m::route('/{record}'),
             'edit' => Pages\EditSp3m::route('/{record}/edit'),
         ];
     }

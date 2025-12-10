@@ -14,8 +14,8 @@ class Sp3m extends Model
     protected $table = 'tx_sp3m';
     protected $primaryKey = 'sp3m_id';
     public $timestamps = true;
-    protected $keyType = 'bigint';
-    public $incrementing = false;
+    protected $keyType = 'int';
+    public $incrementing = true;
 
     protected $fillable = [
         'sp3m_id',
@@ -31,8 +31,6 @@ class Sp3m extends Model
         'sisa_qty',
         'harga_satuan',
         'jumlah_harga',
-        'file_upload_sp3m',
-        'file_upload_kelengkapan_sp3m',
         'created_by',
         'updated_by',
         'deleted_by',
@@ -62,5 +60,10 @@ class Sp3m extends Model
     public function tbbm()
     {
         return $this->belongsTo(Tbbm::class, 'tbbm_id', 'tbbm_id');
+    }
+
+    public function lampiran()
+    {
+        return $this->hasMany(Sp3mLampiran::class, 'sp3m_id', 'sp3m_id');
     }
 }
