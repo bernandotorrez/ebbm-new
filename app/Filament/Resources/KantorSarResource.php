@@ -107,12 +107,12 @@ class KantorSarResource extends Resource
                             $errorMessages = [];
                             
                             foreach ($records as $record) {
-                                // Hanya hitung child yang aktif (belum soft deleted)
-                                $userCount = $record->users()->whereNull('deleted_at')->count();
-                                $alpalCount = $record->alpals()->whereNull('deleted_at')->count();
-                                $sp3mCount = $record->sp3ms()->whereNull('deleted_at')->count();
-                                $sp3kCount = $record->txSp3ks()->whereNull('deleted_at')->count();
-                                $pemakaianCount = $record->pemakaians()->whereNull('deleted_at')->count();
+                                // Hitung child yang aktif (is_active = '1')
+                                $userCount = $record->users()->count();
+                                $alpalCount = $record->alpals()->count();
+                                $sp3mCount = $record->sp3ms()->count();
+                                $sp3kCount = $record->txSp3ks()->count();
+                                $pemakaianCount = $record->pemakaians()->count();
                                 
                                 if ($userCount > 0 || $alpalCount > 0 || $sp3mCount > 0 || $sp3kCount > 0 || $pemakaianCount > 0) {
                                     $hasRelations = true;

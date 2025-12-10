@@ -118,8 +118,8 @@ class KemasanResource extends Resource
                             $errorMessages = [];
                             
                             foreach ($records as $record) {
-                                // Hanya hitung child yang aktif (belum soft deleted)
-                                $pelumasCount = $record->pelumas()->whereNull('deleted_at')->count();
+                                // Hitung child yang aktif (is_active = '1')
+                                $pelumasCount = $record->pelumas()->count();
                                 
                                 if ($pelumasCount > 0) {
                                     $hasRelations = true;

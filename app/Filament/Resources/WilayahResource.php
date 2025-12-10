@@ -93,11 +93,10 @@ class WilayahResource extends Resource
                             $errorMessages = [];
                             
                             foreach ($records as $record) {
-                                // Hanya hitung child yang aktif (belum soft deleted)
-                                $kotaCount = $record->kotas()->whereNull('deleted_at')->count();
-                                $hargaBekalCount = \App\Models\HargaBekal::where('wilayah_id', $record->wilayah_id)
-                                    ->whereNull('deleted_at')
-                                    ->count();
+                                // Hitung child yang aktif (is_active = '1')
+                                // Tidak perlu withInactive() karena kita mau cek yang aktif saja
+                                $kotaCount = $record->kotas()->count();
+                                $hargaBekalCount = \App\Models\HargaBekal::where('wilayah_id', $record->wilayah_id)->count();
                                 
                                 if ($kotaCount > 0 || $hargaBekalCount > 0) {
                                     $hasRelations = true;

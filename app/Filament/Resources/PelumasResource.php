@@ -181,9 +181,9 @@ class PelumasResource extends Resource
                             $errorMessages = [];
                             
                             foreach ($records as $record) {
-                                // Hanya hitung child yang aktif (belum soft deleted)
-                                $sp3kCount = $record->dxSp3ks()->whereNull('deleted_at')->count();
-                                $bastCount = $record->dxBasts()->whereNull('deleted_at')->count();
+                                // Hitung child yang aktif (is_active = '1')
+                                $sp3kCount = $record->dxSp3ks()->count();
+                                $bastCount = $record->dxBasts()->count();
                                 
                                 if ($sp3kCount > 0 || $bastCount > 0) {
                                     $hasRelations = true;

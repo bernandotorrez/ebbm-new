@@ -149,7 +149,7 @@ class TbbmResource extends Resource
                             $errorMessages = [];
                             
                             foreach ($records as $record) {
-                                // Hanya hitung child yang aktif (belum soft deleted)
+                                // Hitung child yang aktif (is_active = '1')
                                 $sp3mCount = \App\Models\Sp3m::where('tbbm_id', $record->tbbm_id)
                                     ->whereNull('deleted_at')
                                     ->count();
