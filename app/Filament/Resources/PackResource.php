@@ -87,8 +87,9 @@ class PackResource extends Resource
                             $errorMessages = [];
                             
                             foreach ($records as $record) {
-                                $pelumasCount = $record->pelumas()->count();
-                                $kemasanCount = $record->kemasans()->count();
+                                // Hanya hitung child yang aktif (belum soft deleted)
+                                $pelumasCount = $record->pelumas()->whereNull('deleted_at')->count();
+                                $kemasanCount = $record->kemasans()->whereNull('deleted_at')->count();
                                 
                                 if ($pelumasCount > 0 || $kemasanCount > 0) {
                                     $hasRelations = true;

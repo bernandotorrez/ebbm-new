@@ -100,9 +100,10 @@ class KotaResource extends Resource
                             $errorMessages = [];
                             
                             foreach ($records as $record) {
-                                $tbbmCount = $record->tbbms()->count();
-                                $kantorSarCount = $record->kantorSars()->count();
-                                $doCount = $record->deliveryOrders()->count();
+                                // Hanya hitung child yang aktif (belum soft deleted)
+                                $tbbmCount = $record->tbbms()->whereNull('deleted_at')->count();
+                                $kantorSarCount = $record->kantorSars()->whereNull('deleted_at')->count();
+                                $doCount = $record->deliveryOrders()->whereNull('deleted_at')->count();
                                 
                                 if ($tbbmCount > 0 || $kantorSarCount > 0 || $doCount > 0) {
                                     $hasRelations = true;

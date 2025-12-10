@@ -149,11 +149,14 @@ class TbbmResource extends Resource
                             $errorMessages = [];
                             
                             foreach ($records as $record) {
-                                $doCount = $record->deliveryOrders()->count();
+                                // Hanya hitung child yang aktif (belum soft deleted)
+                                $sp3mCount = \App\Models\Sp3m::where('tbbm_id', $record->tbbm_id)
+                                    ->whereNull('deleted_at')
+                                    ->count();
                                 
-                                if ($doCount > 0) {
+                                if ($sp3mCount > 0) {
                                     $hasRelations = true;
-                                    $errorMessages[] = "TBBM {$record->depot} masih memiliki {$doCount} Delivery Order yang terkait.";
+                                    $errorMessages[] = "TBBM {$record->depot} masih memiliki {$sp3mCount} SP3M yang terkait.";
                                 }
                             }
                             

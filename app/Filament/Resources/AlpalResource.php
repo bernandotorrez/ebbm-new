@@ -249,10 +249,11 @@ class AlpalResource extends Resource
                             $errorMessages = [];
                             
                             foreach ($records as $record) {
-                                $userCount = $record->users()->count();
-                                $sp3mCount = $record->sp3ms()->count();
-                                $sp3kCount = $record->txSp3ks()->count();
-                                $pemakaianCount = $record->pemakaians()->count();
+                                // Hanya hitung child yang aktif (belum soft deleted)
+                                $userCount = $record->users()->whereNull('deleted_at')->count();
+                                $sp3mCount = $record->sp3ms()->whereNull('deleted_at')->count();
+                                $sp3kCount = $record->txSp3ks()->whereNull('deleted_at')->count();
+                                $pemakaianCount = $record->pemakaians()->whereNull('deleted_at')->count();
                                 
                                 if ($userCount > 0 || $sp3mCount > 0 || $sp3kCount > 0 || $pemakaianCount > 0) {
                                     $hasRelations = true;

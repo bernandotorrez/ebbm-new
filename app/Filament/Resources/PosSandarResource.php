@@ -99,7 +99,8 @@ class PosSandarResource extends Resource
                             $errorMessages = [];
                             
                             foreach ($records as $record) {
-                                $alpalCount = $record->alpals()->count();
+                                // Hanya hitung child yang aktif (belum soft deleted)
+                                $alpalCount = $record->alpals()->whereNull('deleted_at')->count();
                                 
                                 if ($alpalCount > 0) {
                                     $hasRelations = true;
