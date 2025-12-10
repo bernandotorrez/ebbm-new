@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\PreventUpdateTimestamp;
+use App\Traits\HasIsActive;
 
 class Tbbm extends Model
 {
-    use SoftDeletes, PreventUpdateTimestamp;
+    use SoftDeletes, PreventUpdateTimestamp, HasIsActive;
 
     protected $table = 'ms_tbbm';
     protected $primaryKey = 'tbbm_id';
@@ -27,6 +28,7 @@ class Tbbm extends Model
         'created_by',
         'updated_by',
         'deleted_by',
+        'is_active',
     ];
 
     public function kota()

@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\PreventUpdateTimestamp;
+use App\Traits\HasIsActive;
 
 class Kota extends Model
 {
-    use SoftDeletes, PreventUpdateTimestamp;
+    use SoftDeletes, PreventUpdateTimestamp, HasIsActive;
 
     protected $table = 'ms_kota';
     protected $primaryKey = 'kota_id';
@@ -25,6 +26,7 @@ class Kota extends Model
         'created_by',
         'updated_by',
         'deleted_by',
+        'is_active',
     ];
 
     public function wilayah(): BelongsTo

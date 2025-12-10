@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\PreventUpdateTimestamp;
+use App\Traits\HasIsActive;
 
 class KantorSar extends Model
 {
-    use SoftDeletes, PreventUpdateTimestamp;
+    use SoftDeletes, PreventUpdateTimestamp, HasIsActive;
 
     protected $table = 'ms_kantor_sar';
     protected $primaryKey = 'kantor_sar_id';
@@ -25,6 +26,7 @@ class KantorSar extends Model
         'created_by',
         'updated_by',
         'deleted_by',
+        'is_active',
     ];
     
     // Relationships

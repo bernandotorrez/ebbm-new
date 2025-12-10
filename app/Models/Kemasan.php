@@ -2,16 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory, HasIsActive;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\PreventUpdateTimestamp;
+use App\Traits\HasIsActive;
 
 class Kemasan extends Model
 {
-    use HasFactory, SoftDeletes, PreventUpdateTimestamp;
+    use HasFactory, SoftDeletes, PreventUpdateTimestamp, HasIsActive;
 
     protected $table = 'ms_kemasan';
     protected $primaryKey = 'kemasan_id';
@@ -26,6 +27,7 @@ class Kemasan extends Model
         'created_by',
         'updated_by',
         'deleted_by',
+        'is_active',
     ];
 
     protected $casts = [

@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\PreventUpdateTimestamp;
+use App\Traits\HasIsActive;
 
 class Sp3m extends Model
 {
-    use SoftDeletes, PreventUpdateTimestamp;
+    use SoftDeletes, PreventUpdateTimestamp, HasIsActive;
 
     protected $table = 'tx_sp3m';
     protected $primaryKey = 'sp3m_id';
@@ -35,6 +36,7 @@ class Sp3m extends Model
         'created_by',
         'updated_by',
         'deleted_by',
+        'is_active',
     ];
 
     protected $casts = [

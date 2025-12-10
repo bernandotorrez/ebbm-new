@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Traits\PreventUpdateTimestamp;
+use App\Traits\HasIsActive;
 
 class DxSp3k extends Model
 {
-    use HasFactory, SoftDeletes, PreventUpdateTimestamp;
+    use HasFactory, SoftDeletes, PreventUpdateTimestamp, HasIsActive;
 
     protected $table = 'dx_sp3k';
     protected $primaryKey = 'detail_sp3k_id';
@@ -27,6 +28,7 @@ class DxSp3k extends Model
         'created_by',
         'updated_by',
         'deleted_by',
+        'is_active',
     ];
 
     protected $casts = [

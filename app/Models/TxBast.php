@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Traits\PreventUpdateTimestamp;
+use App\Traits\HasIsActive;
 
 class TxBast extends Model
 {
-    use HasFactory, SoftDeletes, PreventUpdateTimestamp;
+    use HasFactory, SoftDeletes, PreventUpdateTimestamp, HasIsActive;
 
     protected $table = 'tx_bast';
     protected $primaryKey = 'bast_id';
@@ -25,6 +26,7 @@ class TxBast extends Model
         'created_by',
         'updated_by',
         'deleted_by',
+        'is_active',
     ];
 
     protected $casts = [
