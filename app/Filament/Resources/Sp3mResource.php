@@ -245,6 +245,14 @@ class Sp3mResource extends Resource
                             $set('kantor_sar_id', null);
                             $set('nomor_sp3m_preview', '');
                         }
+                        
+                        // Reset TBBM/DPPU ketika Alut berubah (kecuali saat edit dan tidak berubah)
+                        $isEdit = isset($livewire->record) && $livewire->record;
+                        $originalAlpalId = $get('original_alpal_id');
+                        
+                        if (!$isEdit || ($originalAlpalId && $originalAlpalId != $state)) {
+                            $set('tbbm_id', null);
+                        }
                     }),
                 
                 // 4. Nomor SP3M (Auto-generated preview)
@@ -307,13 +315,33 @@ class Sp3mResource extends Resource
                 Forms\Components\Select::make('tbbm_id')
                     ->label('TBBM/DPPU')
                     ->required()
-                    ->relationship('tbbm', 'depot')
+                    ->relationship('tbbm', 'depot', function ($query, callable $get) {
+                        $alpalId = $get('alpal_id');
+                        
+                        if ($alpalId) {
+                            // Ambil kota_id dari Alut -> Kantor SAR -> Kota
+                            $alpal = Alpal::with('kantorSar.kota')->find($alpalId);
+                            $kotaId = $alpal?->kantorSar?->kota_id;
+                            
+                            if ($kotaId) {
+                                // Filter TBBM berdasarkan kota_id
+                                $query->where('kota_id', $kotaId);
+                            }
+                        }
+                        
+                        return $query;
+                    })
                     ->searchable()
                     ->preload()
                     ->validationMessages([
                         'required' => 'Pilih TBBM/DPPU',
                     ])
-                    ->placeholder('Pilih TBBM/DPPU'),
+                    ->placeholder('Pilih TBBM/DPPU')
+                    ->helperText(fn (callable $get) => $get('alpal_id') 
+                        ? 'TBBM/DPPU difilter berdasarkan kota dari Kantor SAR' 
+                        : 'Pilih Alut terlebih dahulu untuk memfilter TBBM/DPPU')
+                    ->disabled(fn (callable $get) => !$get('alpal_id'))
+                    ->live(),
                 
                 // 8. Qty
                 Forms\Components\TextInput::make('qty')
