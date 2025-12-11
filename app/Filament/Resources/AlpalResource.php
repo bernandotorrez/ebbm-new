@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\RoleBasedResourceAccess;
+use Filament\Notifications\Notification;
 
 class AlpalResource extends Resource
 {
@@ -51,6 +52,7 @@ class AlpalResource extends Resource
                 Forms\Components\TextInput::make('kode_alut')
                     ->required()
                     ->label('Kode Alut')
+                    ->placeholder('Contoh: 001')
                     ->maxLength(3)
                     ->extraInputAttributes([
                         'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").slice(0, 3)'
@@ -63,9 +65,10 @@ class AlpalResource extends Resource
                         'required' => 'Kode Alut harus diisi',
                         'digits' => 'Kode Alut harus tepat 3 digit angka',
                     ])
-                    ->helperText('Masukkan 3 digit angka (contoh: 001, 123)'),
+                    ->helperText('Masukkan 3 digit angka'),
                 Forms\Components\TextInput::make('alpal')
                     ->required()
+                    ->placeholder('Contoh: KN SAR Laksamana 241')
                     ->label('Nama Alut')
                     ->maxLength(100),
                 Forms\Components\Select::make('golongan_bbm_id')
@@ -77,6 +80,7 @@ class AlpalResource extends Resource
                 Forms\Components\TextInput::make('ukuran')
                     ->required()
                     ->label('Ukuran (m)')
+                    ->placeholder('Contoh: 100')
                     ->maxLength(6)
                     ->extraInputAttributes([
                         'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
@@ -87,6 +91,7 @@ class AlpalResource extends Resource
                 Forms\Components\TextInput::make('kapasitas')
                     ->required()
                     ->label('Kapasitas (Ltr)')
+                    ->placeholder('Contoh: 1000')
                     ->maxLength(8)
                     ->extraInputAttributes([
                         'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
@@ -97,6 +102,7 @@ class AlpalResource extends Resource
                 Forms\Components\TextInput::make('rob')
                     ->required()
                     ->label('ROB (Ltr)')
+                    ->placeholder('Contoh: 100')
                     ->maxLength(8)
                     ->extraInputAttributes([
                         'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".")'
@@ -112,13 +118,27 @@ class AlpalResource extends Resource
                     ->options(static::getKantorSarOptions())
                     ->searchable()
                     ->preload()
-                    ->required(),
+                    ->required()
+                    ->live()
+                    ->afterStateUpdated(function (callable $set) {
+                        $set('pos_sandar_id', null);
+                    }),
                 Forms\Components\Select::make('pos_sandar_id')
-                    ->relationship(name: 'posSandar', titleAttribute: 'pos_sandar')
                     ->label('Pos Sandar')
+                    ->options(function (callable $get) {
+                        $kantorSarId = $get('kantor_sar_id');
+                        if (!$kantorSarId) {
+                            return [];
+                        }
+                        return \App\Models\PosSandar::where('kantor_sar_id', $kantorSarId)
+                            ->pluck('pos_sandar', 'pos_sandar_id')
+                            ->toArray();
+                    })
                     ->searchable()
                     ->preload()
-                    ->required(),
+                    ->required()
+                    ->placeholder('Pilih Kantor SAR terlebih dahulu')
+                    ->disabled(fn (callable $get) => !$get('kantor_sar_id')),
             ]);
     }
 
@@ -153,7 +173,8 @@ class AlpalResource extends Resource
                 Tables\Columns\TextColumn::make('alpal')
                     ->label('Nama Alut')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->wrap(),
                 Tables\Columns\TextColumn::make('golonganBbm.golongan')
                     ->label('Jenis Alut')
                     ->sortable()
@@ -181,11 +202,6 @@ class AlpalResource extends Resource
                     ->label('Pos Sandar')
                     ->sortable()
                     ->searchable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->label('Dihapus Pada')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->label('Dibuat Pada')
@@ -226,8 +242,42 @@ class AlpalResource extends Resource
                     Tables\Actions\DeleteBulkAction::make()
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
-                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih?')
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->before(function (Tables\Actions\DeleteBulkAction $action, $records) {
+                            $hasRelations = false;
+                            $errorMessages = [];
+                            
+                            foreach ($records as $record) {
+                                // Hitung child yang aktif (is_active = '1')
+                                $userCount = $record->users()->count();
+                                $sp3mCount = $record->sp3ms()->count();
+                                $sp3kCount = $record->txSp3ks()->count();
+                                $pemakaianCount = $record->pemakaians()->count();
+                                
+                                if ($userCount > 0 || $sp3mCount > 0 || $sp3kCount > 0 || $pemakaianCount > 0) {
+                                    $hasRelations = true;
+                                    $relations = [];
+                                    if ($userCount > 0) $relations[] = "{$userCount} user";
+                                    if ($sp3mCount > 0) $relations[] = "{$sp3mCount} SP3M";
+                                    if ($sp3kCount > 0) $relations[] = "{$sp3kCount} SP3K";
+                                    if ($pemakaianCount > 0) $relations[] = "{$pemakaianCount} pemakaian";
+                                    
+                                    $errorMessages[] = "Alut {$record->alpal} masih memiliki " . implode(', ', $relations) . " yang terkait.";
+                                }
+                            }
+                            
+                            if ($hasRelations) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Tidak dapat menghapus Alut')
+                                    ->body('Beberapa Alut masih memiliki data terkait:<br>' . implode('<br>', $errorMessages))
+                                    ->persistent()
+                                    ->send();
+                                
+                                $action->cancel();
+                            }
+                        }),
                 ])
                 ->label('Hapus'),
             ]);

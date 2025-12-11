@@ -78,10 +78,18 @@ class PaguResource extends Resource
                     ])
                     ->rules(['digits:4', 'min:1900', 'max:2099']),
                 Forms\Components\TextInput::make('dasar')
+                    ->label('Nomor SK')
+                    ->placeholder('Contoh: 01/PPK-04/PERJ/I/DSP-2025')
                     ->required()
                     ->maxLength(50),
                 Forms\Components\DatePicker::make('tanggal')
-                    ->required(),
+                    ->label('Tanggal')
+                    ->placeholder('Pilih Tanggal')
+                    ->required()
+                    ->native(false)
+                    ->displayFormat('d/m/Y')
+                    ->closeOnDateSelection(true)
+                    ->suffixIcon('heroicon-o-calendar'),
             ]);
     }
 
@@ -101,18 +109,16 @@ class PaguResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('tahun_anggaran')
                     ->label('Tahun Anggaran')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('dasar')
                     ->label('Dasar')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('tanggal')
                     ->label('Tanggal')
                     ->date('d M Y')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

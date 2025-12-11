@@ -13,6 +13,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\RoleBasedResourceAccess;
+use Filament\Notifications\Notification;
 
 class PosSandarResource extends Resource
 {
@@ -43,8 +44,16 @@ class PosSandarResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('kantor_sar_id')
+                    ->label('Kantor SAR')
+                    ->relationship('kantorSar', 'kantor_sar')
+                    ->searchable()
+                    ->preload()
+                    ->required()
+                    ->placeholder('Pilih Kantor SAR'),
                 Forms\Components\TextInput::make('pos_sandar')
                     ->label('Pos Sandar')
+                    ->placeholder('Contoh: Pos Sandar Jakarta')
                     ->required()
                     ->maxLength(50),
             ]);
@@ -54,12 +63,14 @@ class PosSandarResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('kantorSar.kantor_sar')
+                    ->label('Kantor SAR')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('pos_sandar')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->label('Pos Sandar')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -81,8 +92,33 @@ class PosSandarResource extends Resource
                     Tables\Actions\DeleteBulkAction::make()
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
-                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih?')
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->before(function (Tables\Actions\DeleteBulkAction $action, $records) {
+                            $hasRelations = false;
+                            $errorMessages = [];
+                            
+                            foreach ($records as $record) {
+                                // Hitung child yang aktif (is_active = '1')
+                                $alpalCount = $record->alpals()->count();
+                                
+                                if ($alpalCount > 0) {
+                                    $hasRelations = true;
+                                    $errorMessages[] = "Pos Sandar {$record->pos_sandar} masih memiliki {$alpalCount} Alut yang terkait.";
+                                }
+                            }
+                            
+                            if ($hasRelations) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Tidak dapat menghapus Pos Sandar')
+                                    ->body('Beberapa Pos Sandar masih memiliki data terkait:<br>' . implode('<br>', $errorMessages))
+                                    ->persistent()
+                                    ->send();
+                                
+                                $action->cancel();
+                            }
+                        }),
                 ])
                 ->label('Hapus'),
             ]);

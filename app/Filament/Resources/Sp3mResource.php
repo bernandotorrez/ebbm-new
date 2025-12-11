@@ -8,6 +8,7 @@ use App\Models\Sp3m;
 use App\Models\Alpal;
 use App\Models\KantorSar;
 use App\Models\HargaBekal;
+use App\Models\DeliveryOrder;
 use App\Enums\LevelUser;
 use App\Traits\RoleBasedResourceAccess;
 use Filament\Forms;
@@ -20,6 +21,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Filament\Notifications\Notification;
 
 class Sp3mResource extends Resource
 {
@@ -50,6 +52,8 @@ class Sp3mResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Hidden::make('has_delivery_order'),
+                
                 // 1. Tahun Anggaran (TA)
                 Forms\Components\Select::make('tahun_anggaran')
                     ->label('Tahun Anggaran')
@@ -68,6 +72,7 @@ class Sp3mResource extends Resource
                     ])
                     ->preload()
                     ->live()
+                    ->disabled(fn ($record) => $record !== null)
                     ->afterStateHydrated(function (callable $set, $state, $record) {
                         // Simpan tahun anggaran original saat edit
                         if ($record && $state) {
@@ -100,7 +105,9 @@ class Sp3mResource extends Resource
                                     $tahun = $state; // Gunakan tahun_anggaran
                                     $pattern = "SP3M.{$kodeAlut}/{$bulanRomawi}/SAR-{$tahun}";
                                     
-                                    $lastSp3m = Sp3m::where('nomor_sp3m', 'like', "%{$pattern}")
+                                    // Include soft deleted records untuk menghindari duplicate nomor
+                                    $lastSp3m = Sp3m::withTrashed()
+                                        ->where('nomor_sp3m', 'like', "%{$pattern}")
                                         ->orderBy('nomor_sp3m', 'desc')
                                         ->first();
                                     
@@ -131,7 +138,8 @@ class Sp3mResource extends Resource
                         '4' => 'Triwulan IV',
                     ])
                     ->searchable()
-                    ->live(),
+                    ->live()
+                    ->disabled(fn ($record) => $record !== null),
                 
                 // 3. Alut
                 Forms\Components\Select::make('alpal_id')
@@ -154,6 +162,7 @@ class Sp3mResource extends Resource
                         'required' => 'Pilih Alut',
                     ])
                     ->live()
+                    ->disabled(fn ($record) => $record !== null)
                     ->afterStateHydrated(function (callable $set, callable $get, $state, $record) {
                         // Set kantor_sar_info saat form di-load (untuk edit)
                         if ($state) {
@@ -209,8 +218,9 @@ class Sp3mResource extends Resource
                                             $tahun = $tahunAnggaran; // Gunakan tahun_anggaran
                                             $pattern = "SP3M.{$kodeAlut}/{$bulanRomawi}/SAR-{$tahun}";
                                             
-                                            // Get next sequence
-                                            $lastSp3m = Sp3m::where('nomor_sp3m', 'like', "%{$pattern}")
+                                            // Get next sequence - Include soft deleted records
+                                            $lastSp3m = Sp3m::withTrashed()
+                                                ->where('nomor_sp3m', 'like', "%{$pattern}")
                                                 ->orderBy('nomor_sp3m', 'desc')
                                                 ->first();
                                             
@@ -234,6 +244,14 @@ class Sp3mResource extends Resource
                             $set('kantor_sar_info', '');
                             $set('kantor_sar_id', null);
                             $set('nomor_sp3m_preview', '');
+                        }
+                        
+                        // Reset TBBM/DPPU ketika Alut berubah (kecuali saat edit dan tidak berubah)
+                        $isEdit = isset($livewire->record) && $livewire->record;
+                        $originalAlpalId = $get('original_alpal_id');
+                        
+                        if (!$isEdit || ($originalAlpalId && $originalAlpalId != $state)) {
+                            $set('tbbm_id', null);
                         }
                     }),
                 
@@ -266,7 +284,8 @@ class Sp3mResource extends Resource
                     ->closeOnDateSelection(true)
                     ->validationMessages([
                         'required' => 'Tanggal SP3M harus diisi',
-                    ]),
+                    ])
+                    ->disabled(fn ($record) => $record !== null),
                 
                 // 6. Kantor SAR (readonly, auto-filled from Alut)
                 Forms\Components\TextInput::make('kantor_sar_info')
@@ -289,6 +308,39 @@ class Sp3mResource extends Resource
                     ->validationMessages([
                         'required' => 'Pilih Jenis Bahan Bakar',
                     ])
+                    ->live()
+                    ->disabled(fn ($record) => $record !== null),
+                
+                // 7b. TBBM/DPPU
+                Forms\Components\Select::make('tbbm_id')
+                    ->label('TBBM/DPPU')
+                    ->required()
+                    ->relationship('tbbm', 'depot', function ($query, callable $get) {
+                        $alpalId = $get('alpal_id');
+                        
+                        if ($alpalId) {
+                            // Ambil kota_id dari Alut -> Kantor SAR -> Kota
+                            $alpal = Alpal::with('kantorSar.kota')->find($alpalId);
+                            $kotaId = $alpal?->kantorSar?->kota_id;
+                            
+                            if ($kotaId) {
+                                // Filter TBBM berdasarkan kota_id
+                                $query->where('kota_id', $kotaId);
+                            }
+                        }
+                        
+                        return $query;
+                    })
+                    ->searchable()
+                    ->preload()
+                    ->validationMessages([
+                        'required' => 'Pilih TBBM/DPPU',
+                    ])
+                    ->placeholder('Pilih TBBM/DPPU')
+                    ->helperText(fn (callable $get) => $get('alpal_id') 
+                        ? 'TBBM/DPPU difilter berdasarkan kota dari Kantor SAR' 
+                        : 'Pilih Alut terlebih dahulu untuk memfilter TBBM/DPPU')
+                    ->disabled(fn (callable $get) => !$get('alpal_id'))
                     ->live(),
                 
                 // 8. Qty
@@ -315,6 +367,13 @@ class Sp3mResource extends Resource
                             $cleanQty = (int) str_replace(['.', ',', ' '], '', $state ?? '0');
                             $set('sisa_qty', $cleanQty ? number_format($cleanQty, 0, ',', '.') : null);
                         }
+                    })
+                    ->disabled(fn (callable $get) => $get('has_delivery_order') === true)
+                    ->helperText(function (callable $get, $record) {
+                        if ($record && $get('has_delivery_order') === true) {
+                            return '⚠️ SP3M ini sudah memiliki Delivery Order yang berjalan. Qty tidak dapat diubah.';
+                        }
+                        return null;
                     }),
                 
                 // 9. Sisa SP3M (readonly, calculated)
@@ -330,21 +389,79 @@ class Sp3mResource extends Resource
                         'class' => 'dark:bg-gray-800 dark:text-gray-400 bg-gray-100 text-gray-600',
                     ]),
                 
-                // 10. Lampiran
-                Forms\Components\FileUpload::make('file_upload_sp3m')
-                    ->required()
+                // 10. Lampiran (Multiple - Minimal 1)
+                Forms\Components\Repeater::make('lampiran')
                     ->label('Lampiran')
-                    ->disk('public')
-                    ->directory('sp3m')
-                    ->visibility('public')
-                    ->acceptedFileTypes(['application/pdf', 'image/*'])
-                    ->maxSize(5120)
-                    ->validationMessages([
-                        'required' => 'File SP3M harus diunggah',
-                        'file' => 'File SP3M harus berupa PDF atau gambar',
-                        'max' => 'Ukuran file SP3M maksimal 5MB',
+                    ->schema([
+                        Forms\Components\TextInput::make('nama_file')
+                            ->label('Nama File')
+                            ->required()
+                            ->maxLength(255)
+                            ->placeholder('Contoh: SP3M, Surat Persetujuan, Dokumen Pendukung')
+                            ->validationMessages([
+                                'required' => 'Nama file harus diisi',
+                            ]),
+                        Forms\Components\FileUpload::make('file_path')
+                            ->label('File')
+                            ->required()
+                            ->disk('public')
+                            ->directory('sp3m/lampiran')
+                            ->visibility('public')
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'])
+                            ->maxSize(1024)
+                            ->helperText('Format: PDF, JPG, JPEG, PNG, GIF, WebP | Maksimal: 1 MB')
+                            ->validationMessages([
+                                'required' => 'File harus diunggah',
+                                'mimes' => 'File harus berupa PDF atau gambar (JPG, JPEG, PNG, GIF, WebP)',
+                                'max' => 'Ukuran file maksimal 1 MB',
+                            ])
+                            ->uploadingMessage('Mengunggah...')
+                            ->downloadable()
+                            ->openable()
+                            ->previewable(),
+                        Forms\Components\Textarea::make('keterangan')
+                            ->label('Keterangan')
+                            ->maxLength(500)
+                            ->rows(2)
+                            ->placeholder('Keterangan tambahan (opsional)'),
                     ])
-                    ->uploadingMessage('Mengunggah...'),
+                    ->columns(1)
+                    ->defaultItems(1)
+                    ->minItems(1)
+                    ->required()
+                    ->addActionLabel('+ Tambah Lampiran')
+                    ->collapsible()
+                    ->itemLabel(fn (array $state): ?string => $state['nama_file'] ?? 'Lampiran Baru')
+                    ->reorderable(false)
+                    ->cloneable()
+                    ->validationMessages([
+                        'required' => 'Minimal 1 lampiran harus diisi',
+                        'min' => 'Minimal 1 lampiran harus diisi',
+                    ])
+                    ->helperText('Minimal 1 lampiran harus diisi. Anda dapat menambahkan lebih banyak lampiran dengan klik tombol "+ Tambah Lampiran".')
+                    ->visible(fn ($livewire) => $livewire instanceof \App\Filament\Resources\Sp3mResource\Pages\CreateSp3m),
+                
+                // Section Lampiran untuk halaman edit
+                Forms\Components\Section::make('Lampiran')
+                    ->schema([
+                        Forms\Components\Placeholder::make('lampiran_list')
+                            ->label('')
+                            ->content(function ($record) {
+                                if (!$record || !$record->lampiran || $record->lampiran->count() === 0) {
+                                    return new \Illuminate\Support\HtmlString('
+                                        <div class="text-center py-4 text-gray-500 dark:text-gray-400">
+                                            <p>Belum ada lampiran. Gunakan tab "Lampiran" di bawah untuk menambahkan.</p>
+                                        </div>
+                                    ');
+                                }
+                                
+                                return new \Illuminate\Support\HtmlString(
+                                    view('filament.components.sp3m-lampiran-preview', ['lampiran' => $record->lampiran])->render()
+                                );
+                            }),
+                    ])
+                    ->visible(fn ($livewire) => $livewire instanceof \App\Filament\Resources\Sp3mResource\Pages\EditSp3m)
+                    ->collapsible(),
             ]);
     }
 
@@ -385,8 +502,9 @@ class Sp3mResource extends Resource
         $tahun = $tahunAnggaran ?? now()->year; // Gunakan tahun_anggaran jika ada
         $pattern = "SP3M.{$kodeAlut}/{$bulanRomawi}/SAR-{$tahun}";
         
-        // Get next sequence with lock to prevent duplicate
-        $lastSp3m = Sp3m::where('nomor_sp3m', 'like', "%{$pattern}")
+        // Get next sequence with lock to prevent duplicate - Include soft deleted records
+        $lastSp3m = Sp3m::withTrashed()
+            ->where('nomor_sp3m', 'like', "%{$pattern}")
             ->lockForUpdate()
             ->orderBy('nomor_sp3m', 'desc')
             ->first();
@@ -416,21 +534,28 @@ class Sp3mResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('bekal.bekal')
                     ->numeric()
-                    ->label('Bekal')
+                    ->label('Jenis Bahan Bakar')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('tbbm.depot')
+                    ->label('Depot')
+                    ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('nomor_sp3m')
                     ->label('Nomor SP3M')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('tanggal_sp3m')
                     ->label('Tanggal SP3M')
                     ->date('d-m-Y')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('tahun_anggaran')
                     ->label('Tahun Anggaran')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('tw')
                     ->label('Triwulan')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('qty')
                     ->label('Qty')
                     ->numeric()
@@ -439,6 +564,22 @@ class Sp3mResource extends Resource
                     ->label('Sisa Qty')
                     ->numeric()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('lampiran_count')
+                    ->label('Lampiran')
+                    ->counts('lampiran')
+                    ->badge()
+                    ->color('success')
+                    ->formatStateUsing(fn ($state) => $state > 0 ? "{$state} file" : 'Tidak ada')
+                    ->sortable()
+                    ->action(
+                        Tables\Actions\Action::make('viewLampiran')
+                            ->label('Lihat Lampiran')
+                            ->modalHeading('Daftar Lampiran')
+                            ->modalContent(fn ($record) => view('filament.modals.sp3m-lampiran-list', ['lampiran' => $record->lampiran]))
+                            ->modalSubmitAction(false)
+                            ->modalCancelActionLabel('Tutup')
+                            ->slideOver()
+                    ),
                 Tables\Columns\TextColumn::make('harga_satuan')
                     ->label('Harga Satuan')
                     ->numeric()
@@ -449,11 +590,6 @@ class Sp3mResource extends Resource
                     ->numeric()
                     ->sortable()
                     ->visible(fn () => !in_array(Auth::user()?->level?->value, [LevelUser::KANSAR->value, LevelUser::ABK->value])),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->label('Dihapus Pada')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat Pada')
                     ->dateTime()
@@ -471,20 +607,62 @@ class Sp3mResource extends Resource
                     ->options(static::getKantorSarOptions())
                     ->preload(),
                 SelectFilter::make('alpal_id')
-                    ->label('Alpal')
-                    ->relationship('alpal', 'alpal') // Relasi ke Golongan BBM
+                    ->label('Alut')
+                    ->relationship('alpal', 'alpal')
                     ->preload(),
                 SelectFilter::make('bekal_id')
-                    ->label('Bekal')
-                    ->relationship('bekal', 'bekal') // Relasi ke Golongan BBM
+                    ->label('Jenis Bahan Bakar')
+                    ->relationship('bekal', 'bekal')
                     ->preload(),
                 SelectFilter::make('tahun_anggaran')
                     ->label('Tahun Anggaran'),
                 // Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
+                Tables\Actions\Action::make('export_pdf')
+                    ->label('Export PDF')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('success')
+                    ->form([
+                        Forms\Components\TextInput::make('nama_pejabat_ttd')
+                            ->label('Nama Pejabat Penandatangan')
+                            ->required()
+                            ->default('Dr. A.M. Alkaf, S.E., M.M., Ph.D')
+                            ->maxLength(255)
+                            ->placeholder('Contoh: Dr. A.M. Alkaf, S.E., M.M., Ph.D'),
+                        Forms\Components\TextInput::make('jabatan_pejabat_ttd')
+                            ->label('Jabatan Pejabat')
+                            ->required()
+                            ->default('Marsekal Pertama TNI.')
+                            ->maxLength(255)
+                            ->placeholder('Contoh: Marsekal Pertama TNI.'),
+                    ])
+                    ->action(function ($record, array $data) {
+                        // Redirect to PDF export with query parameters
+                        $url = route('export.sp3m-pdf', [
+                            'id' => $record->sp3m_id,
+                            'nama_pejabat' => $data['nama_pejabat_ttd'],
+                            'jabatan_pejabat' => $data['jabatan_pejabat_ttd']
+                        ]);
+                        
+                        return redirect($url);
+                    })
+                    ->modalHeading('Data Pejabat Penandatangan')
+                    ->modalSubmitActionLabel('Export PDF')
+                    ->modalWidth('md'),
+                Tables\Actions\ViewAction::make()
+                    ->label('Lihat'),
                 Tables\Actions\EditAction::make()
                     ->label('Ubah'),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Hapus')
+                    ->visible(function ($record) {
+                        // Hide delete button if SP3M has DO
+                        return !\App\Models\DeliveryOrder::where('sp3m_id', $record->sp3m_id)->exists();
+                    })
+                    ->modalHeading('Konfirmasi Hapus Data')
+                    ->modalSubheading('Apakah kamu yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.')
+                    ->modalButton('Ya, Hapus Sekarang'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -492,7 +670,22 @@ class Sp3mResource extends Resource
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
                         ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->before(function ($records) {
+                            // Check if any of the selected records has DO
+                            foreach ($records as $record) {
+                                $hasDo = \App\Models\DeliveryOrder::where('sp3m_id', $record->sp3m_id)->exists();
+                                if ($hasDo) {
+                                    Notification::make()
+                                        ->title('Gagal Menghapus!')
+                                        ->body("SP3M dengan nomor {$record->nomor_sp3m} tidak dapat dihapus karena sudah memiliki Delivery Order.")
+                                        ->danger()
+                                        ->duration(7000)
+                                        ->send();
+                                    return false;
+                                }
+                            }
+                        }),
                 ])
                 ->label('Hapus'),
             ])
@@ -502,7 +695,7 @@ class Sp3mResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\LampiranRelationManager::class,
         ];
     }
 
@@ -511,6 +704,7 @@ class Sp3mResource extends Resource
         return [
             'index' => Pages\ListSp3ms::route('/'),
             'create' => Pages\CreateSp3m::route('/create'),
+            'view' => Pages\ViewSp3m::route('/{record}'),
             'edit' => Pages\EditSp3m::route('/{record}/edit'),
         ];
     }

@@ -35,6 +35,13 @@ class CreateSp3m extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        // Simpan data lampiran sementara dan hapus dari data SP3M
+        $lampiranData = $data['lampiran'] ?? [];
+        unset($data['lampiran']);
+        
+        // Simpan ke property untuk digunakan di afterCreate
+        $this->lampiranData = $lampiranData;
+        
         // Clean numeric fields
         $data['qty'] = (int) preg_replace('/[^\d]/', '', $data['qty']);
         
@@ -87,6 +94,23 @@ class CreateSp3m extends CreateRecord
 
         return $data;
     }
+
+    protected function afterCreate(): void
+    {
+        // Simpan lampiran setelah SP3M dibuat
+        if (!empty($this->lampiranData)) {
+            foreach ($this->lampiranData as $lampiran) {
+                // Trait PreventUpdateTimestamp akan otomatis set created_by
+                $this->record->lampiran()->create([
+                    'nama_file' => $lampiran['nama_file'],
+                    'file_path' => $lampiran['file_path'],
+                    'keterangan' => $lampiran['keterangan'] ?? null,
+                ]);
+            }
+        }
+    }
+
+    protected $lampiranData = [];
 
     protected function getRedirectUrl(): string
     {

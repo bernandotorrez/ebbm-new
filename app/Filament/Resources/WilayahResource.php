@@ -12,6 +12,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use App\Traits\RoleBasedResourceAccess;
+use Filament\Notifications\Notification;
+use Illuminate\Database\Eloquent\Model;
 
 class WilayahResource extends Resource
 {
@@ -44,6 +46,7 @@ class WilayahResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('wilayah_ke')
                     ->label('Wilayah Ke')
+                    ->placeholder('Contoh: 1')
                     ->required()
                     ->extraInputAttributes([
                         'type' => 'text',
@@ -62,10 +65,6 @@ class WilayahResource extends Resource
                     ->label('Wilayah Ke')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -87,8 +86,36 @@ class WilayahResource extends Resource
                     Tables\Actions\DeleteBulkAction::make()
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
-                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih?')
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->before(function (Tables\Actions\DeleteBulkAction $action, $records) {
+                            $hasRelations = false;
+                            $errorMessages = [];
+                            
+                            foreach ($records as $record) {
+                                // Hitung child yang aktif (is_active = '1')
+                                // Tidak perlu withInactive() karena kita mau cek yang aktif saja
+                                $kotaCount = $record->kotas()->count();
+                                $hargaBekalCount = \App\Models\HargaBekal::where('wilayah_id', $record->wilayah_id)->count();
+                                
+                                if ($kotaCount > 0 || $hargaBekalCount > 0) {
+                                    $hasRelations = true;
+                                    $errorMessages[] = "Wilayah {$record->wilayah_ke} masih memiliki " . 
+                                        ($kotaCount > 0 ? "{$kotaCount} kota" : "");
+                                }
+                            }
+                            
+                            if ($hasRelations) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Tidak dapat menghapus wilayah')
+                                    ->body('Beberapa wilayah masih memiliki data terkait:<br>' . implode('<br>', $errorMessages))
+                                    ->persistent()
+                                    ->send();
+                                
+                                $action->cancel();
+                            }
+                        }),
                 ])
                 ->label('Hapus'),
             ]);

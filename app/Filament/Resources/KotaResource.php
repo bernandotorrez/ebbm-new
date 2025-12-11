@@ -13,6 +13,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Traits\RoleBasedResourceAccess;
+use Filament\Notifications\Notification;
+use Illuminate\Database\Eloquent\Model;
 
 class KotaResource extends Resource
 {
@@ -45,6 +47,7 @@ class KotaResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('kota')
                     ->required()
+                    ->placeholder('Contoh: Jakarta')
                     ->maxLength(50),
                 Forms\Components\Select::make('wilayah_id')
                     ->label('Wilayah')
@@ -60,15 +63,12 @@ class KotaResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('kota')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('wilayah.wilayah_ke')
                     ->label('Wilayah')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -93,8 +93,40 @@ class KotaResource extends Resource
                     Tables\Actions\DeleteBulkAction::make()
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
-                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih?')
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->before(function (Tables\Actions\DeleteBulkAction $action, $records) {
+                            $hasRelations = false;
+                            $errorMessages = [];
+                            
+                            foreach ($records as $record) {
+                                // Hitung child yang aktif (is_active = '1')
+                                $tbbmCount = $record->tbbms()->count();
+                                $kantorSarCount = $record->kantorSars()->count();
+                                $doCount = $record->deliveryOrders()->count();
+                                
+                                if ($tbbmCount > 0 || $kantorSarCount > 0 || $doCount > 0) {
+                                    $hasRelations = true;
+                                    $relations = [];
+                                    if ($tbbmCount > 0) $relations[] = "{$tbbmCount} TBBM";
+                                    if ($kantorSarCount > 0) $relations[] = "{$kantorSarCount} Kantor SAR";
+                                    if ($doCount > 0) $relations[] = "{$doCount} Delivery Order";
+                                    
+                                    $errorMessages[] = "Kota {$record->kota} masih memiliki " . implode(', ', $relations) . " yang terkait.";
+                                }
+                            }
+                            
+                            if ($hasRelations) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Tidak dapat menghapus kota')
+                                    ->body('Beberapa kota masih memiliki data terkait:<br>' . implode('<br>', $errorMessages))
+                                    ->persistent()
+                                    ->send();
+                                
+                                $action->cancel();
+                            }
+                        }),
                 ])
                 ->label('Hapus'),
             ]);

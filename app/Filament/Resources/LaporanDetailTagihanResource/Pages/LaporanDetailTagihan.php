@@ -49,7 +49,11 @@ class LaporanDetailTagihan extends Page implements HasForms, HasTable
             return;
         }
         
-        $this->form->fill();
+        // Set default values
+        $this->kantor_sar_id = 'semua';
+        $this->form->fill([
+            'kantor_sar_id' => 'semua',
+        ]);
     }
 
     protected function getFormSchema(): array
@@ -57,12 +61,20 @@ class LaporanDetailTagihan extends Page implements HasForms, HasTable
         return [
             DatePicker::make('tanggal_awal')
                 ->label('Tanggal Awal')
+                ->placeholder('Pilih Tanggal Awal')
                 ->required()
+                ->native(false)
+                ->displayFormat('d/m/Y')
+                ->closeOnDateSelection(true)
                 ->maxDate(now()),
             
             DatePicker::make('tanggal_akhir')
                 ->label('Tanggal Akhir')
+                ->placeholder('Pilih Tanggal Akhir')
                 ->required()
+                ->native(false)
+                ->displayFormat('d/m/Y')
+                ->closeOnDateSelection(true)
                 ->maxDate(now())
                 ->afterOrEqual('tanggal_awal'),
             
@@ -126,12 +138,19 @@ class LaporanDetailTagihan extends Page implements HasForms, HasTable
                     ->label('PPKB')
                     ->money('IDR')
                     ->sortable(),
+                TextColumn::make('total_sebelum_pembulatan')
+                    ->label('Total')
+                    ->money('IDR')
+                    ->getStateUsing(function ($record) {
+                        return $record->jumlah_harga + $record->ppn_11 + $record->ppkb;
+                    })
+                    ->sortable(false),
                 TextColumn::make('jumlah_pembulatan')
                     ->label('Pembulatan')
                     ->money('IDR')
                     ->sortable(),
                 TextColumn::make('total_setelah_pembulatan')
-                    ->label('Total')
+                    ->label('Total Setelah Pembulatan')
                     ->money('IDR')
                     ->sortable(),
             ])
@@ -169,6 +188,9 @@ class LaporanDetailTagihan extends Page implements HasForms, HasTable
         ]);
 
         $this->showTable = true;
+        
+        // Reset table to force refresh
+        $this->resetTable();
         
         Notification::make()
             ->title('Data berhasil ditampilkan')

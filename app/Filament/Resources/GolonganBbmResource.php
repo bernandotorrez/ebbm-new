@@ -45,6 +45,7 @@ class GolonganBbmResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('golongan')
                     ->label('Jenis Alut')
+                    ->placeholder('Contoh: Kapal')
                     ->required()
                     ->maxLength(50),
             ]);
@@ -56,12 +57,8 @@ class GolonganBbmResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('golongan')
                     ->label('Jenis Alut')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->label('Dihapus Pada')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat Pada')
                     ->dateTime()
@@ -73,6 +70,7 @@ class GolonganBbmResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('golongan', 'asc')
             ->filters([
                 // Tables\Filters\TrashedFilter::make(),
             ])

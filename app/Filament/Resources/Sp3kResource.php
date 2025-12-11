@@ -94,7 +94,9 @@ class Sp3kResource extends Resource
                                     $tahun = $state;
                                     $pattern = "SP3K.{$kodeAlut}/{$bulanRomawi}/SAR-{$tahun}";
                                     
-                                    $lastSp3k = TxSp3k::where('nomor_sp3k', 'like', "%{$pattern}")
+                                    // Include soft deleted records untuk menghindari duplicate nomor
+                                    $lastSp3k = TxSp3k::withTrashed()
+                                        ->where('nomor_sp3k', 'like', "%{$pattern}")
                                         ->orderBy('nomor_sp3k', 'desc')
                                         ->first();
                                     
@@ -180,7 +182,9 @@ class Sp3kResource extends Resource
                                             $tahun = $tahunAnggaran;
                                             $pattern = "SP3K.{$kodeAlut}/{$bulanRomawi}/SAR-{$tahun}";
                                             
-                                            $lastSp3k = TxSp3k::where('nomor_sp3k', 'like', "%{$pattern}")
+                                            // Include soft deleted records untuk menghindari duplicate nomor
+                                            $lastSp3k = TxSp3k::withTrashed()
+                                                ->where('nomor_sp3k', 'like', "%{$pattern}")
                                                 ->orderBy('nomor_sp3k', 'desc')
                                                 ->first();
                                             
@@ -391,8 +395,9 @@ class Sp3kResource extends Resource
         $tahun = $tahunAnggaran ?? now()->year;
         $pattern = "SP3K.{$kodeAlut}/{$bulanRomawi}/SAR-{$tahun}";
         
-        // Get next sequence with lock to prevent duplicate
-        $lastSp3k = TxSp3k::where('nomor_sp3k', 'like', "%{$pattern}")
+        // Get next sequence with lock to prevent duplicate - Include soft deleted records
+        $lastSp3k = TxSp3k::withTrashed()
+            ->where('nomor_sp3k', 'like', "%{$pattern}")
             ->lockForUpdate()
             ->orderBy('nomor_sp3k', 'desc')
             ->first();
@@ -417,17 +422,20 @@ class Sp3kResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('nomor_sp3k')
                     ->label('Nomor SP3K')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('tahun_anggaran')
                     ->label('Tahun Anggaran')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('tanggal_sp3k')
                     ->label('Tanggal SP3K')
                     ->date()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('tw')
                     ->label('Triwulan')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                  Tables\Columns\TextColumn::make('pelumas_list')
                     ->label('Pelumas')
                     ->html()
@@ -447,11 +455,6 @@ class Sp3kResource extends Resource
                     ->label('Jumlah Harga')
                     ->money('IDR')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->label('Dihapus Pada')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat Pada')
                     ->dateTime()

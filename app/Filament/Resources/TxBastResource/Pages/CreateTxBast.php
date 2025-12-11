@@ -16,24 +16,15 @@ class CreateTxBast extends CreateRecord
     {
         $data['created_by'] = Auth::user()->user_id;
         
-        // Process details
+        // Process details - qty_diterima dan qty_terutang sudah dihitung di form secara live
         if (isset($data['details'])) {
             foreach ($data['details'] as $key => &$detail) {
-                // Pastikan semua field qty ada
-                $qtyTerutang = (int) ($detail['qty_terutang'] ?? 0);
-                $qtyDiterima = (int) ($detail['qty_diterima'] ?? 0);
-                $qtyMulai = (int) ($detail['qty_mulai'] ?? 0);
-                
-                // Jika qty_terutang = 0, set qty_masuk = 0
-                if ($qtyTerutang === 0 || !isset($detail['qty_masuk']) || $detail['qty_masuk'] === null || $detail['qty_masuk'] === '') {
+                // Jika qty_masuk kosong, set ke 0
+                if (!isset($detail['qty_masuk']) || $detail['qty_masuk'] === null || $detail['qty_masuk'] === '') {
                     $detail['qty_masuk'] = 0;
                 }
                 
                 $qtyMasuk = (int) $detail['qty_masuk'];
-                
-                // Update qty_diterima dan qty_terutang
-                $detail['qty_diterima'] = $qtyDiterima + $qtyMasuk;
-                $detail['qty_terutang'] = $qtyTerutang - $qtyMasuk;
                 
                 // Get harga satuan from pelumas
                 $pelumas = Pelumas::find($detail['pelumas_id']);
@@ -44,10 +35,8 @@ class CreateTxBast extends CreateRecord
                 $detail['jumlah_harga_diterima'] = $detail['jumlah_harga_diterima'] ?? 0;
                 $detail['jumlah_harga_terutang'] = $detail['jumlah_harga_terutang'] ?? 0;
                 
-                // Calculate harga - PASTI set jumlah_harga_masuk
+                // Calculate harga masuk
                 $detail['jumlah_harga_masuk'] = $qtyMasuk * $hargaSatuan;
-                $detail['jumlah_harga_diterima'] = (float) $detail['jumlah_harga_diterima'] + (float) $detail['jumlah_harga_masuk'];
-                $detail['jumlah_harga_terutang'] = (float) $detail['jumlah_harga_mulai'] - (float) $detail['jumlah_harga_diterima'];
                 
                 $detail['created_by'] = Auth::user()->user_id;
             }
@@ -61,10 +50,15 @@ class CreateTxBast extends CreateRecord
 
     protected function afterCreate(): void
     {
-        // Check if all details are completed
+        // Refresh record untuk mendapatkan data terbaru dari database
+        $this->record->refresh();
+        $this->record->load('details');
+        
+        // Check if all details are completed (qty_terutang = 0 untuk semua detail)
         $allCompleted = true;
         foreach ($this->record->details as $detail) {
-            if ($detail->qty_terutang > 0) {
+            // Jika masih ada qty_terutang > 0, berarti belum selesai
+            if ((int) $detail->qty_terutang > 0) {
                 $allCompleted = false;
                 break;
             }

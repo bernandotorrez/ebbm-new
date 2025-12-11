@@ -47,7 +47,7 @@ class HargaBekalResource extends Resource
                     ->getOptionLabelFromRecordUsing(fn ($record) => "Wilayah {$record->wilayah_ke}"),
                     
                 Forms\Components\Select::make('bekal_id')
-                    ->label('Bekal')
+                    ->label('Jenis Bahan Bakar')
                     ->relationship('bekal', 'bekal')
                     ->required()
                     ->searchable()
@@ -88,7 +88,7 @@ class HargaBekalResource extends Resource
                     ->searchable(),
                     
                 Tables\Columns\TextColumn::make('bekal.bekal')
-                    ->label('Bekal')
+                    ->label('Jenis Bahan Bakar')
                     ->sortable()
                     ->searchable(),
                     
@@ -111,12 +111,6 @@ class HargaBekalResource extends Resource
                     
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Diperbarui Pada')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                    
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->label('Dihapus Pada')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

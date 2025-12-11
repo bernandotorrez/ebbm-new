@@ -8,6 +8,7 @@ use App\Models\Bekal;
 use App\Models\KantorSar;
 use App\Models\HargaBekal;
 use App\Models\Sp3m;
+use App\Models\DeliveryOrder;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
@@ -26,10 +27,23 @@ class EditSp3m extends EditRecord
         ];
     }
 
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        // Check if SP3M has any DO
+        $hasDo = DeliveryOrder::where('sp3m_id', $this->record->sp3m_id)->exists();
+        $data['has_delivery_order'] = $hasDo;
+        
+        return $data;
+    }
+
     protected function mutateFormDataBeforeSave(array $data): array
     {
         // Clean numeric fields
-        $data['qty'] = (int) preg_replace('/[^\d]/', '', $data['qty']);
+        if (isset($data['qty'])) {
+            $data['qty'] = (int) preg_replace('/[^\d]/', '', $data['qty']);
+        } else {
+            $data['qty'] = $this->record->qty ?? 0;
+        }
         
         // Cek apakah nomor SP3M berubah (alut atau tahun anggaran berubah)
         $nomorSp3mChanged = $data['nomor_sp3m_changed'] ?? false;
@@ -141,6 +155,14 @@ class EditSp3m extends EditRecord
 
     protected function getHeaderActions(): array
     {
+        // Check if SP3M has any DO
+        $hasDo = DeliveryOrder::where('sp3m_id', $this->record->sp3m_id)->exists();
+        
+        // If SP3M has DO, hide delete actions
+        if ($hasDo) {
+            return [];
+        }
+        
         return [
             Actions\DeleteAction::make()
                 ->label('Hapus'),

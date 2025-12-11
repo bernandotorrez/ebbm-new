@@ -25,6 +25,7 @@ return new class extends Migration
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->unsignedBigInteger('deleted_by')->nullable();
+            $table->enum('is_active', ['0', '1'])->default('1');
             
             $table->foreign('kantor_sar_id')->references('kantor_sar_id')->on('ms_kantor_sar')->noActionOnDelete()->noActionOnUpdate();
             $table->foreign('alpal_id')->references('alpal_id')->on('tx_alpal')->noActionOnDelete()->noActionOnUpdate();

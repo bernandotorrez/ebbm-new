@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\PreventUpdateTimestamp;
+use App\Traits\HasIsActive;
 
 class Bekal extends Model
 {
-    use SoftDeletes, PreventUpdateTimestamp;
+    use SoftDeletes, PreventUpdateTimestamp, HasIsActive;
 
     protected $table = 'ms_bekal';
     protected $primaryKey = 'bekal_id';
@@ -24,6 +25,7 @@ class Bekal extends Model
         'created_by',
         'updated_by',
         'deleted_by',
+        'is_active',
     ];
 
     public function golonganBbm()

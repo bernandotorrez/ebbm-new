@@ -12,6 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use App\Traits\RoleBasedResourceAccess;
+use Filament\Notifications\Notification;
 
 class PackResource extends Resource
 {
@@ -44,6 +45,7 @@ class PackResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('nama_pack')
                     ->label('Nama Pack')
+                    ->placeholder('Contoh: Drum')
                     ->required()
                     ->maxLength(50),
             ]);
@@ -55,11 +57,8 @@ class PackResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('nama_pack')
                     ->label('Nama Pack')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -81,8 +80,38 @@ class PackResource extends Resource
                     Tables\Actions\DeleteBulkAction::make()
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
-                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih?')
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->before(function (Tables\Actions\DeleteBulkAction $action, $records) {
+                            $hasRelations = false;
+                            $errorMessages = [];
+                            
+                            foreach ($records as $record) {
+                                // Hitung child yang aktif (is_active = '1')
+                                $pelumasCount = $record->pelumas()->count();
+                                $kemasanCount = $record->kemasans()->count();
+                                
+                                if ($pelumasCount > 0 || $kemasanCount > 0) {
+                                    $hasRelations = true;
+                                    $relations = [];
+                                    if ($pelumasCount > 0) $relations[] = "{$pelumasCount} pelumas";
+                                    if ($kemasanCount > 0) $relations[] = "{$kemasanCount} kemasan";
+                                    
+                                    $errorMessages[] = "Pack {$record->nama_pack} masih memiliki " . implode(', ', $relations) . " yang terkait.";
+                                }
+                            }
+                            
+                            if ($hasRelations) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Tidak dapat menghapus Pack')
+                                    ->body('Beberapa Pack masih memiliki data terkait:<br>' . implode('<br>', $errorMessages))
+                                    ->persistent()
+                                    ->send();
+                                
+                                $action->cancel();
+                            }
+                        }),
                 ])
                 ->label('Hapus'),
             ]);

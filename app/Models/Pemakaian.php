@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\HasIsActive;
 
 class Pemakaian extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasIsActive;
 
     protected $table = 'tx_pemakaian';
     protected $primaryKey = 'pemakaian_id';
@@ -29,6 +30,7 @@ class Pemakaian extends Model
         'created_by',
         'updated_by',
         'deleted_by',
+        'is_active',
     ];
 
     protected $casts = [

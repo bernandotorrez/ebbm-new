@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\DB;
 use App\Traits\RoleBasedResourceAccess;
+use Filament\Notifications\Notification;
 
 class PelumasResource extends Resource
 {
@@ -48,14 +49,9 @@ class PelumasResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('nama_pelumas')
                     ->label('Nama Pelumas')
+                    ->placeholder('Contoh: Meditrans 15W-40 SAE')
                     ->required()
                     ->maxLength(200),
-                Forms\Components\Select::make('pack_id')
-                    ->label('Pack')
-                    ->relationship('pack', 'nama_pack')
-                    ->searchable()
-                    ->preload()
-                    ->required(),
                 Forms\Components\Select::make('kemasan_id')
                     ->label('Kemasan')
                     ->relationship('kemasan', 'kemasan_pack')
@@ -65,14 +61,27 @@ class PelumasResource extends Resource
                     ->live()
                     ->afterStateUpdated(function (callable $get, callable $set, $state) {
                         if ($state) {
-                            $kemasan = Kemasan::find($state);
+                            $kemasan = Kemasan::with('pack')->find($state);
                             if ($kemasan) {
                                 $set('isi', $kemasan->kemasan_liter);
+                                // Auto-fill pack_id dari kemasan
+                                if ($kemasan->pack_id) {
+                                    $set('pack_id', $kemasan->pack_id);
+                                }
                             }
                         } else {
                             $set('isi', null);
+                            $set('pack_id', null);
                         }
                     }),
+                Forms\Components\Select::make('pack_id')
+                    ->label('Pack')
+                    ->relationship('pack', 'nama_pack')
+                    ->searchable()
+                    ->preload()
+                    ->required()
+                    ->disabled()
+                    ->dehydrated(),
                 Forms\Components\TextInput::make('isi')
                     ->label('Isi')
                     ->required()
@@ -89,6 +98,7 @@ class PelumasResource extends Resource
                     ->readOnly(),
                 Forms\Components\TextInput::make('harga')
                     ->label('Harga')
+                    ->placeholder('Contoh: 50000')
                     ->required()
                     ->prefix('Rp')
                     ->inputMode('numeric')
@@ -101,6 +111,7 @@ class PelumasResource extends Resource
                     ->live(),
                 Forms\Components\TextInput::make('tahun')
                     ->label('Tahun')
+                    ->placeholder('Contoh: '.date('Y'))
                     ->required()
                     ->inputMode('numeric')
                     ->extraInputAttributes([
@@ -118,7 +129,8 @@ class PelumasResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('nama_pelumas')
                     ->label('Nama Pelumas')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('pack.nama_pack')
                     ->label('Pack')
                     ->searchable()
@@ -128,7 +140,7 @@ class PelumasResource extends Resource
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('isi')
-                    ->label('Isi')
+                    ->label('Isi (Ltr)')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('harga')
@@ -139,11 +151,6 @@ class PelumasResource extends Resource
                 Tables\Columns\TextColumn::make('tahun')
                     ->label('Tahun')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->label('Dihapus Pada')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat Pada')
                     ->dateTime()
@@ -167,8 +174,38 @@ class PelumasResource extends Resource
                     Tables\Actions\DeleteBulkAction::make()
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
-                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih?')
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->before(function (Tables\Actions\DeleteBulkAction $action, $records) {
+                            $hasRelations = false;
+                            $errorMessages = [];
+                            
+                            foreach ($records as $record) {
+                                // Hitung child yang aktif (is_active = '1')
+                                $sp3kCount = $record->dxSp3ks()->count();
+                                $bastCount = $record->dxBasts()->count();
+                                
+                                if ($sp3kCount > 0 || $bastCount > 0) {
+                                    $hasRelations = true;
+                                    $relations = [];
+                                    if ($sp3kCount > 0) $relations[] = "{$sp3kCount} detail SP3K";
+                                    if ($bastCount > 0) $relations[] = "{$bastCount} detail BAST";
+                                    
+                                    $errorMessages[] = "Pelumas {$record->nama_pelumas} masih memiliki " . implode(', ', $relations) . " yang terkait.";
+                                }
+                            }
+                            
+                            if ($hasRelations) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Tidak dapat menghapus Pelumas')
+                                    ->body('Beberapa Pelumas masih memiliki data terkait:<br>' . implode('<br>', $errorMessages))
+                                    ->persistent()
+                                    ->send();
+                                
+                                $action->cancel();
+                            }
+                        }),
                 ])
                 ->label('Hapus'),
             ]);

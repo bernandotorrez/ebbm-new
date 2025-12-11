@@ -69,7 +69,7 @@ class EditDeliveryOrder extends EditRecord
     {
         // Load relasi untuk ditampilkan di form
         $record = $this->record;
-        $record->load(['sp3m.alpal', 'sp3m.kantorSar', 'tbbm']);
+        $record->load(['sp3m.alpal', 'sp3m.kantorSar', 'sp3m.tbbm']);
         
         return $data;
     }
@@ -188,8 +188,8 @@ class EditDeliveryOrder extends EditRecord
                             ->dehydrated(false)
                             ->afterStateHydrated(function ($component, $record) {
                                 if ($record) {
-                                    $record->load('tbbm');
-                                    $component->state($record->tbbm->depot ?? '-');
+                                    $record->load('sp3m.tbbm');
+                                    $component->state($record->sp3m?->tbbm?->depot ?? '-');
                                 }
                             }),
                     ]),
@@ -392,13 +392,17 @@ class EditDeliveryOrder extends EditRecord
                             ->displayFormat('d/m/Y')
                             ->closeOnDateSelection(true),
                         
-                        // TBBM - Editable
-                        Forms\Components\Select::make('tbbm_id')
-                            ->relationship(name: 'tbbm', titleAttribute: 'depot')
+                        // TBBM - Readonly (dari SP3M)
+                        Forms\Components\TextInput::make('tbbm_display')
                             ->label('TBBM/DPPU')
-                            ->searchable()
-                            ->preload()
-                            ->required(),
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->afterStateHydrated(function ($component, $record) {
+                                if ($record) {
+                                    $record->load('sp3m.tbbm');
+                                    $component->state($record->sp3m?->tbbm?->depot ?? '-');
+                                }
+                            }),
                     ]),
                 
                 Forms\Components\Grid::make(2)
@@ -456,12 +460,12 @@ class EditDeliveryOrder extends EditRecord
             }
         }
         
-        // Get kota_id from TBBM
-        $tbbmId = $data['tbbm_id'] ?? null;
-        if ($tbbmId) {
-            $tbbm = Tbbm::find($tbbmId);
-            if ($tbbm) {
-                $data['kota_id'] = $tbbm->kota_id;
+        // Get kota_id from SP3M's TBBM
+        $sp3mId = $data['sp3m_id'] ?? $this->record->sp3m_id ?? null;
+        if ($sp3mId) {
+            $sp3m = Sp3m::with('tbbm')->find($sp3mId);
+            if ($sp3m && $sp3m->tbbm) {
+                $data['kota_id'] = $sp3m->tbbm->kota_id;
             }
         }
         

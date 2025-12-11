@@ -45,6 +45,7 @@ class SatuanResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('satuan')
                     ->required()
+                    ->placeholder('Contoh: Liter')
                     ->maxLength(50),
             ]);
     }
@@ -55,12 +56,8 @@ class SatuanResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('satuan')
                     ->label('Satuan')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->label('Dihapus Pada')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat Pada')
                     ->dateTime()

@@ -13,6 +13,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Traits\RoleBasedResourceAccess;
+use Filament\Notifications\Notification;
+use Illuminate\Database\Eloquent\Model;
 
 class KantorSarResource extends Resource
 {
@@ -45,15 +47,19 @@ class KantorSarResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('kantor_sar')
                     ->label('Kantor SAR')
+                    ->placeholder('Contoh: Kantor SAR Jakarta')
                     ->required()
-                    ->maxLength(50),
+                    ->maxLength(50)
+                    ->rules(['required', 'string', 'max:50']),
                 
                 Forms\Components\Select::make('kota_id')
                     ->label('Kota')
                     ->relationship('kota', 'kota')
                     ->searchable()
                     ->preload()
-                    ->nullable(),
+                    ->required()
+                    ->placeholder('Pilih Kota')
+                    ->rules(['required', 'exists:ms_kota,kota_id']),
             ]);
     }
 
@@ -63,18 +69,14 @@ class KantorSarResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('kantor_sar')
                     ->label('Kantor SAR')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 
                 Tables\Columns\TextColumn::make('kota.kota')
                     ->label('Kota')
                     ->sortable()
                     ->searchable(),
                 
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->label('Dihapus Pada')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat Pada')
                     ->dateTime()
@@ -98,8 +100,44 @@ class KantorSarResource extends Resource
                     Tables\Actions\DeleteBulkAction::make()
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
-                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih?')
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->before(function (Tables\Actions\DeleteBulkAction $action, $records) {
+                            $hasRelations = false;
+                            $errorMessages = [];
+                            
+                            foreach ($records as $record) {
+                                // Hitung child yang aktif (is_active = '1')
+                                $userCount = $record->users()->count();
+                                $alpalCount = $record->alpals()->count();
+                                $sp3mCount = $record->sp3ms()->count();
+                                $sp3kCount = $record->txSp3ks()->count();
+                                $pemakaianCount = $record->pemakaians()->count();
+                                
+                                if ($userCount > 0 || $alpalCount > 0 || $sp3mCount > 0 || $sp3kCount > 0 || $pemakaianCount > 0) {
+                                    $hasRelations = true;
+                                    $relations = [];
+                                    if ($userCount > 0) $relations[] = "{$userCount} user";
+                                    if ($alpalCount > 0) $relations[] = "{$alpalCount} alut";
+                                    if ($sp3mCount > 0) $relations[] = "{$sp3mCount} SP3M";
+                                    if ($sp3kCount > 0) $relations[] = "{$sp3kCount} SP3K";
+                                    if ($pemakaianCount > 0) $relations[] = "{$pemakaianCount} pemakaian";
+                                    
+                                    $errorMessages[] = "Kantor SAR {$record->kantor_sar} masih memiliki " . implode(', ', $relations) . " yang terkait.";
+                                }
+                            }
+                            
+                            if ($hasRelations) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Tidak dapat menghapus Kantor SAR')
+                                    ->body('Beberapa Kantor SAR masih memiliki data terkait:<br>' . implode('<br>', $errorMessages))
+                                    ->persistent()
+                                    ->send();
+                                
+                                $action->cancel();
+                            }
+                        }),
                 ])
                 ->label('Hapus'),
             ]);

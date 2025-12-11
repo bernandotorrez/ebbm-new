@@ -14,6 +14,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Traits\RoleBasedResourceAccess;
+use Filament\Notifications\Notification;
 
 class TbbmResource extends Resource
 {
@@ -46,10 +47,18 @@ class TbbmResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('plant')
                     ->label('Plant')
+                    ->placeholder('Contoh: 1234')
                     ->required()
-                    ->maxLength(5),
+                    ->maxLength(4)
+                    ->extraInputAttributes([
+                        'type' => 'text',
+                        'maxlength' => '4',
+                        'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "")',
+                    ])
+                    ->rules(['required', 'regex:/^[0-9]{1,4}$/']),
                 Forms\Components\TextInput::make('depot')
                     ->label('Depot')
+                    ->placeholder('Contoh: Pelumpang')
                     ->required()
                     ->maxLength(50),
                 Forms\Components\Select::make('kota_id')
@@ -60,6 +69,7 @@ class TbbmResource extends Resource
                     ->required(),
                 Forms\Components\TextInput::make('pbbkb')
                     ->label('PBBKB (%)')
+                    ->placeholder('Contoh: 10')
                     ->required()
                     ->maxLength(6)
                     ->suffix('%')
@@ -107,10 +117,6 @@ class TbbmResource extends Resource
                         $formatted = rtrim(rtrim(number_format($state, 2, ',', ''), '0'), ',');
                         return $formatted . '%';
                     }),
-                Tables\Columns\TextColumn::make('deleted_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -136,8 +142,35 @@ class TbbmResource extends Resource
                     Tables\Actions\DeleteBulkAction::make()
                         ->label('Hapus Terpilih')
                         ->modalHeading('Konfirmasi Hapus Data')
-                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih? Tindakan ini tidak dapat dibatalkan.')
-                        ->modalButton('Ya, Hapus Sekarang'),
+                        ->modalSubheading('Apakah kamu yakin ingin menghapus data yang dipilih?')
+                        ->modalButton('Ya, Hapus Sekarang')
+                        ->before(function (Tables\Actions\DeleteBulkAction $action, $records) {
+                            $hasRelations = false;
+                            $errorMessages = [];
+                            
+                            foreach ($records as $record) {
+                                // Hitung child yang aktif (is_active = '1')
+                                $sp3mCount = \App\Models\Sp3m::where('tbbm_id', $record->tbbm_id)
+                                    ->whereNull('deleted_at')
+                                    ->count();
+                                
+                                if ($sp3mCount > 0) {
+                                    $hasRelations = true;
+                                    $errorMessages[] = "TBBM {$record->depot} masih memiliki {$sp3mCount} SP3M yang terkait.";
+                                }
+                            }
+                            
+                            if ($hasRelations) {
+                                Notification::make()
+                                    ->danger()
+                                    ->title('Tidak dapat menghapus TBBM')
+                                    ->body('Beberapa TBBM masih memiliki data terkait:<br>' . implode('<br>', $errorMessages))
+                                    ->persistent()
+                                    ->send();
+                                
+                                $action->cancel();
+                            }
+                        }),
                 ])
                 ->label('Hapus'),
             ]);

@@ -81,24 +81,18 @@ class TxBastResource extends Resource
                                                 ->get();
                                             
                                             foreach ($lastBastDetails as $detail) {
-                                                // Hitung qty_diterima baru = qty_diterima lama + qty_masuk lama
-                                                $qtyDiterimaNew = $detail->qty_diterima + $detail->qty_masuk;
-                                                // Hitung qty_terutang baru = qty_mulai - qty_diterima baru
-                                                $qtyTerutangNew = $detail->qty_mulai - $qtyDiterimaNew;
-                                                
-                                                // Hitung harga - gunakan nilai dari BAST terakhir + harga masuk terakhir
-                                                $jumlahHargaDiterimaNew = $detail->jumlah_harga_diterima + $detail->jumlah_harga_masuk;
-                                                $jumlahHargaTerutangNew = $detail->jumlah_harga_mulai - $jumlahHargaDiterimaNew;
-                                                
                                                 $detailsData[] = [
                                                     'pelumas_id' => $detail->pelumas_id,
                                                     'qty_mulai' => $detail->qty_mulai,
-                                                    'qty_diterima' => $qtyDiterimaNew,
-                                                    'qty_terutang' => $qtyTerutangNew,
+                                                    'qty_diterima' => $detail->qty_diterima,
+                                                    'qty_diterima_awal' => $detail->qty_diterima, // Simpan nilai awal
+                                                    'qty_terutang' => $detail->qty_terutang,
+                                                    'qty_terutang_awal' => $detail->qty_terutang, // Simpan nilai awal
                                                     'qty_masuk' => null,
                                                     'jumlah_harga_mulai' => $detail->jumlah_harga_mulai,
-                                                    'jumlah_harga_diterima' => $jumlahHargaDiterimaNew,
-                                                    'jumlah_harga_terutang' => $jumlahHargaTerutangNew,
+                                                    'jumlah_harga_diterima' => $detail->jumlah_harga_diterima,
+                                                    'jumlah_harga_diterima_awal' => $detail->jumlah_harga_diterima, // Simpan nilai awal
+                                                    'jumlah_harga_terutang' => $detail->jumlah_harga_terutang,
                                                 ];
                                             }
                                         } else {
@@ -112,10 +106,13 @@ class TxBastResource extends Resource
                                                     'pelumas_id' => $detail->pelumas_id,
                                                     'qty_mulai' => $detail->qty,
                                                     'qty_diterima' => 0,
+                                                    'qty_diterima_awal' => 0, // Simpan nilai awal
                                                     'qty_terutang' => $detail->qty,
+                                                    'qty_terutang_awal' => $detail->qty, // Simpan nilai awal
                                                     'qty_masuk' => null,
                                                     'jumlah_harga_mulai' => $totalHarga,
                                                     'jumlah_harga_diterima' => 0,
+                                                    'jumlah_harga_diterima_awal' => 0, // Simpan nilai awal
                                                     'jumlah_harga_terutang' => $totalHarga,
                                                 ];
                                             }
@@ -167,33 +164,42 @@ class TxBastResource extends Resource
                             ->disabled()
                             ->dehydrated()
                             ->numeric()
-                            ->extraAttributes(['style' => 'font-weight: 600; color: #d97706;'])
-                            ->afterStateHydrated(function (callable $get, callable $set, $state) {
-                                // Jika qty_terutang = 0, set jumlah_harga_masuk = 0
-                                if ((int) $state === 0) {
-                                    $set('jumlah_harga_masuk', 0);
-                                }
-                            }),
+                            ->extraAttributes(['style' => 'font-weight: 600; color: #d97706;']),
+                        
+                        // Hidden fields untuk menyimpan nilai awal
+                        Forms\Components\Hidden::make('qty_diterima_awal')->dehydrated(false),
+                        Forms\Components\Hidden::make('qty_terutang_awal')->dehydrated(false),
+                        Forms\Components\Hidden::make('jumlah_harga_diterima_awal')->dehydrated(false),
                         
                         Forms\Components\TextInput::make('qty_masuk')
                             ->label('Qty Masuk')
-                            ->required(fn (callable $get) => (int) $get('qty_terutang') > 0)
-                            ->disabled(fn (callable $get) => (int) $get('qty_terutang') === 0)
-                            ->default(fn (callable $get) => (int) $get('qty_terutang') === 0 ? '0' : null)
+                            ->required(fn (callable $get) => (int) $get('qty_terutang_awal') > 0 || (int) $get('qty_terutang') > 0)
+                            ->disabled(fn (callable $get) => (int) $get('qty_terutang_awal') === 0 && (int) $get('qty_terutang') === 0)
+                            ->default(fn (callable $get) => ((int) $get('qty_terutang_awal') === 0 && (int) $get('qty_terutang') === 0) ? '0' : null)
                             ->inputMode('numeric')
                             ->extraInputAttributes([
                                 'oninput' => 'this.value = this.value.replace(/[^0-9]/g, "")',
                                 'maxlength' => '5'
                             ])
-                            ->live(debounce: 500)
+                            ->live(debounce: 300)
                             ->afterStateUpdated(function (callable $get, callable $set, $state) {
-                                $qtyMasuk = (int) $state;
-                                $qtyTerutang = (int) $get('qty_terutang');
+                                $qtyMasuk = (int) ($state ?? 0);
+                                $qtyDiterimaAwal = (int) $get('qty_diterima_awal');
+                                $qtyTerutangAwal = (int) $get('qty_terutang_awal');
+                                $jumlahHargaDiterimaAwal = (float) $get('jumlah_harga_diterima_awal');
                                 
-                                if ($qtyMasuk > $qtyTerutang) {
-                                    $set('qty_error', "Qty Masuk melebihi Qty Terutang");
+                                if ($qtyMasuk > $qtyTerutangAwal) {
+                                    $set('qty_error', "Qty Masuk melebihi Qty Terutang ({$qtyTerutangAwal})");
                                 } else {
                                     $set('qty_error', null);
+                                    
+                                    // Update qty_diterima = qty_diterima_awal + qty_masuk
+                                    $newQtyDiterima = $qtyDiterimaAwal + $qtyMasuk;
+                                    $set('qty_diterima', $newQtyDiterima);
+                                    
+                                    // Update qty_terutang = qty_terutang_awal - qty_masuk
+                                    $newQtyTerutang = $qtyTerutangAwal - $qtyMasuk;
+                                    $set('qty_terutang', $newQtyTerutang);
                                     
                                     // Calculate harga
                                     $pelumasId = $get('pelumas_id');
@@ -203,6 +209,12 @@ class TxBastResource extends Resource
                                             $hargaSatuan = $pelumas->harga ?? 0;
                                             $jumlahHargaMasuk = $qtyMasuk * $hargaSatuan;
                                             $set('jumlah_harga_masuk', $jumlahHargaMasuk);
+                                            
+                                            // Update jumlah_harga_diterima dan jumlah_harga_terutang
+                                            $jumlahHargaMulai = (float) $get('jumlah_harga_mulai');
+                                            $newJumlahHargaDiterima = $jumlahHargaDiterimaAwal + $jumlahHargaMasuk;
+                                            $set('jumlah_harga_diterima', $newJumlahHargaDiterima);
+                                            $set('jumlah_harga_terutang', $jumlahHargaMulai - $newJumlahHargaDiterima);
                                         }
                                     }
                                 }
@@ -217,10 +229,10 @@ class TxBastResource extends Resource
                                 function ($get) {
                                     return function (string $attribute, $value, \Closure $fail) use ($get) {
                                         $qtyMasuk = (int) $value;
-                                        $qtyTerutang = (int) $get('qty_terutang');
+                                        $qtyTerutangAwal = (int) $get('qty_terutang_awal');
                                         
-                                        if ($qtyMasuk > $qtyTerutang) {
-                                            $fail("Qty Masuk ({$qtyMasuk}) melebihi Qty Terutang ({$qtyTerutang}).");
+                                        if ($qtyMasuk > $qtyTerutangAwal) {
+                                            $fail("Qty Masuk ({$qtyMasuk}) melebihi Qty Terutang ({$qtyTerutangAwal}).");
                                         }
                                     };
                                 },
@@ -370,7 +382,10 @@ class TxBastResource extends Resource
             ->with(['details.pelumas', 'sp3k.kantorSar']);
 
         $user = Auth::user();
-        if ($user && $user->level->value !== LevelUser::ADMIN->value && $user->kantor_sar_id) {
+        // Admin dan Kanpus bisa lihat semua BAST
+        if ($user && 
+            !in_array($user->level->value, [LevelUser::ADMIN->value, LevelUser::KANPUS->value]) && 
+            $user->kantor_sar_id) {
             $query->whereHas('sp3k', function ($q) use ($user) {
                 $q->where('kantor_sar_id', $user->kantor_sar_id);
             });

@@ -52,17 +52,25 @@ class EditSp3k extends EditRecord
         $data['updated_by'] = $userId;
 
         // Calculate jumlah_qty and jumlah_harga from details
+        // jumlah_qty adalah penjumlahan dari jumlah_isi (qty * kemasan_liter)
         $jumlahQty = 0;
         $jumlahHarga = 0;
+        $jumlahLiter = 0;
 
         if (isset($data['details'])) {
             foreach ($data['details'] as $index => $detail) {
-                // Get harga from pelumas model
-                $pelumas = Pelumas::find($detail['pelumas_id']);
+                // Get harga and kemasan_liter from pelumas model
+                $pelumas = Pelumas::with('kemasan')->find($detail['pelumas_id']);
                 $harga = $pelumas ? $pelumas->harga : 0;
+                $kemasanLiter = $pelumas && $pelumas->kemasan ? $pelumas->kemasan->kemasan_liter : 0;
 
-                $jumlahQty += $detail['qty'];
-                $jumlahHarga += $detail['qty'] * $harga;
+                $qty = (int) ($detail['qty'] ?? 0);
+                $jumlahIsi = $qty * $kemasanLiter; // jumlah_isi = qty * kemasan_liter
+
+                // jumlah_qty adalah penjumlahan dari jumlah_isi
+                $jumlahQty += $jumlahIsi;
+                $jumlahHarga += $qty * $harga;
+                $jumlahLiter += $jumlahIsi;
                 // Set sort order
                 $data['details'][$index]['sort'] = $index;
                 // Set harga in details for database storage
@@ -72,6 +80,7 @@ class EditSp3k extends EditRecord
 
         $data['jumlah_qty'] = $jumlahQty;
         $data['jumlah_harga'] = $jumlahHarga;
+        $data['jumlah_liter'] = $jumlahLiter;
 
         return $data;
     }

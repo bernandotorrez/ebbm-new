@@ -93,21 +93,25 @@ class UserResource extends Resource
                 
                 Forms\Components\TextInput::make('name')
                     ->required()
+                    ->placeholder('Contoh: Kantor Pusat')
                     ->maxLength(255),
                 
                 Forms\Components\TextInput::make('username')
                     ->required()
+                    ->placeholder('Contoh: kantor_pusat')
                     ->maxLength(200)
                     ->unique(ignoreRecord: true),
                 
                 Forms\Components\TextInput::make('email')
                     ->email()
+                    ->placeholder('Contoh: kantor_pusat@basarnas.go.id')
                     ->autocomplete(false)
                     ->required()
                     ->maxLength(255),
                 
                 Forms\Components\TextInput::make('password')
                     ->password()
+                    ->placeholder('Contoh: xxxx')
                     ->autocomplete('new-password')
                     ->required(fn (string $operation): bool => $operation === 'create')
                     ->maxLength(255)
@@ -138,7 +142,8 @@ class UserResource extends Resource
                         LevelUser::KANSAR => 'info',
                         LevelUser::ABK => 'success',
                         default => 'gray',
-                    }),
+                    })
+                    ->sortable(),
                 
                 Tables\Columns\TextColumn::make('kantorSar.kantor_sar')
                     ->label('Kantor SAR')
@@ -151,13 +156,16 @@ class UserResource extends Resource
                     ->visible(fn ($record) => $record && $record->level === LevelUser::ABK),
                 
                 Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 
                 Tables\Columns\TextColumn::make('username')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 
                 Tables\Columns\TextColumn::make('email')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()

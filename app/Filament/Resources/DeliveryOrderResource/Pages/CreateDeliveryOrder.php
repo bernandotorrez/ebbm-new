@@ -154,27 +154,6 @@ class CreateDeliveryOrder extends CreateRecord
             $this->halt();
         }
 
-        // Validasi kapasitas alpal (rob + qty tidak boleh melebihi kapasitas)
-        if ($sp3m->alpal) {
-            $alpal = $sp3m->alpal;
-            $newRob = $alpal->rob + $qty;
-            
-            if ($newRob > $alpal->kapasitas) {
-                $qtyFormatted = number_format($qty, 0, ',', '.');
-                $robFormatted = number_format($alpal->rob, 0, ',', '.');
-                $kapasitasFormatted = number_format($alpal->kapasitas, 0, ',', '.');
-                $sisaKapasitas = $alpal->kapasitas - $alpal->rob;
-                $sisaKapasitasFormatted = number_format($sisaKapasitas, 0, ',', '.');
-                
-                Notification::make()
-                    ->title('Gagal Membuat Delivery Order!')
-                    ->body("Qty DO ({$qtyFormatted}) melebihi sisa kapasitas alpal. ROB saat ini: {$robFormatted}, Kapasitas: {$kapasitasFormatted}, Sisa kapasitas: {$sisaKapasitasFormatted}.")
-                    ->danger()
-                    ->duration(7000)
-                    ->send();
-                $this->halt();
-            }
-        }
     }
     
     protected function afterCreate(): void
@@ -198,9 +177,11 @@ class CreateDeliveryOrder extends CreateRecord
             $sp3m->save();
             
             // Update rob di alpal jika ada
+            // Jika ROB melebihi kapasitas, set ROB = kapasitas
             if ($sp3m->alpal) {
                 $alpal = $sp3m->alpal;
-                $alpal->rob = $alpal->rob + $qty;
+                $newRob = $alpal->rob + $qty;
+                $alpal->rob = min($newRob, $alpal->kapasitas);
                 $alpal->save();
             }
         });

@@ -45,19 +45,20 @@ class DaftarSp3mExport implements FromArray, WithStyles, WithTitle, WithColumnWi
         $tanggalEnd = $this->tanggal_end ? date('d/m/Y', strtotime($this->tanggal_end)) : 'Tidak Ditentukan';
         
         // Information rows
-        $data[] = ['LAPORAN DAFTAR SP3M', '', '', '', '', '', '', ''];
-        $data[] = ['', '', '', '', '', '', '', ''];
-        $data[] = ['Kantor SAR:', $kantorSarName, '', '', '', '', '', ''];
-        $data[] = ['Tanggal Mulai:', $tanggalStart, '', '', '', '', '', ''];
-        $data[] = ['Tanggal Selesai:', $tanggalEnd, '', '', '', '', '', ''];
-        $data[] = ['', '', '', '', '', '', '', ''];
+        $data[] = ['LAPORAN DAFTAR SP3M', '', '', '', '', '', '', '', ''];
+        $data[] = ['', '', '', '', '', '', '', '', ''];
+        $data[] = ['Kantor SAR:', $kantorSarName, '', '', '', '', '', '', ''];
+        $data[] = ['Tanggal Mulai:', $tanggalStart, '', '', '', '', '', '', ''];
+        $data[] = ['Tanggal Selesai:', $tanggalEnd, '', '', '', '', '', '', ''];
+        $data[] = ['', '', '', '', '', '', '', '', ''];
         
         // Headers
         $data[] = [
+            'No',
             'Nomor SP3M',
             'Kantor SAR',
-            'Alpal',
-            'Bekal',
+            'Alut',
+            'Jenis Bahan Bakar',
             'Qty',
             'Harga Satuan',
             'Jumlah Harga',
@@ -81,9 +82,11 @@ class DaftarSp3mExport implements FromArray, WithStyles, WithTitle, WithColumnWi
 
         $sp3ms = $query->get();
         
-        // Add data rows
+        // Add data rows with row number
+        $rowNumber = 1;
         foreach ($sp3ms as $sp3m) {
             $data[] = [
+                $rowNumber++,
                 $sp3m->nomor_sp3m,
                 $sp3m->kantorSar->kantor_sar ?? '',
                 $sp3m->alpal->alpal ?? '',
@@ -104,7 +107,7 @@ class DaftarSp3mExport implements FromArray, WithStyles, WithTitle, WithColumnWi
         $lastColumn = $sheet->getHighestColumn();
         
         // Title styling (row 1)
-        $sheet->getStyle('A1:H1')->applyFromArray([
+        $sheet->getStyle('A1:I1')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'size' => 14,
@@ -124,7 +127,7 @@ class DaftarSp3mExport implements FromArray, WithStyles, WithTitle, WithColumnWi
         ]);
         
         // Header row styling (row 7)
-        $sheet->getStyle('A7:H7')->applyFromArray([
+        $sheet->getStyle('A7:I7')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'size' => 12,
@@ -149,7 +152,7 @@ class DaftarSp3mExport implements FromArray, WithStyles, WithTitle, WithColumnWi
         // Data rows styling
         if ($lastRow > 7) {
             // All data cells border
-            $sheet->getStyle('A8:H' . $lastRow)->applyFromArray([
+            $sheet->getStyle('A8:I' . $lastRow)->applyFromArray([
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => Border::BORDER_THIN,
@@ -157,22 +160,29 @@ class DaftarSp3mExport implements FromArray, WithStyles, WithTitle, WithColumnWi
                 ],
             ]);
             
-            // Qty column (E) - center alignment
-            $sheet->getStyle('E8:E' . $lastRow)->applyFromArray([
+            // No column (A) - center alignment
+            $sheet->getStyle('A8:A' . $lastRow)->applyFromArray([
                 'alignment' => [
                     'horizontal' => Alignment::HORIZONTAL_CENTER,
                 ],
             ]);
             
-            // Harga Satuan column (F) - right alignment
+            // Qty column (F) - center alignment
             $sheet->getStyle('F8:F' . $lastRow)->applyFromArray([
+                'alignment' => [
+                    'horizontal' => Alignment::HORIZONTAL_CENTER,
+                ],
+            ]);
+            
+            // Harga Satuan column (G) - right alignment
+            $sheet->getStyle('G8:G' . $lastRow)->applyFromArray([
                 'alignment' => [
                     'horizontal' => Alignment::HORIZONTAL_RIGHT,
                 ],
             ]);
             
-            // Jumlah Harga column (G) - right alignment
-            $sheet->getStyle('G8:G' . $lastRow)->applyFromArray([
+            // Jumlah Harga column (H) - right alignment
+            $sheet->getStyle('H8:H' . $lastRow)->applyFromArray([
                 'alignment' => [
                     'horizontal' => Alignment::HORIZONTAL_RIGHT,
                 ],
@@ -180,7 +190,7 @@ class DaftarSp3mExport implements FromArray, WithStyles, WithTitle, WithColumnWi
         }
         
         // Merge title cell
-        $sheet->mergeCells('A1:H1');
+        $sheet->mergeCells('A1:I1');
         
         return [];
     }
@@ -188,14 +198,15 @@ class DaftarSp3mExport implements FromArray, WithStyles, WithTitle, WithColumnWi
     public function columnWidths(): array
     {
         return [
-            'A' => 20,  // Nomor SP3M
-            'B' => 25,  // Kantor SAR
-            'C' => 20,  // Alpal
-            'D' => 20,  // Bekal
-            'E' => 10,  // Qty
-            'F' => 18,  // Harga Satuan
-            'G' => 18,  // Jumlah Harga
-            'H' => 20,  // Tanggal Dibuat
+            'A' => 5,   // No
+            'B' => 20,  // Nomor SP3M
+            'C' => 25,  // Kantor SAR
+            'D' => 20,  // Alut
+            'E' => 20,  // Jenis Bahan Bakar
+            'F' => 10,  // Qty
+            'G' => 18,  // Harga Satuan
+            'H' => 18,  // Jumlah Harga
+            'I' => 20,  // Tanggal Dibuat
         ];
     }
 

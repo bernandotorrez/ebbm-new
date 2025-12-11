@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('tx_do', function (Blueprint $table) {
             $table->bigIncrements('do_id');
             $table->unsignedBigInteger('sp3m_id')->index('idx_sp3m_id_tx_do');
-            $table->unsignedBigInteger('tbbm_id')->index('idx_tbbm_id_tx_do');
             $table->unsignedBigInteger('bekal_id')->index('idx_bekal_id_tx_do');
             $table->unsignedBigInteger('kota_id')->index('idx_kota_id_tx_do');
             $table->unsignedBigInteger('harga_bekal_id')->nullable()->index('idx_harga_bekal_id_tx_do');
@@ -29,9 +28,9 @@ return new class extends Migration
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->unsignedBigInteger('deleted_by')->nullable();
+            $table->enum('is_active', ['0', '1'])->default('1');
             
             $table->foreign('sp3m_id')->references('sp3m_id')->on('tx_sp3m')->noActionOnDelete()->noActionOnUpdate();
-            $table->foreign('tbbm_id')->references('tbbm_id')->on('ms_tbbm')->noActionOnDelete()->noActionOnUpdate();
             $table->foreign('bekal_id')->references('bekal_id')->on('ms_bekal')->noActionOnDelete()->noActionOnUpdate();
             $table->foreign('kota_id')->references('kota_id')->on('ms_kota')->noActionOnDelete()->noActionOnUpdate();
             $table->foreign('harga_bekal_id')->references('harga_bekal_id')->on('ms_harga_bekal')->noActionOnDelete()->noActionOnUpdate();

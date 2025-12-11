@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\PreventUpdateTimestamp;
+use App\Traits\HasIsActive;
 
 class DeliveryOrder extends Model
 {
-    use SoftDeletes, PreventUpdateTimestamp;
+    use SoftDeletes, PreventUpdateTimestamp, HasIsActive;
 
     protected $table = 'tx_do';
     protected $primaryKey = 'do_id';
@@ -19,7 +20,6 @@ class DeliveryOrder extends Model
     protected $fillable = [
         'do_id',
         'sp3m_id',
-        'tbbm_id',
         'bekal_id',
         'kota_id',
         'harga_bekal_id',
@@ -32,16 +32,12 @@ class DeliveryOrder extends Model
         'created_by',
         'updated_by',
         'deleted_by',
+        'is_active',
     ];
 
     public function sp3m()
     {
         return $this->belongsTo(Sp3m::class, 'sp3m_id', 'sp3m_id');
-    }
-
-    public function tbbm()
-    {
-        return $this->belongsTo(Tbbm::class, 'tbbm_id', 'tbbm_id');
     }
 
     public function bekal()
@@ -78,5 +74,9 @@ class DeliveryOrder extends Model
         return $this->qty * $this->harga;
     }
 
-
+    // Helper method to get tbbm through sp3m
+    public function getTbbmAttribute()
+    {
+        return $this->sp3m?->tbbm;
+    }
 }
