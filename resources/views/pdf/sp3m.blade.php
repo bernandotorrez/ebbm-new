@@ -16,52 +16,31 @@
         }
         
         .header {
-            text-align: center;
             border-bottom: 3px solid #000;
             padding-bottom: 10px;
             margin-bottom: 20px;
         }
         
-        .header-content {
-            display: table;
-            width: 100%;
+        .header table {
+            border: none !important;
         }
         
-        .header-left {
-            display: table-cell;
-            width: 15%;
-            vertical-align: middle;
-            text-align: center;
-        }
-        
-        .header-center {
-            display: table-cell;
-            width: 70%;
-            vertical-align: middle;
-            text-align: center;
-        }
-        
-        .header-right {
-            display: table-cell;
-            width: 15%;
-            vertical-align: middle;
-            text-align: right;
-        }
-        
-        .logo {
-            width: 80px;
-            height: auto;
+        .header table td {
+            border: none !important;
+            padding: 0;
         }
         
         .header-title {
             font-weight: bold;
-            font-size: 14pt;
-            margin-bottom: 5px;
+            font-size: 13pt;
+            margin-bottom: 3px;
+            text-align: left;
         }
         
         .header-subtitle {
             font-size: 9pt;
-            margin: 2px 0;
+            margin: 1px 0;
+            text-align: left;
         }
         
         .document-title {
@@ -163,7 +142,7 @@
         
         .signature-box {
             display: inline-block;
-            text-align: center;
+            text-align: left;
             min-width: 200px;
         }
         
@@ -184,24 +163,45 @@
 <body>
     <!-- Header -->
     <div class="header">
-        <div class="header-content">
-            <div class="header-left">
-                <!-- Logo BASARNAS (jika ada) -->
-            </div>
-            <div class="header-center">
-                <div class="header-title">BADAN NASIONAL PENCARIAN DAN PERTOLONGAN</div>
-                <div class="header-subtitle">Jl. Angkasa Blok B. 15</div>
-                <div class="header-subtitle">Kav. 2-3 Jakarta 10720</div>
-                <div class="header-subtitle">Telp. : (021) 65701116 / 65867510</div>
-                <div class="header-subtitle">Fax : (021) 65701152</div>
-                <div class="header-subtitle">Emergency : 115 – (021) 65867511</div>
-                <div class="header-subtitle">Emergency Fax : (021) 65867512</div>
-                <div class="header-subtitle">E-mail : basarnas@basarnas.go.id</div>
-            </div>
-            <div class="header-right">
-                <!-- Space for additional info -->
-            </div>
-        </div>
+        <table style="width: 100%; border: none;">
+            <tr>
+                <td style="width: 18%; vertical-align: middle; border: none; padding: 0;">
+                    <!-- Logo BASARNAS -->
+                    <div style="text-align: center;">
+                        <div style="width: 100px; height: 100px; border-radius: 50%; background-color: #1e40af; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 5px;">
+                            <span style="color: white; font-size: 40px; font-weight: bold;">SAR</span>
+                        </div>
+                        <div style="color: #dc2626; font-weight: bold; font-size: 10pt;">BASARNAS</div>
+                    </div>
+                </td>
+                <td style="width: 82%; vertical-align: middle; border: none; padding: 0 10px;">
+                    <table style="width: 100%; border: none;">
+                        <tr>
+                            <td colspan="2" style="border: none; padding: 0;">
+                                <!-- Title - Full Width -->
+                                <div class="header-title" style="white-space: nowrap;">BADAN NASIONAL PENCARIAN DAN PERTOLONGAN</div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width: 60%; vertical-align: top; border: none; padding: 0; padding-right: 20px;">
+                                <!-- Left Info -->
+                                <div class="header-subtitle">Jl. Angkasa Blok B. 15</div>
+                                <div class="header-subtitle">Kav. 2-3 Jakarta 10720</div>
+                                <div class="header-subtitle" style="color: #2563eb; text-decoration: underline;">http://www.basarnas.go.id</div>
+                                <div class="header-subtitle">E-mail : basarnas@basarnas.go.id</div>
+                            </td>
+                            <td style="width: 40%; vertical-align: top; border: none; padding: 0; text-align: left;">
+                                <!-- Right Info -->
+                                <div class="header-subtitle">Telp. : (021) 65701116 / 65867510</div>
+                                <div class="header-subtitle">Fax : (021) 65701152</div>
+                                <div class="header-subtitle">Emergency : 115 – (021) 65867511</div>
+                                <div class="header-subtitle">Emergency Fax : (021) 65867512</div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
     </div>
 
     <!-- Document Title -->
@@ -217,7 +217,7 @@
         <div class="info-left">
             <div class="info-title">Pertimbangan :</div>
             <div class="info-item">
-                Bahwa perlu segera menyalurkan BBM Penggantian Penggantian Rutin
+                Bahwa perlu segera menyalurkan BBM Penggantian Rutin
             </div>
             <div class="info-item">Dalam Bulan : {{ \Carbon\Carbon::parse($sp3m->tanggal_sp3m)->format('F Y') }}</div>
             <div class="info-item">Tahun Anggaran : {{ $sp3m->tahun_anggaran }}</div>
@@ -237,15 +237,27 @@
     <div class="content">
         <div style="text-align: center; font-weight: bold; margin: 15px 0;">DIPERINTAHKAN</div>
         
-        <div class="info-item">
-            <span class="content-label">Kepada</span>: Kepala Kantor Pencarian dan Pertolongan {{ $sp3m->kantorSar->kantor_sar ?? '-' }}.
-        </div>
-        <div class="info-item">
-            <span class="content-label">Untuk</span>:
-        </div>
-        <div class="info-item" style="margin-left: 80px;">
-            Mengambil BBM Penggantian Rutin {{ $sp3m->alpal->alpal ?? '-' }} {{ $sp3m->kantorSar->kantor_sar ?? '-' }} perincian sebagai berikut :
-        </div>
+        <table style="width: 100%; border: none; margin: 10px 0;">
+            <tr>
+                <td style="width: 80px; vertical-align: top; border: none; padding: 3px 0;">Kepada</td>
+                <td style="width: 10px; vertical-align: top; border: none; padding: 3px 0;">:</td>
+                <td style="vertical-align: top; border: none; padding: 3px 0;">
+                    Kepala Kantor Pencarian dan Pertolongan {{ $sp3m->kantorSar->kantor_sar ?? '-' }}.
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 80px; vertical-align: top; border: none; padding: 3px 0;">Untuk</td>
+                <td style="width: 10px; vertical-align: top; border: none; padding: 3px 0;">:</td>
+                <td style="vertical-align: top; border: none; padding: 3px 0;"></td>
+            </tr>
+            <tr>
+                <td colspan="3" style="border: none;">
+                    <div class="notes">
+                        <div class="notes-item">1. Mengambil BBM Penggantian Rutin {{ $sp3m->alpal->alpal ?? '-' }} {{ $sp3m->kantorSar->kantor_sar ?? '-' }} perincian sebagai berikut :</div>
+                    </div>
+                </td>
+            </tr>
+        </table>
 
         <!-- Table -->
         <table>
@@ -290,11 +302,12 @@
     <!-- Signature -->
     <div class="signature-section">
         <div class="signature-box">
+            <div><br/></div>
             <div>Dikeluarkan di : Jakarta</div>
             <div>Tanggal : {{ \Carbon\Carbon::parse($sp3m->tanggal_sp3m)->format('d F Y') }}</div>
             <div>Direktur Sarana dan Prasarana,</div>
             <div class="signature-space"></div>
-            <div style="font-weight: bold;">Dr. A.M. Alkaf, S.E., M.M., Ph.D</div>
+            <div style="font-weight: bold;"><br>Dr. A.M. Alkaf, S.E., M.M., Ph.D</div>
             <div>Marsekal Pertama TNI.</div>
         </div>
     </div>
