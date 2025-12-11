@@ -26,4 +26,6 @@ Route::middleware(['auth'])->group(function () {
         ->name('preview.sp3m-lampiran');
     Route::get('/download/sp3m-lampiran/{id}', [FilePreviewController::class, 'downloadSp3mLampiran'])
         ->name('download.sp3m-lampiran');
+    Route::get('/export/sp3m-pdf/{id}', [\App\Http\Controllers\Sp3mPdfController::class, 'exportPdf'])
+        ->name('export.sp3m-pdf');
 });

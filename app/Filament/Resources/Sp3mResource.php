@@ -619,6 +619,12 @@ class Sp3mResource extends Resource
                 // Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
+                Tables\Actions\Action::make('export_pdf')
+                    ->label('Export PDF')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('success')
+                    ->url(fn ($record) => route('export.sp3m-pdf', $record->sp3m_id))
+                    ->openUrlInNewTab(),
                 Tables\Actions\ViewAction::make()
                     ->label('Lihat'),
                 Tables\Actions\EditAction::make()
