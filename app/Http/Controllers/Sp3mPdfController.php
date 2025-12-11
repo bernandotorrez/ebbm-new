@@ -21,7 +21,7 @@ class Sp3mPdfController extends Controller
         // Get nama dan jabatan pejabat dari request
         $namaPejabat = $request->get('nama_pejabat', 'Dr. A.M. Alkaf, S.E., M.M., Ph.D');
         $jabatanPejabat = $request->get('jabatan_pejabat', 'Marsekal Pertama TNI.');
-
+        
         // Ambil data SP3M dengan relasi
         $sp3m = Sp3m::with([
             'alpal.kantorSar.kota',
@@ -47,6 +47,8 @@ class Sp3mPdfController extends Controller
             'sp3m' => $sp3m,
             'pagu' => $pagu,
             'bulanIndonesia' => $bulanIndonesia,
+            'namaPejabat' => $namaPejabat,
+            'jabatanPejabat' => $jabatanPejabat
             // 'logoBase64' => $logoBase64
         ]);
 
