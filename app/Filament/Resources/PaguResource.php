@@ -78,10 +78,18 @@ class PaguResource extends Resource
                     ])
                     ->rules(['digits:4', 'min:1900', 'max:2099']),
                 Forms\Components\TextInput::make('dasar')
+                    ->label('Nomor SK')
+                    ->placeholder('Contoh: 01/PPK-04/PERJ/I/DSP-2025')
                     ->required()
                     ->maxLength(50),
                 Forms\Components\DatePicker::make('tanggal')
-                    ->required(),
+                    ->label('Tanggal')
+                    ->placeholder('Pilih Tanggal')
+                    ->required()
+                    ->native(false)
+                    ->displayFormat('d/m/Y')
+                    ->closeOnDateSelection(true)
+                    ->suffixIcon('heroicon-o-calendar'),
             ]);
     }
 

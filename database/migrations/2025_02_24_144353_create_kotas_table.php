@@ -20,6 +20,7 @@ return new class extends Migration
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->unsignedBigInteger('deleted_by')->nullable();
+            $table->enum('is_active', ['0', '1'])->default('1');
 
             $table->index('kota', 'idx_kota_ms_kota');
             

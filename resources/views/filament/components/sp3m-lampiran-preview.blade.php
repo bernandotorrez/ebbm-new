@@ -1,8 +1,8 @@
 <div class="space-y-3">
     @foreach($lampiran as $item)
-        <div class="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition cursor-pointer"
+        <div class="border rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-700 transition cursor-pointer"
              x-data="{ open: false }"
-             @click="open = true">
+             @click.stop="open = true">
             <div class="flex items-start justify-between">
                 <div class="flex-1">
                     <div class="flex items-center gap-2">
@@ -30,11 +30,12 @@
             <!-- Modal untuk preview file -->
             <div x-show="open"
                  x-cloak
-                 @click.away="open = false"
+                 x-transition
                  class="fixed inset-0 z-[100]"
-                 style="display: none;">
-                <div class="flex items-center justify-center min-h-screen px-4">
-                    <div class="fixed inset-0 bg-black opacity-50" @click="open = false"></div>
+                 style="display: none;"
+                 @click.self="open = false">
+                <div class="flex items-center justify-center min-h-screen px-4" @click.self="open = false">
+                    <div class="fixed inset-0 bg-black/50" @click="open = false"></div>
                     
                     <div class="relative bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-xl z-[101]"
                          @click.stop>

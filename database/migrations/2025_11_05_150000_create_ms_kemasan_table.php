@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('ms_kemasan', function (Blueprint $table) {
             $table->bigIncrements('kemasan_id');
+            $table->unsignedBigInteger('pack_id')->nullable();
             $table->unsignedInteger('kemasan_liter')->default(0);
             $table->string('kemasan_pack', 50);
             $table->softDeletes();
@@ -20,10 +21,14 @@ return new class extends Migration
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->unsignedBigInteger('deleted_by')->nullable();
+            $table->enum('is_active', ['0', '1'])->default('1');
             
             // Add indexes
             $table->index('kemasan_liter', 'idx_kemasan_liter');
             $table->index('kemasan_pack', 'idx_kemasan_pack');
+            
+            // Foreign keys
+            $table->foreign('pack_id')->references('pack_id')->on('ms_pack')->onDelete('restrict');
         });
     }
 

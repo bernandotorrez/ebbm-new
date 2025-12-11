@@ -113,7 +113,7 @@ return new class extends Migration
             LEFT JOIN ms_kota mk ON mk.kota_id = txdo.kota_id
             LEFT JOIN ms_harga_bekal mhb ON mhb.wilayah_id = mk.wilayah_id AND mhb.bekal_id = txdo.bekal_id
             INNER JOIN tx_alpal ta ON ta.alpal_id = txsp3m.alpal_id
-            INNER JOIN ms_tbbm mt ON mt.tbbm_id = txdo.tbbm_id
+            LEFT JOIN ms_tbbm mt ON mt.tbbm_id = txsp3m.tbbm_id
             WHERE txdo.deleted_at IS NULL;
         ");
     }

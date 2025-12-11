@@ -29,8 +29,7 @@ return new class extends Migration
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->unsignedBigInteger('deleted_by')->nullable();
-            
-            // Note: Foreign keys will be added after ms_kantor_sar and tx_alpal tables are created
+            $table->enum('is_active', ['0', '1'])->default('1');
         });
 
         // Insert default admin user
