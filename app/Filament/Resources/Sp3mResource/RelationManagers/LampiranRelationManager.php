@@ -66,11 +66,18 @@ class LampiranRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('file_path')
                     ->label('File')
                     ->formatStateUsing(fn ($state) => basename($state))
-                    ->url(fn ($record) => asset('storage/' . $record->file_path))
-                    ->openUrlInNewTab()
                     ->color('primary')
                     ->icon('heroicon-o-document')
-                    ->sortable(),
+                    ->sortable()
+                    ->action(
+                        Tables\Actions\Action::make('previewFile')
+                            ->label('Lihat File')
+                            ->modalHeading(fn ($record) => $record->nama_file)
+                            ->modalContent(fn ($record) => view('filament.modals.file-preview', ['file' => $record]))
+                            ->modalSubmitAction(false)
+                            ->modalCancelActionLabel('Tutup')
+                            ->slideOver()
+                    ),
                 Tables\Columns\TextColumn::make('keterangan')
                     ->label('Keterangan')
                     ->limit(50)

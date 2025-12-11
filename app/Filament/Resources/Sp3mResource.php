@@ -409,11 +409,27 @@ class Sp3mResource extends Resource
                     ->helperText('Minimal 1 lampiran harus diisi. Anda dapat menambahkan lebih banyak lampiran dengan klik tombol "+ Tambah Lampiran".')
                     ->visible(fn ($livewire) => $livewire instanceof \App\Filament\Resources\Sp3mResource\Pages\CreateSp3m),
                 
-                // Info untuk halaman edit
-                Forms\Components\Placeholder::make('lampiran_info')
-                    ->label('Lampiran')
-                    ->content('Lampiran dapat dikelola di tab "Lampiran" di bawah form ini.')
-                    ->visible(fn ($livewire) => $livewire instanceof \App\Filament\Resources\Sp3mResource\Pages\EditSp3m),
+                // Section Lampiran untuk halaman edit
+                Forms\Components\Section::make('Lampiran')
+                    ->schema([
+                        Forms\Components\Placeholder::make('lampiran_list')
+                            ->label('')
+                            ->content(function ($record) {
+                                if (!$record || !$record->lampiran || $record->lampiran->count() === 0) {
+                                    return new \Illuminate\Support\HtmlString('
+                                        <div class="text-center py-4 text-gray-500 dark:text-gray-400">
+                                            <p>Belum ada lampiran. Gunakan tab "Lampiran" di bawah untuk menambahkan.</p>
+                                        </div>
+                                    ');
+                                }
+                                
+                                return new \Illuminate\Support\HtmlString(
+                                    view('filament.components.sp3m-lampiran-preview', ['lampiran' => $record->lampiran])->render()
+                                );
+                            }),
+                    ])
+                    ->visible(fn ($livewire) => $livewire instanceof \App\Filament\Resources\Sp3mResource\Pages\EditSp3m)
+                    ->collapsible(),
             ]);
     }
 
@@ -522,7 +538,16 @@ class Sp3mResource extends Resource
                     ->badge()
                     ->color('success')
                     ->formatStateUsing(fn ($state) => $state > 0 ? "{$state} file" : 'Tidak ada')
-                    ->sortable(),
+                    ->sortable()
+                    ->action(
+                        Tables\Actions\Action::make('viewLampiran')
+                            ->label('Lihat Lampiran')
+                            ->modalHeading('Daftar Lampiran')
+                            ->modalContent(fn ($record) => view('filament.modals.sp3m-lampiran-list', ['lampiran' => $record->lampiran]))
+                            ->modalSubmitAction(false)
+                            ->modalCancelActionLabel('Tutup')
+                            ->slideOver()
+                    ),
                 Tables\Columns\TextColumn::make('harga_satuan')
                     ->label('Harga Satuan')
                     ->numeric()

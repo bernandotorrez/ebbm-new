@@ -6,6 +6,9 @@ use App\Filament\Resources\Sp3mResource;
 use App\Models\DeliveryOrder;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Infolists\Infolist;
+use Filament\Infolists\Components;
+use Illuminate\Support\Facades\Storage;
 
 class ViewSp3m extends ViewRecord
 {
@@ -14,6 +17,70 @@ class ViewSp3m extends ViewRecord
     public function getTitle(): string
     {
         return 'Lihat SP3M';
+    }
+
+    public function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Components\Section::make('Informasi SP3M')
+                    ->schema([
+                        Components\TextEntry::make('nomor_sp3m')
+                            ->label('Nomor SP3M'),
+                        Components\TextEntry::make('tanggal_sp3m')
+                            ->label('Tanggal SP3M')
+                            ->date('d/m/Y'),
+                        Components\TextEntry::make('tahun_anggaran')
+                            ->label('Tahun Anggaran'),
+                        Components\TextEntry::make('tw')
+                            ->label('Triwulan')
+                            ->formatStateUsing(fn ($state) => "Triwulan {$state}"),
+                        Components\TextEntry::make('alpal.alpal')
+                            ->label('Alut'),
+                        Components\TextEntry::make('kantorSar.kantor_sar')
+                            ->label('Kantor SAR'),
+                        Components\TextEntry::make('bekal.bekal')
+                            ->label('Jenis Bahan Bakar'),
+                        Components\TextEntry::make('tbbm.depot')
+                            ->label('TBBM/DPPU'),
+                        Components\TextEntry::make('qty')
+                            ->label('Qty')
+                            ->numeric(),
+                        Components\TextEntry::make('sisa_qty')
+                            ->label('Sisa Qty')
+                            ->numeric(),
+                    ])
+                    ->columns(2),
+                
+                Components\Section::make('Lampiran')
+                    ->schema([
+                        Components\RepeatableEntry::make('lampiran')
+                            ->label('')
+                            ->schema([
+                                Components\TextEntry::make('nama_file')
+                                    ->label('Nama File')
+                                    ->weight('bold'),
+                                Components\TextEntry::make('keterangan')
+                                    ->label('Keterangan')
+                                    ->placeholder('Tidak ada keterangan'),
+                                Components\TextEntry::make('file_path')
+                                    ->label('File')
+                                    ->formatStateUsing(fn ($state) => basename($state))
+                                    ->url(fn ($record) => Storage::url($record->file_path))
+                                    ->openUrlInNewTab()
+                                    ->icon('heroicon-o-document')
+                                    ->iconColor('primary'),
+                                Components\TextEntry::make('created_at')
+                                    ->label('Dibuat Pada')
+                                    ->dateTime('d/m/Y H:i'),
+                            ])
+                            ->columns(2)
+                            ->contained(false)
+                            ->grid(1),
+                    ])
+                    ->collapsible()
+                    ->collapsed(false),
+            ]);
     }
 
     protected function getHeaderActions(): array
