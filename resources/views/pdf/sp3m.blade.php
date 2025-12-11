@@ -312,12 +312,40 @@
         </div>
     </div>
 
-    <!-- Footer -->
-    <div class="footer-note">
-        <div class="footer-note-title">Tembusan :</div>
-        <div>1. Deputi Bidang Sarana Prasarana dan Sistem Komunikasi;</div>
-        <div>2. PT. Pertamina Patra Niaga.</div>
-    </div>
+    <!-- Footer with Validator/Approval -->
+    <table style="width: 100%; border: none; margin-top: 20px;">
+        <tr>
+            <td style="width: 50%; vertical-align: top; border: none; padding: 0;">
+                <!-- Tembusan -->
+                <div class="footer-note">
+                    <div class="footer-note-title">Tembusan :</div>
+                    <div>1. Deputi Bidang Sarana Prasarana dan Sistem Komunikasi;</div>
+                    <div>2. PT. Pertamina Patra Niaga.</div>
+                </div>
+            </td>
+            <td style="width: 50%; vertical-align: top; border: none; padding: 0; text-align: right;">
+                <!-- Validator/Approval Box -->
+                <table style="width: 250px; border-collapse: collapse; margin-left: auto;">
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 8px; text-align: center; width: 120px;">
+                            Validator
+                        </td>
+                        <td style="border: 1px solid #000; padding: 8px; height: 50px; width: 130px;">
+                            <!-- Space for signature -->
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 8px; text-align: center;">
+                            Approval
+                        </td>
+                        <td style="border: 1px solid #000; padding: 8px; height: 50px;">
+                            <!-- Space for signature -->
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>
 
