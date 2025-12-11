@@ -38,14 +38,18 @@ class LampiranRelationManager extends RelationManager
                     ->disk('public')
                     ->directory('sp3m/lampiran')
                     ->visibility('public')
-                    ->acceptedFileTypes(['application/pdf', 'image/*'])
-                    ->maxSize(5120)
+                    ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'])
+                    ->maxSize(1024)
+                    ->helperText('Format: PDF, JPG, JPEG, PNG, GIF, WebP | Maksimal: 1 MB')
                     ->validationMessages([
                         'required' => 'File harus diunggah',
-                        'file' => 'File harus berupa PDF atau gambar',
-                        'max' => 'Ukuran file maksimal 5MB',
+                        'mimes' => 'File harus berupa PDF atau gambar (JPG, JPEG, PNG, GIF, WebP)',
+                        'max' => 'Ukuran file maksimal 1 MB',
                     ])
-                    ->uploadingMessage('Mengunggah...'),
+                    ->uploadingMessage('Mengunggah...')
+                    ->downloadable()
+                    ->openable()
+                    ->previewable(),
                 Forms\Components\Textarea::make('keterangan')
                     ->label('Keterangan')
                     ->maxLength(500)
