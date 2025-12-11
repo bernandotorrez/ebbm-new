@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ApiTestController;
+use App\Http\Controllers\FilePreviewController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -17,4 +18,12 @@ Route::prefix('api-test')->group(function () {
     
     // Test SIMPEG API - Browser View
     Route::get('/simpeg-view', [ApiTestController::class, 'simpegTestView']);
+});
+
+// File Preview Routes (Requires Authentication)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/preview/sp3m-lampiran/{id}', [FilePreviewController::class, 'previewSp3mLampiran'])
+        ->name('preview.sp3m-lampiran');
+    Route::get('/download/sp3m-lampiran/{id}', [FilePreviewController::class, 'downloadSp3mLampiran'])
+        ->name('download.sp3m-lampiran');
 });

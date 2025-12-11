@@ -38,7 +38,7 @@
                                 @endphp
                                 
                                 @if($isPreviewable)
-                                    <a href="{{ Storage::url($item->file_path) }}" 
+                                    <a href="{{ route('preview.sp3m-lampiran', $item->lampiran_id) }}" 
                                        target="_blank"
                                        class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition">
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -49,9 +49,8 @@
                                     </a>
                                 @endif
                                 
-                                <a href="{{ Storage::url($item->file_path) }}" 
-                                   download
-                                   class="inline-flex items-center px-3 py-1.5 text-xs font-medium dark:text-white bg-gray-600 dark:bg-gray-500 border border-gray-600 dark:border-gray-500 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition shadow-sm">
+                                <a href="{{ route('download.sp3m-lampiran', $item->lampiran_id) }}" 
+                                   class="inline-flex items-center px-3 py-1.5 text-xs font-medium text-white bg-gray-600 dark:bg-gray-500 border border-gray-600 dark:border-gray-500 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 transition shadow-sm">
                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                     </svg>

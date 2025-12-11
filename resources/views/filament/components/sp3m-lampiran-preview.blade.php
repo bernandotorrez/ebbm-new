@@ -60,11 +60,11 @@
                             @endphp
 
                             @if($isImage)
-                                <img src="{{ Storage::url($item->file_path) }}" 
+                                <img src="{{ route('preview.sp3m-lampiran', $item->lampiran_id) }}" 
                                      alt="{{ $item->nama_file }}"
                                      class="max-w-full h-auto mx-auto rounded">
                             @elseif($isPdf)
-                                <iframe src="{{ Storage::url($item->file_path) }}" 
+                                <iframe src="{{ route('preview.sp3m-lampiran', $item->lampiran_id) }}" 
                                         class="w-full h-[70vh] rounded border border-gray-300 dark:border-gray-700">
                                 </iframe>
                             @else
@@ -75,8 +75,7 @@
                                     <p class="text-gray-600 dark:text-gray-300 mb-4">
                                         Preview tidak tersedia untuk tipe file ini
                                     </p>
-                                    <a href="{{ Storage::url($item->file_path) }}" 
-                                       target="_blank"
+                                    <a href="{{ route('download.sp3m-lampiran', $item->lampiran_id) }}" 
                                        class="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 shadow-sm">
                                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -89,8 +88,7 @@
 
                         <!-- Footer -->
                         <div class="flex items-center justify-between p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-                            <a href="{{ Storage::url($item->file_path) }}" 
-                               download
+                            <a href="{{ route('download.sp3m-lampiran', $item->lampiran_id) }}" 
                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gray-600 dark:bg-gray-500 border border-gray-600 dark:border-gray-500 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600 shadow-sm">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />

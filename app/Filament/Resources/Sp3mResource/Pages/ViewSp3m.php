@@ -66,7 +66,7 @@ class ViewSp3m extends ViewRecord
                                 Components\TextEntry::make('file_path')
                                     ->label('File')
                                     ->formatStateUsing(fn ($state) => basename($state))
-                                    ->url(fn ($record) => Storage::url($record->file_path))
+                                    ->url(fn ($record) => route('preview.sp3m-lampiran', $record->lampiran_id))
                                     ->openUrlInNewTab()
                                     ->icon('heroicon-o-document')
                                     ->iconColor('primary'),
