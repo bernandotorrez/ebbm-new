@@ -168,10 +168,7 @@
                 <td style="width: 18%; vertical-align: middle; border: none; padding: 0;">
                     <!-- Logo BASARNAS -->
                     <div style="text-align: center;">
-                        <div style="width: 100px; height: 100px; border-radius: 50%; background-color: #1e40af; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 5px;">
-                            <span style="color: white; font-size: 40px; font-weight: bold;">SAR</span>
-                        </div>
-                        <div style="color: #dc2626; font-weight: bold; font-size: 10pt;">BASARNAS</div>
+                        <img src="{{ public_path('logo.svg') }}" alt="Logo BASARNAS" style="width: 100px; height: auto; margin-bottom: 5px;">
                     </div>
                 </td>
                 <td style="width: 82%; vertical-align: middle; border: none; padding: 0 10px;">
@@ -219,7 +216,7 @@
             <div class="info-item">
                 Bahwa perlu segera menyalurkan BBM Penggantian Rutin
             </div>
-            <div class="info-item">Dalam Bulan : {{ \Carbon\Carbon::parse($sp3m->tanggal_sp3m)->format('F Y') }}</div>
+            <div class="info-item">Dalam Bulan : {{ $bulanIndonesia }} {{ $sp3m->tahun_anggaran }}</div>
             <div class="info-item">Tahun Anggaran : {{ $sp3m->tahun_anggaran }}</div>
             <div class="info-item">Pendistribusian : {{ $sp3m->tbbm->depot ?? '-' }}</div>
         </div>
@@ -228,8 +225,8 @@
             <div class="info-item">
                 Perjanjian Kerja Sama antara Badan Nasional Pencarian dan Pertolongan dengan PT. Pertamina Patra Niaga (Persero)
             </div>
-            <div class="info-item">No : [Nomor Perjanjian]</div>
-            <div class="info-item">Tanggal : {{ \Carbon\Carbon::parse($sp3m->tanggal_sp3m)->format('d F Y') }}</div>
+            <div class="info-item">No : {{ $pagu->dasar ?? '-' }}</div>
+            <div class="info-item">Tanggal : {{ $pagu && $pagu->tanggal ? \Carbon\Carbon::parse($pagu->tanggal)->format('d F Y') : '-' }}</div>
         </div>
     </div>
 
