@@ -226,7 +226,7 @@
                 Perjanjian Kerja Sama antara Badan Nasional Pencarian dan Pertolongan dengan PT. Pertamina Patra Niaga (Persero)
             </div>
             <div class="info-item">No : {{ $pagu->dasar ?? '-' }}</div>
-            <div class="info-item">Tanggal : {{ $pagu && $pagu->tanggal ? \Carbon\Carbon::parse($pagu->tanggal)->format('d F Y') : '-' }}</div>
+            <div class="info-item">Tanggal : {{ $pagu && $pagu->tanggal ? formatTanggalIndonesia($pagu->tanggal) : '-' }}</div>
         </div>
     </div>
 
@@ -301,11 +301,11 @@
         <div class="signature-box">
             <div><br/></div>
             <div>Dikeluarkan di : Jakarta</div>
-            <div>Tanggal : {{ \Carbon\Carbon::parse($sp3m->tanggal_sp3m)->format('d F Y') }}</div>
+            <div>Tanggal : {{ formatTanggalIndonesia($sp3m->tanggal_sp3m) }}</div>
             <div>Direktur Sarana dan Prasarana,</div>
             <div class="signature-space"></div>
-            <div style="font-weight: bold;"><br>Dr. A.M. Alkaf, S.E., M.M., Ph.D</div>
-            <div>Marsekal Pertama TNI.</div>
+            <div style="font-weight: bold;"><br>{{ $namaPejabat ?? 'Dr. A.M. Alkaf, S.E., M.M., Ph.D' }}</div>
+            <div>{{ $jabatanPejabat ?? 'Marsekal Pertama TNI.' }}</div>
         </div>
     </div>
 
@@ -347,6 +347,19 @@
 </html>
 
 @php
+function formatTanggalIndonesia($tanggal) {
+    if (!$tanggal) return '-';
+    
+    $bulan = [
+        1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+        5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+        9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+    ];
+    
+    $date = \Carbon\Carbon::parse($tanggal);
+    return $date->format('d') . ' ' . $bulan[$date->format('n')] . ' ' . $date->format('Y');
+}
+
 function terbilang($angka) {
     $angka = abs($angka);
     $baca = array('', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan', 'sepuluh', 'sebelas');

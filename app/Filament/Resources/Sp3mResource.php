@@ -623,8 +623,33 @@ class Sp3mResource extends Resource
                     ->label('Export PDF')
                     ->icon('heroicon-o-document-arrow-down')
                     ->color('success')
-                    ->url(fn ($record) => route('export.sp3m-pdf', $record->sp3m_id))
-                    ->openUrlInNewTab(),
+                    ->form([
+                        Forms\Components\TextInput::make('nama_pejabat_ttd')
+                            ->label('Nama Pejabat Penandatangan')
+                            ->required()
+                            ->default('Dr. A.M. Alkaf, S.E., M.M., Ph.D')
+                            ->maxLength(255)
+                            ->placeholder('Contoh: Dr. A.M. Alkaf, S.E., M.M., Ph.D'),
+                        Forms\Components\TextInput::make('jabatan_pejabat_ttd')
+                            ->label('Jabatan Pejabat')
+                            ->required()
+                            ->default('Marsekal Pertama TNI.')
+                            ->maxLength(255)
+                            ->placeholder('Contoh: Marsekal Pertama TNI.'),
+                    ])
+                    ->action(function ($record, array $data) {
+                        // Redirect to PDF export with query parameters
+                        $url = route('export.sp3m-pdf', [
+                            'id' => $record->sp3m_id,
+                            'nama_pejabat' => $data['nama_pejabat_ttd'],
+                            'jabatan_pejabat' => $data['jabatan_pejabat_ttd']
+                        ]);
+                        
+                        return redirect($url);
+                    })
+                    ->modalHeading('Data Pejabat Penandatangan')
+                    ->modalSubmitActionLabel('Export PDF')
+                    ->modalWidth('md'),
                 Tables\Actions\ViewAction::make()
                     ->label('Lihat'),
                 Tables\Actions\EditAction::make()

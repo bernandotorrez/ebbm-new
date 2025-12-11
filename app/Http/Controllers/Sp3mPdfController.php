@@ -11,12 +11,16 @@ class Sp3mPdfController extends Controller
     /**
      * Export SP3M to PDF (Preview in browser)
      */
-    public function exportPdf($id)
+    public function exportPdf($id, Request $request)
     {
         // Cek autentikasi
         if (!auth()->check()) {
             abort(403, 'Unauthorized access');
         }
+
+        // Get nama dan jabatan pejabat dari request
+        $namaPejabat = $request->get('nama_pejabat', 'Dr. A.M. Alkaf, S.E., M.M., Ph.D');
+        $jabatanPejabat = $request->get('jabatan_pejabat', 'Marsekal Pertama TNI.');
 
         // Ambil data SP3M dengan relasi
         $sp3m = Sp3m::with([
@@ -139,12 +143,16 @@ class Sp3mPdfController extends Controller
     /**
      * Download SP3M PDF
      */
-    public function downloadPdf($id)
+    public function downloadPdf($id, Request $request)
     {
         // Cek autentikasi
         if (!auth()->check()) {
             abort(403, 'Unauthorized access');
         }
+
+        // Get nama dan jabatan pejabat dari request
+        $namaPejabat = $request->get('nama_pejabat', 'Dr. A.M. Alkaf, S.E., M.M., Ph.D');
+        $jabatanPejabat = $request->get('jabatan_pejabat', 'Marsekal Pertama TNI.');
 
         // Ambil data SP3M dengan relasi
         $sp3m = Sp3m::with([
@@ -171,7 +179,9 @@ class Sp3mPdfController extends Controller
             'sp3m' => $sp3m,
             'pagu' => $pagu,
             'bulanIndonesia' => $bulanIndonesia,
-            'logoBase64' => $logoBase64
+            'logoBase64' => $logoBase64,
+            'namaPejabat' => $namaPejabat,
+            'jabatanPejabat' => $jabatanPejabat
         ]);
 
         // Set paper size dan orientation
