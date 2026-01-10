@@ -48,10 +48,8 @@ RUN apk add --no-cache \
     zip \
     intl
 
-# Create directories for sockets and logs with proper permissions
-RUN mkdir -p /var/run/php-fpm \
-    && touch /var/run/php-fpm.sock \
-    && chown www-data:www-data /var/run/php-fpm.sock
+# Create directories for logs with proper permissions
+RUN mkdir -p /var/run/php-fpm
 
 # Set working directory
 WORKDIR /var/www/html

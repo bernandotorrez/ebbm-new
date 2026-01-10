@@ -23,15 +23,36 @@ chown -R www-data:www-data storage/app/livewire-tmp
 echo "Creating storage symbolic link..."
 php artisan storage:link || echo "Storage link already exists or failed, continuing..."
 
+# Publish Livewire assets
+echo "Publishing Livewire assets..."
+php artisan livewire:publish --assets --force || echo "Livewire assets publish failed, continuing..."
+
+# Publish Filament assets
+echo "Publishing Filament assets..."
+php artisan filament:assets || echo "Filament assets publish failed, continuing..."
+
+# Optimize application
+echo "Optimizing application..."
+php artisan optimize || echo "Optimization failed, continuing..."
+
 # Ensure PHP-FPM directory exists
 mkdir -p /var/run/php-fpm
 
 # Wait for MySQL to be ready
 echo "Waiting for MySQL to be ready..."
-while ! nc -z mysql 3306; do
-  sleep 1
+max_attempts=30
+attempt=0
+until php artisan db:show 2>/dev/null || [ $attempt -eq $max_attempts ]; do
+  attempt=$((attempt + 1))
+  echo "Waiting for database connection... (attempt $attempt/$max_attempts)"
+  sleep 2
 done
-echo "MySQL is ready!"
+
+if [ $attempt -eq $max_attempts ]; then
+  echo "Warning: Could not connect to database after $max_attempts attempts. Continuing anyway..."
+else
+  echo "MySQL is ready!"
+fi
 
 # Check if .env file exists
 if [ -f ".env" ]; then
