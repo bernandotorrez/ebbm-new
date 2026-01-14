@@ -76,7 +76,7 @@ Semua container harus status "Up".
 
 ### Cek Livewire Directory
 ```bash
-docker exec -it ebbl_app ls -la storage/app/livewire-tmp
+docker exec -it ebbm_app ls -la storage/app/livewire-tmp
 ```
 
 Output harus menunjukkan directory dengan permissions 775.
@@ -115,7 +115,7 @@ docker compose up -d --build
 
 ```bash
 # Manual fix
-docker exec -it ebbl_app sh -c "
+docker exec -it ebbm_app sh -c "
   mkdir -p storage/app/livewire-tmp && 
   chmod -R 775 storage/app/livewire-tmp && 
   chown -R www-data:www-data storage/app/livewire-tmp &&
@@ -132,7 +132,7 @@ docker compose restart
 
 ```bash
 # Fix all permissions
-docker exec -it ebbl_app sh -c "
+docker exec -it ebbm_app sh -c "
   chmod -R 775 storage bootstrap/cache public && 
   chown -R www-data:www-data storage bootstrap/cache public
 "
@@ -161,23 +161,23 @@ Script ini akan:
 ```bash
 # Otomatis setiap restart (>24 jam)
 # Atau manual:
-docker exec -it ebbl_app php artisan livewire:delete-uploaded-files --hours=24
+docker exec -it ebbm_app php artisan livewire:delete-uploaded-files --hours=24
 ```
 
 ### Clear All Caches
 ```bash
-docker exec -it ebbl_app php artisan optimize:clear
-docker exec -it ebbl_app php artisan filament:clear-cached-components
+docker exec -it ebbm_app php artisan optimize:clear
+docker exec -it ebbm_app php artisan filament:clear-cached-components
 docker compose restart
 ```
 
 ### Monitoring Livewire
 ```bash
 # Cek ukuran directory
-docker exec -it ebbl_app du -sh storage/app/livewire-tmp
+docker exec -it ebbm_app du -sh storage/app/livewire-tmp
 
 # Cek jumlah files
-docker exec -it ebbl_app find storage/app/livewire-tmp -type f | wc -l
+docker exec -it ebbm_app find storage/app/livewire-tmp -type f | wc -l
 ```
 
 ## Verifikasi Deployment Berhasil

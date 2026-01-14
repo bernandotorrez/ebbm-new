@@ -19,45 +19,45 @@ docker compose up -d --build
 
 #### 2. Install/Update Dependencies
 ```bash
-docker exec -it ebbl_app composer install --no-dev --optimize-autoloader
+docker exec -it ebbm_app composer install --no-dev --optimize-autoloader
 ```
 
 #### 3. Run Database Migrations
 ```bash
-docker exec -it ebbl_app php artisan migrate --force
+docker exec -it ebbm_app php artisan migrate --force
 ```
 
 #### 4. Clear All Caches
 ```bash
-docker exec -it ebbl_app php artisan cache:clear
-docker exec -it ebbl_app php artisan config:clear
-docker exec -it ebbl_app php artisan route:clear
-docker exec -it ebbl_app php artisan view:clear
-docker exec -it ebbl_app php artisan event:clear
+docker exec -it ebbm_app php artisan cache:clear
+docker exec -it ebbm_app php artisan config:clear
+docker exec -it ebbm_app php artisan route:clear
+docker exec -it ebbm_app php artisan view:clear
+docker exec -it ebbm_app php artisan event:clear
 ```
 
 #### 5. Rebuild Caches for Production
 ```bash
-docker exec -it ebbl_app php artisan config:cache
-docker exec -it ebbl_app php artisan route:cache
-docker exec -it ebbl_app php artisan view:cache
-docker exec -it ebbl_app php artisan event:cache
+docker exec -it ebbm_app php artisan config:cache
+docker exec -it ebbm_app php artisan route:cache
+docker exec -it ebbm_app php artisan view:cache
+docker exec -it ebbm_app php artisan event:cache
 ```
 
 #### 6. Publish Assets
 ```bash
-docker exec -it ebbl_app php artisan vendor:publish --tag=public --force
-docker exec -it ebbl_app php artisan filament:assets
+docker exec -it ebbm_app php artisan vendor:publish --tag=public --force
+docker exec -it ebbm_app php artisan filament:assets
 ```
 
 #### 7. Create Storage Link
 ```bash
-docker exec -it ebbl_app php artisan storage:link
+docker exec -it ebbm_app php artisan storage:link
 ```
 
 #### 8. Fix Permissions
 ```bash
-docker exec -it ebbl_app sh -c "chmod -R 775 storage bootstrap/cache public && chown -R www-data:www-data storage bootstrap/cache public"
+docker exec -it ebbm_app sh -c "chmod -R 775 storage bootstrap/cache public && chown -R www-data:www-data storage bootstrap/cache public"
 ```
 
 #### 9. Restart Containers
@@ -82,8 +82,8 @@ docker compose restart
 
 ### After Deployment
 - [ ] Test critical features
-- [ ] Check error logs: `docker exec -it ebbl_app cat storage/logs/laravel.log`
-- [ ] Verify database migrations: `docker exec -it ebbl_app php artisan migrate:status`
+- [ ] Check error logs: `docker exec -it ebbm_app cat storage/logs/laravel.log`
+- [ ] Verify database migrations: `docker exec -it ebbm_app php artisan migrate:status`
 - [ ] Test file uploads
 - [ ] Test form submissions
 
@@ -103,20 +103,20 @@ docker compose restart
 
 ### Issue: Permission denied
 ```bash
-docker exec -it ebbl_app sh -c "chmod -R 775 storage bootstrap/cache && chown -R www-data:www-data storage bootstrap/cache"
+docker exec -it ebbm_app sh -c "chmod -R 775 storage bootstrap/cache && chown -R www-data:www-data storage bootstrap/cache"
 ```
 
 ### Issue: Config cached with wrong values
 ```bash
-docker exec -it ebbl_app php artisan config:clear
-docker exec -it ebbl_app php artisan config:cache
+docker exec -it ebbm_app php artisan config:clear
+docker exec -it ebbm_app php artisan config:cache
 docker compose restart
 ```
 
 ### Issue: Routes not found
 ```bash
-docker exec -it ebbl_app php artisan route:clear
-docker exec -it ebbl_app php artisan route:cache
+docker exec -it ebbm_app php artisan route:clear
+docker exec -it ebbm_app php artisan route:cache
 ```
 
 ---
@@ -134,7 +134,7 @@ git reset --hard <commit-hash>
 ### 2. Rollback Database (if needed)
 ```bash
 # Restore from backup
-docker exec -i ebbl_mysql mysql -u root -prootpassword ebbm < backup.sql
+docker exec -i ebbm_mysql mysql -u root -prootpassword ebbm < backup.sql
 ```
 
 ### 3. Redeploy
@@ -155,7 +155,7 @@ docker compose logs -f
 docker compose logs -f app
 
 # Laravel logs
-docker exec -it ebbl_app tail -f storage/logs/laravel.log
+docker exec -it ebbm_app tail -f storage/logs/laravel.log
 
 # Nginx logs
 docker compose logs -f app | grep nginx
@@ -169,13 +169,13 @@ docker compose ps
 ### Check Application Health
 ```bash
 # Check Laravel version
-docker exec -it ebbl_app php artisan --version
+docker exec -it ebbm_app php artisan --version
 
 # Check database connection
-docker exec -it ebbl_app php artisan db:show
+docker exec -it ebbm_app php artisan db:show
 
 # Check routes
-docker exec -it ebbl_app php artisan route:list
+docker exec -it ebbm_app php artisan route:list
 ```
 
 ---
@@ -185,13 +185,13 @@ docker exec -it ebbl_app php artisan route:list
 ### After Deployment
 ```bash
 # Optimize autoloader
-docker exec -it ebbl_app composer dump-autoload --optimize
+docker exec -it ebbm_app composer dump-autoload --optimize
 
 # Cache everything
-docker exec -it ebbl_app php artisan optimize
+docker exec -it ebbm_app php artisan optimize
 
 # Clear old logs (optional)
-docker exec -it ebbl_app sh -c "truncate -s 0 storage/logs/laravel.log"
+docker exec -it ebbm_app sh -c "truncate -s 0 storage/logs/laravel.log"
 ```
 
 ---
@@ -201,10 +201,10 @@ docker exec -it ebbl_app sh -c "truncate -s 0 storage/logs/laravel.log"
 ### Database Backup
 ```bash
 # Create backup
-docker exec ebbl_mysql mysqldump -u root -prootpassword ebbm > backup_$(date +%Y%m%d_%H%M%S).sql
+docker exec ebbm_mysql mysqldump -u root -prootpassword ebbm > backup_$(date +%Y%m%d_%H%M%S).sql
 
 # Restore backup
-docker exec -i ebbl_mysql mysql -u root -prootpassword ebbm < backup_YYYYMMDD_HHMMSS.sql
+docker exec -i ebbm_mysql mysql -u root -prootpassword ebbm < backup_YYYYMMDD_HHMMSS.sql
 ```
 
 ### Files Backup
@@ -247,9 +247,9 @@ DB_PASSWORD=strong_password
 |------|---------|
 | Deploy after pull | `./deploy-after-pull.sh` |
 | View logs | `docker compose logs -f` |
-| Clear cache | `docker exec -it ebbl_app php artisan cache:clear` |
+| Clear cache | `docker exec -it ebbm_app php artisan cache:clear` |
 | Restart | `docker compose restart` |
-| Shell access | `docker exec -it ebbl_app sh` |
+| Shell access | `docker exec -it ebbm_app sh` |
 | Fix permissions | `./fix-assets.sh` |
 | Fix Livewire | `./fix-livewire-404.sh` |
 
@@ -259,6 +259,6 @@ DB_PASSWORD=strong_password
 
 If you encounter issues:
 1. Check logs: `docker compose logs -f`
-2. Check Laravel logs: `docker exec -it ebbl_app cat storage/logs/laravel.log`
+2. Check Laravel logs: `docker exec -it ebbm_app cat storage/logs/laravel.log`
 3. Run fix scripts: `./fix-livewire-404.sh` or `./fix-assets.sh`
 4. Consult `TROUBLESHOOTING-LIVEWIRE.md`

@@ -3,10 +3,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: ebbl_app
+    container_name: ebbm_app
     restart: unless-stopped
     networks:
-      - ebbl_network
+      - ebbm_network
     environment:
       - APP_ENV=production
     volumes:
@@ -18,10 +18,10 @@ services:
 
   nginx:
     image: nginx:alpine
-    container_name: ebbl_nginx
+    container_name: ebbm_nginx
     restart: unless-stopped
     networks:
-      - ebbl_network
+      - ebbm_network
     ports:
       - "80:80"
       - "443:443"
@@ -35,10 +35,10 @@ services:
 
   mysql:
     image: percona:8.0
-    container_name: ebbl_mysql
+    container_name: ebbm_mysql
     restart: unless-stopped
     networks:
-      - ebbl_network
+      - ebbm_network
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_DATABASE: ebbm
@@ -50,7 +50,7 @@ services:
       - "3306:3306"
 
 networks:
-  ebbl_network:
+  ebbm_network:
     driver: bridge
 
 volumes:
