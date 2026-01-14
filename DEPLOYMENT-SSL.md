@@ -54,7 +54,7 @@ docker-compose logs -f app
 **Jika nginx error:**
 ```bash
 # Masuk ke container nginx
-docker exec -it ebbm_nginx sh
+docker exec -it ebmp_nginx sh
 
 # Test config
 nginx -t
@@ -66,7 +66,7 @@ ls -la /etc/ssl/BasarnasSSL/
 **Jika PHP-FPM error:**
 ```bash
 # Masuk ke container app
-docker exec -it ebbm_app sh
+docker exec -it ebmp_app sh
 
 # Cek PHP-FPM status
 php-fpm -t
@@ -81,7 +81,7 @@ ls -la storage/
 docker-compose logs mysql
 
 # Test koneksi dari app container
-docker exec -it ebbm_app sh
+docker exec -it ebmp_app sh
 nc -zv mysql 3306
 ```
 

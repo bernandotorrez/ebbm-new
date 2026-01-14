@@ -96,19 +96,19 @@ curl -I https://e-bmp.basarnas.go.id
 
 ```bash
 # Cek nginx config
-[ ] docker exec -it ebbm_nginx nginx -t
+[ ] docker exec -it ebmp_nginx nginx -t
 
 # Cek PHP-FPM
-[ ] docker exec -it ebbm_app php-fpm -t
+[ ] docker exec -it ebmp_app php-fpm -t
 
 # Cek koneksi database
-[ ] docker exec -it ebbm_app php artisan migrate:status
+[ ] docker exec -it ebmp_app php artisan migrate:status
 
 # Cek storage link
-[ ] docker exec -it ebbm_app ls -la public/storage
+[ ] docker exec -it ebmp_app ls -la public/storage
 
 # Cek permissions
-[ ] docker exec -it ebbm_app ls -la storage/
+[ ] docker exec -it ebmp_app ls -la storage/
 
 # Test upload Livewire
 [ ] Login ke admin
@@ -125,36 +125,36 @@ curl -I https://e-bmp.basarnas.go.id
 docker-compose logs app
 
 # Cek koneksi
-docker exec -it ebbm_nginx nc -zv app 9000
+docker exec -it ebmp_nginx nc -zv app 9000
 ```
 
 ### Issue: SSL Certificate Error
 **Solution:**
 ```bash
 # Cek SSL files ada
-docker exec -it ebbm_nginx ls -la /etc/ssl/BasarnasSSL/
+docker exec -it ebmp_nginx ls -la /etc/ssl/BasarnasSSL/
 
 # Cek nginx config
-docker exec -it ebbm_nginx nginx -t
+docker exec -it ebmp_nginx nginx -t
 ```
 
 ### Issue: Permission Denied
 **Solution:**
 ```bash
 # Fix permissions
-docker exec -it ebbm_app chmod -R 775 storage bootstrap/cache
-docker exec -it ebbm_app chown -R www-data:www-data storage bootstrap/cache
+docker exec -it ebmp_app chmod -R 775 storage bootstrap/cache
+docker exec -it ebmp_app chown -R www-data:www-data storage bootstrap/cache
 ```
 
 ### Issue: Livewire Upload Failed
 **Solution:**
 ```bash
 # Cek livewire-tmp folder
-docker exec -it ebbm_app ls -la storage/app/livewire-tmp/
+docker exec -it ebmp_app ls -la storage/app/livewire-tmp/
 
 # Fix permissions
-docker exec -it ebbm_app chmod -R 775 storage/app/livewire-tmp
-docker exec -it ebbm_app chown -R www-data:www-data storage/app/livewire-tmp
+docker exec -it ebmp_app chmod -R 775 storage/app/livewire-tmp
+docker exec -it ebmp_app chown -R www-data:www-data storage/app/livewire-tmp
 ```
 
 ## 📊 Monitoring
@@ -167,8 +167,8 @@ docker stats
 docker-compose logs -f
 
 # Nginx access logs
-docker exec -it ebbm_nginx tail -f /var/log/nginx/e-bmp.access.log
+docker exec -it ebmp_nginx tail -f /var/log/nginx/e-bmp.access.log
 
 # Nginx error logs
-docker exec -it ebbm_nginx tail -f /var/log/nginx/e-bmp.error.log
+docker exec -it ebmp_nginx tail -f /var/log/nginx/e-bmp.error.log
 ```

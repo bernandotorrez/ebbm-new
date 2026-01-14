@@ -70,7 +70,7 @@ curl -I https://e-bmp.basarnas.go.id
 
 ```bash
 # Masuk ke nginx container
-docker exec -it ebbm_nginx sh
+docker exec -it ebmp_nginx sh
 
 # Cek apakah SSL files ter-mount
 ls -la /etc/ssl/BasarnasSSL/

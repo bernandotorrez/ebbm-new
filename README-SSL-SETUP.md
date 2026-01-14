@@ -190,10 +190,10 @@ docker-compose logs -f
 docker-compose logs -f nginx
 
 # Nginx access log
-docker exec -it ebbm_nginx tail -f /var/log/nginx/e-bmp.access.log
+docker exec -it ebmp_nginx tail -f /var/log/nginx/e-bmp.access.log
 
 # Nginx error log
-docker exec -it ebbm_nginx tail -f /var/log/nginx/e-bmp.error.log
+docker exec -it ebmp_nginx tail -f /var/log/nginx/e-bmp.error.log
 ```
 
 ### Restart Services

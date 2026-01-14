@@ -113,7 +113,7 @@ docker-compose ps app
 docker-compose logs app
 
 # Test koneksi dari nginx ke app
-docker exec -it ebbm_nginx nc -zv app 9000
+docker exec -it ebmp_nginx nc -zv app 9000
 
 # Restart app
 docker-compose restart app
@@ -126,7 +126,7 @@ docker-compose restart app
 **Solution:**
 ```bash
 # Masuk ke app container
-docker exec -it ebbm_app sh
+docker exec -it ebmp_app sh
 
 # Fix permissions
 chmod -R 775 storage bootstrap/cache
@@ -153,7 +153,7 @@ docker-compose ps mysql
 docker-compose logs mysql
 
 # Test koneksi dari app
-docker exec -it ebbm_app sh
+docker exec -it ebmp_app sh
 nc -zv mysql 3306
 exit
 
@@ -177,13 +177,13 @@ curl -I http://e-bmp.basarnas.go.id | grep 301
 curl -I https://e-bmp.basarnas.go.id | grep 200
 
 # ✅ Database migration status
-docker exec -it ebbm_app php artisan migrate:status
+docker exec -it ebmp_app php artisan migrate:status
 
 # ✅ Storage link exists
-docker exec -it ebbm_app ls -la public/storage
+docker exec -it ebmp_app ls -la public/storage
 
 # ✅ Permissions correct
-docker exec -it ebbm_app ls -la storage/
+docker exec -it ebmp_app ls -la storage/
 
 # ✅ Test login admin
 # Buka browser: https://e-bmp.basarnas.go.id/admin
@@ -226,10 +226,10 @@ docker-compose logs -f app
 docker-compose logs -f mysql
 
 # Nginx access log
-docker exec -it ebbm_nginx tail -f /var/log/nginx/e-bmp.access.log
+docker exec -it ebmp_nginx tail -f /var/log/nginx/e-bmp.access.log
 
 # Nginx error log
-docker exec -it ebbm_nginx tail -f /var/log/nginx/e-bmp.error.log
+docker exec -it ebmp_nginx tail -f /var/log/nginx/e-bmp.error.log
 ```
 
 ### Update Application
@@ -244,12 +244,12 @@ docker-compose build --no-cache
 docker-compose up -d
 
 # Run migrations
-docker exec -it ebbm_app php artisan migrate --force
+docker exec -it ebmp_app php artisan migrate --force
 
 # Clear cache
-docker exec -it ebbm_app php artisan cache:clear
-docker exec -it ebbm_app php artisan config:clear
-docker exec -it ebbm_app php artisan view:clear
+docker exec -it ebmp_app php artisan cache:clear
+docker exec -it ebmp_app php artisan config:clear
+docker exec -it ebmp_app php artisan view:clear
 ```
 
 ### Update SSL Certificate
@@ -274,10 +274,10 @@ curl -I https://e-bmp.basarnas.go.id
 
 ```bash
 # Backup
-docker exec ebbm_mysql mysqldump -u ebbm_user -pebbm_password ebbm > backup-$(date +%Y%m%d).sql
+docker exec ebmp_mysql mysqldump -u ebmp_user -pebmp_password ebmp > backup-$(date +%Y%m%d).sql
 
 # Restore
-docker exec -i ebbm_mysql mysql -u ebbm_user -pebbm_password ebbm < backup-20260114.sql
+docker exec -i ebmp_mysql mysql -u ebmp_user -pebmp_password ebmp < backup-20260114.sql
 ```
 
 ## Monitoring
@@ -293,7 +293,7 @@ docker system df
 docker-compose ps
 
 # Network info
-docker network inspect ebbm_network
+docker network inspect ebmp_network
 ```
 
 ## Architecture
@@ -328,4 +328,4 @@ Jika ada masalah:
 2. Cek status: `docker-compose ps`
 3. Cek resource: `docker stats`
 4. Review error di nginx error log
-5. Review error di Laravel log: `docker/exec -it ebbm_app tail -f storage/logs/laravel.log`
+5. Review error di Laravel log: `docker/exec -it ebmp_app tail -f storage/logs/laravel.log`

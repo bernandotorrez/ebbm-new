@@ -63,60 +63,60 @@ docker-compose down -v
 
 ```bash
 # Enter container
-docker exec -it ebbm_nginx sh
-docker exec -it ebbm_app sh
-docker exec -it ebbm_mysql sh
+docker exec -it ebmp_nginx sh
+docker exec -it ebmp_app sh
+docker exec -it ebmp_mysql sh
 
 # Test nginx config
-docker exec -it ebbm_nginx nginx -t
+docker exec -it ebmp_nginx nginx -t
 
 # Test PHP-FPM config
-docker exec -it ebbm_app php-fpm -t
+docker exec -it ebmp_app php-fpm -t
 
 # Check SSL files in nginx
-docker exec -it ebbm_nginx ls -la /etc/ssl/BasarnasSSL/
+docker exec -it ebmp_nginx ls -la /etc/ssl/BasarnasSSL/
 
 # Check permissions in app
-docker exec -it ebbm_app ls -la storage/
+docker exec -it ebmp_app ls -la storage/
 
 # Test database connection
-docker exec -it ebbm_app nc -zv mysql 3306
+docker exec -it ebmp_app nc -zv mysql 3306
 
 # Test nginx to app connection
-docker exec -it ebbm_nginx nc -zv app 9000
+docker exec -it ebmp_nginx nc -zv app 9000
 ```
 
 ## 📝 Laravel Commands
 
 ```bash
 # Run artisan commands
-docker exec -it ebbm_app php artisan migrate
-docker exec -it ebbm_app php artisan migrate:status
-docker exec -it ebbm_app php artisan cache:clear
-docker exec -it ebbm_app php artisan config:clear
-docker exec -it ebbm_app php artisan view:clear
-docker exec -it ebbm_app php artisan storage:link
+docker exec -it ebmp_app php artisan migrate
+docker exec -it ebmp_app php artisan migrate:status
+docker exec -it ebmp_app php artisan cache:clear
+docker exec -it ebmp_app php artisan config:clear
+docker exec -it ebmp_app php artisan view:clear
+docker exec -it ebmp_app php artisan storage:link
 
 # Composer
-docker exec -it ebbm_app composer install
-docker exec -it ebbm_app composer update
+docker exec -it ebmp_app composer install
+docker exec -it ebmp_app composer update
 
 # Fix permissions
-docker exec -it ebbm_app chmod -R 775 storage bootstrap/cache
-docker exec -it ebbm_app chown -R www-data:www-data storage bootstrap/cache
+docker exec -it ebmp_app chmod -R 775 storage bootstrap/cache
+docker exec -it ebmp_app chown -R www-data:www-data storage bootstrap/cache
 ```
 
 ## 📋 Logs
 
 ```bash
 # Nginx access log
-docker exec -it ebbm_nginx tail -f /var/log/nginx/e-bmp.access.log
+docker exec -it ebmp_nginx tail -f /var/log/nginx/e-bmp.access.log
 
 # Nginx error log
-docker exec -it ebbm_nginx tail -f /var/log/nginx/e-bmp.error.log
+docker exec -it ebmp_nginx tail -f /var/log/nginx/e-bmp.error.log
 
 # Laravel log
-docker exec -it ebbm_app tail -f storage/logs/laravel.log
+docker exec -it ebmp_app tail -f storage/logs/laravel.log
 
 # PHP-FPM log
 docker-compose logs -f app | grep php-fpm
@@ -153,24 +153,24 @@ curl -I https://e-bmp.basarnas.go.id
 curl -I -k https://localhost
 
 # Test from inside container
-docker exec -it ebbm_nginx curl -I http://localhost
-docker exec -it ebbm_app curl -I http://app:9000
+docker exec -it ebmp_nginx curl -I http://localhost
+docker exec -it ebmp_app curl -I http://app:9000
 ```
 
 ## 💾 Database
 
 ```bash
 # Backup database
-docker exec ebbm_mysql mysqldump -u ebbm_user -pebbm_password ebbm > backup.sql
+docker exec ebmp_mysql mysqldump -u ebmp_user -pebmp_password ebmp > backup.sql
 
 # Restore database
-docker exec -i ebbm_mysql mysql -u ebbm_user -pebbm_password ebbm < backup.sql
+docker exec -i ebmp_mysql mysql -u ebmp_user -pebmp_password ebmp < backup.sql
 
 # MySQL console
-docker exec -it ebbm_mysql mysql -u ebbm_user -pebbm_password ebbm
+docker exec -it ebmp_mysql mysql -u ebmp_user -pebmp_password ebmp
 
 # Show databases
-docker exec -it ebbm_mysql mysql -u root -prootpassword -e "SHOW DATABASES;"
+docker exec -it ebmp_mysql mysql -u root -prootpassword -e "SHOW DATABASES;"
 ```
 
 ## 🧹 Cleanup
@@ -218,12 +218,12 @@ docker-compose build --no-cache
 docker-compose up -d
 
 # Run migrations
-docker exec -it ebbm_app php artisan migrate --force
+docker exec -it ebmp_app php artisan migrate --force
 
 # Clear cache
-docker exec -it ebbm_app php artisan cache:clear
-docker exec -it ebbm_app php artisan config:clear
-docker exec -it ebbm_app php artisan view:clear
+docker exec -it ebmp_app php artisan cache:clear
+docker exec -it ebmp_app php artisan config:clear
+docker exec -it ebmp_app php artisan view:clear
 ```
 
 ## ⚠️ Emergency
@@ -275,7 +275,7 @@ Internet → HAProxy (10.0.3.42) → Nginx (80/443) → PHP-FPM (9000) → MySQL
 |---------|---------|
 | 502 Bad Gateway | `docker-compose restart app` |
 | SSL Error | `docker-compose restart nginx` |
-| Permission Denied | `docker exec -it ebbm_app chmod -R 775 storage` |
+| Permission Denied | `docker exec -it ebmp_app chmod -R 775 storage` |
 | Database Error | `docker-compose restart mysql` |
 | Can't upload file | Check `client_max_body_size` in nginx config |
 | Livewire not working | Check CSP headers in nginx config |

@@ -87,9 +87,9 @@ docker/
    APP_DEBUG=false
    APP_URL=https://e-bmp.basarnas.go.id
    DB_HOST=mysql
-   DB_DATABASE=ebbm
-   DB_USERNAME=ebbm_user
-   DB_PASSWORD=ebbm_password
+   DB_DATABASE=ebmp
+   DB_USERNAME=ebmp_user
+   DB_PASSWORD=ebmp_password
    ```
 
 3. **Build Assets**:
@@ -159,15 +159,15 @@ docker-compose logs -f
 docker-compose restart
 
 # Enter container
-docker exec -it ebbm_app sh
-docker exec -it ebbm_nginx sh
+docker exec -it ebmp_app sh
+docker exec -it ebmp_nginx sh
 
 # Laravel commands
-docker exec -it ebbm_app php artisan migrate
-docker exec -it ebbm_app php artisan cache:clear
+docker exec -it ebmp_app php artisan migrate
+docker exec -it ebmp_app php artisan cache:clear
 
 # Fix permissions
-docker exec -it ebbm_app chmod -R 775 storage bootstrap/cache
+docker exec -it ebmp_app chmod -R 775 storage bootstrap/cache
 ```
 
 ## ⚠️ Important Notes

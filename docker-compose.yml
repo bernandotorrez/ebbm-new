@@ -3,10 +3,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: ebbm_app
+    container_name: ebmp_app
     restart: unless-stopped
     networks:
-      - ebbm_network
+      - ebmp_network
     expose:
       - "9000"
     environment:
@@ -20,10 +20,10 @@ services:
 
   nginx:
     image: nginx:alpine
-    container_name: ebbm_nginx
+    container_name: ebmp_nginx
     restart: unless-stopped
     networks:
-      - ebbm_network
+      - ebmp_network
     ports:
       - "80:80"
       - "443:443"
@@ -38,22 +38,22 @@ services:
 
   mysql:
     image: percona:8.0
-    container_name: ebbm_mysql
+    container_name: ebmp_mysql
     restart: unless-stopped
     networks:
-      - ebbm_network
+      - ebmp_network
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: ebbm
-      MYSQL_USER: ebbm_user
-      MYSQL_PASSWORD: ebbm_password
+      MYSQL_DATABASE: ebmp
+      MYSQL_USER: ebmp_user
+      MYSQL_PASSWORD: ebmp_password
     volumes:
       - mysql_data:/var/lib/mysql
     ports:
       - "3306:3306"
 
 networks:
-  ebbm_network:
+  ebmp_network:
     driver: bridge
 
 volumes:
