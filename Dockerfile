@@ -29,7 +29,6 @@ RUN apk add --no-cache \
     oniguruma-dev \
     openssl-dev \
     supervisor \
-    nginx \
     zlib-dev \
     libzip-dev \
     freetype-dev \
@@ -71,7 +70,6 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 COPY docker/php/php.ini /usr/local/etc/php/php.ini
 COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 COPY docker/php/php-fpm-pool.conf /usr/local/etc/php-fpm.d/www.conf
-COPY docker/nginx/default.conf /etc/nginx/http.d/default.conf
 COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/entrypoints/entrypoint.sh /entrypoint.sh
 COPY docker/entrypoints/post-startup.sh /post-startup.sh
@@ -88,11 +86,11 @@ RUN chmod +x /entrypoint.sh \
     && chown -R www-data:www-data /var/log/supervisor
 
 # Expose port
-EXPOSE 80 443
+EXPOSE 9000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost/ || exit 1
+    CMD php-fpm -t || exit 1
 
 # Entry point
 ENTRYPOINT ["/entrypoint.sh"]

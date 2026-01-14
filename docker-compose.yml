@@ -7,22 +7,31 @@ services:
     restart: unless-stopped
     networks:
       - ebbl_network
-    ports:
-      - "80:80"
-      - "443:443"
     environment:
       - APP_ENV=production
     volumes:
       - .env:/var/www/html/.env:rw
-      # SSL Certificate mount (read-only)
-      # Production: gunakan path absolut di server
-      # - /etc/ssl/BasarnasSSL:/etc/ssl/BasarnasSSL:ro
-      # Development: gunakan path relatif di project
-      - ./docker/ssl:/etc/ssl/BasarnasSSL:ro
-      # If you need to persist storage, uncomment below
-      # - ./storage:/var/www/html/storage
+      - app_storage:/var/www/html/storage
+      - app_public:/var/www/html/public
     depends_on:
       - mysql
+
+  nginx:
+    image: nginx:alpine
+    container_name: ebbl_nginx
+    restart: unless-stopped
+    networks:
+      - ebbl_network
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./docker/ssl:/etc/ssl/BasarnasSSL:ro
+      - app_public:/var/www/html/public:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - app
 
   mysql:
     image: percona:8.0
@@ -46,3 +55,6 @@ networks:
 
 volumes:
   mysql_data:
+  app_storage:
+  app_public:
+  nginx_logs:
